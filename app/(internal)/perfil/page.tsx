@@ -179,8 +179,8 @@ export default function PerfilPage() {
         )}
       </motion.div>
 
-      {/* ── Settings list — heading w/ better visual hierarchy ──── */}
-      <motion.div variants={fadeUp} className="px-6 pt-2">
+      {/* ── Settings list — separated from trips section ──────── */}
+      <motion.div variants={fadeUp} className="px-6 pt-8 border-t border-[var(--color-neutral-100)] mt-2">
         <h2 className="font-display font-medium text-[18px] text-[var(--color-neutral-800)] mb-4">
           Configurações da conta
         </h2>

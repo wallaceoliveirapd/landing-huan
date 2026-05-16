@@ -17,12 +17,13 @@ import { formatBRL } from "@/lib/format";
  *   Heart pill (top-right): white rounded-full p-3
  *   Footer info: white rounded-[19px], px-4 py-2 — title + price/rating
  */
-export function OfferCard({ tour, className }: { tour: Tour; className?: string }) {
+export function OfferCard({ tour, className, onSelect }: { tour: Tour; className?: string; onSelect?: () => void }) {
   return (
     <motion.a
       href={tour.url}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={onSelect}
       whileHover={{ y: -2 }}
       whileTap={{ scale: 0.99 }}
       transition={{ type: "spring", stiffness: 380, damping: 24 }}

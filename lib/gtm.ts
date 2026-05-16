@@ -76,3 +76,13 @@ export function gtmSearch(search_term: string, list_name: string) {
 export function gtmFilterApplied(filter_type: string, filter_value: string, list_name: string) {
   push({ event: "filter_applied", filter_type, filter_value, list_name });
 }
+
+// ── Chat events ──────────────────────────────────────────────
+
+export function gtmChatMessageSent(turn_number: number, message_length: number) {
+  push({ event: "chat_message_sent", turn_number, message_length });
+}
+
+export function gtmChatResponseReceived(turn_number: number, response_length: number) {
+  push({ event: "chat_response_received", turn_number, response_length });
+}

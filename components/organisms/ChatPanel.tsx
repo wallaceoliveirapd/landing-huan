@@ -15,6 +15,7 @@ import {
   type RawCardItem,
 } from "@/lib/chat-mocks";
 import { trackChatMessage, trackSuggestedPrompt } from "@/lib/analytics";
+import { gtmChatMessageSent, gtmChatResponseReceived } from "@/lib/gtm";
 
 const STORAGE_KEY = "nordestai-chat-v1";
 
@@ -89,7 +90,9 @@ export function ChatPanel() {
       kind: "text",
       content: t,
     };
-    setMessages((prev) => [...prev, userMsg]);
+    const nextMessages = [...messages, userMsg];
+    setMessages(nextMessages);
+    gtmChatMessageSent(nextMessages.length, t.length);
     setInput("");
     setIsTyping(true);
 
@@ -105,6 +108,7 @@ export function ChatPanel() {
 
     const cardBuffer: RawCardItem[] = [];
     let cardsInserted = false;
+    let responseText = "";
 
     function flushCards() {
       if (cardsInserted || cardBuffer.length === 0) return;
@@ -147,13 +151,15 @@ export function ChatPanel() {
           const raw = line.slice(6).trim();
           if (raw === "[DONE]") {
             flushCards();
-            setMessages((prev) =>
-              prev.map((m) =>
+            setMessages((prev) => {
+              const finalMessages = prev.map((m) =>
                 m.id === assistantId && m.kind === "text" && !m.content
                   ? { ...m, content: "" }
                   : m,
-              ),
-            );
+              );
+              gtmChatResponseReceived(finalMessages.length, responseText.length);
+              return finalMessages;
+            });
             setIsTyping(false);
             return;
           }
@@ -166,6 +172,7 @@ export function ChatPanel() {
             if (event.type === "card" && event.data) {
               cardBuffer.push(event.data as RawCardItem);
             } else if (event.type === "text" && event.content) {
+              responseText += event.content;
               flushCards();
               setMessages((prev) =>
                 prev.map((m) =>

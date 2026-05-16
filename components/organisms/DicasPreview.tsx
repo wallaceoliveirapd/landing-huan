@@ -9,6 +9,7 @@ import { HorizontalCarousel } from "./HorizontalCarousel";
 import { FavoriteButton } from "@/components/atoms/FavoriteButton";
 import { toProxyUrl } from "@/lib/imageUpload";
 import { staggerChildren, fadeUp } from "@/lib/motion-presets";
+import { gtmSelectItem } from "@/lib/gtm";
 
 /**
  * Dica card — matches Figma node 334:36422.
@@ -23,6 +24,7 @@ function DicaCard({
   category,
   title,
   excerpt,
+  onSelect,
 }: {
   id: string;
   slug: string;
@@ -30,6 +32,7 @@ function DicaCard({
   category: string;
   title: string;
   excerpt: string;
+  onSelect?: () => void;
 }) {
   return (
     <motion.div
@@ -38,7 +41,7 @@ function DicaCard({
       transition={{ type: "spring", stiffness: 380, damping: 24 }}
       className="w-[min(70vw,245px)] flex-none flex flex-col gap-2"
     >
-      <Link href={`/dicas/${slug}`} className="flex flex-col gap-2">
+      <Link href={`/dicas/${slug}`} className="flex flex-col gap-2" onClick={onSelect}>
         <div className="relative aspect-[245/164] w-full overflow-hidden rounded-[24px]">
           <Image
             src={toProxyUrl(cover)}
@@ -131,6 +134,15 @@ export function DicasPreview() {
               category={d.category}
               title={d.title}
               excerpt={d.excerpt}
+              onSelect={() =>
+                gtmSelectItem({
+                  item_type: "dica",
+                  item_id: d._id,
+                  item_name: d.title,
+                  item_city: null,
+                  list_name: "home",
+                })
+              }
             />
           ))}
         </HorizontalCarousel>

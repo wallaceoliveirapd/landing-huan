@@ -15,16 +15,30 @@ const asap = Asap({
 });
 
 export const metadata: Metadata = {
-  title: "HUAN — Tá vindo pra João Pessoa?",
+  title: "NordestAI — Sua viagem no Nordeste",
   description:
     "Passeios, restaurantes e dicas exclusivas em João Pessoa, escolhidos a dedo para a sua viagem.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    title: "NordestAI",
+    statusBarStyle: "default",
+  },
+  icons: {
+    icon: "/images/icon.png",
+    apple: "/images/icon.png",
+  },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#dde1e8",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)",  color: "#ffffff" },
+  ],
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

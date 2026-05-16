@@ -1,15 +1,26 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { motion } from "motion/react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { CouponCard, type CouponData } from "@/components/organisms/CouponCard";
 import { staggerChildren, fadeUp } from "@/lib/motion-presets";
 import { Icon } from "@/components/atoms/Icon";
+import { gtmViewItemList, gtmSelectItem } from "@/lib/gtm";
 
 export default function CuponsListingPage() {
   const coupons = useQuery(api.coupons.list, { activeOnly: true });
   const loading = coupons === undefined;
+
+  // GTM: fire view_item_list once when data first loads
+  const firedRef = useRef(false);
+  useEffect(() => {
+    if (coupons !== undefined && !firedRef.current) {
+      firedRef.current = true;
+      gtmViewItemList("cupons");
+    }
+  }, [coupons]);
 
   return (
     <motion.main
@@ -71,7 +82,21 @@ export default function CuponsListingPage() {
                 firstPurchaseOnly: c.firstPurchaseOnly,
                 validUntil: c.validUntil,
               };
-              return <CouponCard key={c._id} coupon={data} />;
+              return (
+                <CouponCard
+                  key={c._id}
+                  coupon={data}
+                  onSelect={() =>
+                    gtmSelectItem({
+                      item_type: "passeio",
+                      item_id: c._id,
+                      item_name: c.title,
+                      item_city: null,
+                      list_name: "cupons",
+                    })
+                  }
+                />
+              );
             })}
           </div>
         )}

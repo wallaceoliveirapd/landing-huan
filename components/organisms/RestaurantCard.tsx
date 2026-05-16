@@ -19,9 +19,11 @@ import { toProxyUrl } from "@/lib/imageUpload";
 export function RestaurantCard({
   restaurant,
   className,
+  onSelect,
 }: {
   restaurant: Restaurant;
   className?: string;
+  onSelect?: () => void;
 }) {
   return (
     <motion.div
@@ -36,6 +38,7 @@ export function RestaurantCard({
       <Link
         href={`/restaurantes/${restaurant.slug}`}
         className="flex flex-col gap-2"
+        onClick={onSelect}
       >
         <div className="relative aspect-[245/164] w-full overflow-hidden rounded-[24px]">
           <Image

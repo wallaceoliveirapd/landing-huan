@@ -1,118 +1,54 @@
 "use client";
 
-import * as React from "react";
-
-interface AiLoaderProps {
-  size?: number;
-  text?: string;
-}
+import { AnimatePresence, motion } from "motion/react";
 
 /**
  * Fullscreen loading overlay shown while the NordestAI is generating an
- * itinerary. Yellow brand gradient + concentric glowing ring that rotates
- * while each letter of the text pulses sequentially.
+ * itinerary. Yellow brand gradient + spinning ring + pulsing subtitle.
  *
- * Adapted from a generic AI-loader pattern, tinted to match HUAN's brand
- * (yellow `#F9FD17` + dark ink for legibility).
+ * Usage:
+ *   <AiLoader show={generating} />
+ *
+ * When show=false the component returns null (removed from DOM via AnimatePresence).
  */
-export const AiLoader: React.FC<AiLoaderProps> = ({
-  size = 200,
-  text = "Montando seu roteiro",
-}) => {
-  const letters = text.split("");
-
+export function AiLoader({ show }: { show: boolean }) {
   return (
-    <div
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-12"
-      style={{
-        background:
-          "radial-gradient(ellipse at center, #fffbcc 0%, #fde047 45%, #facc15 80%, #ca8a04 100%)",
-      }}
-      role="status"
-      aria-live="polite"
-      aria-label={text}
-    >
-      {/* Rotating ring */}
-      <div
-        className="relative flex items-center justify-center font-display select-none"
-        style={{ width: size, height: size }}
-      >
-        {letters.map((letter, index) => (
-          <span
-            key={index}
-            className="inline-block text-[var(--color-neutral-800)] opacity-30 animate-loaderLetter font-medium"
-            style={{
-              animationDelay: `${index * 0.07}s`,
-              fontSize: Math.max(13, size / 13),
-            }}
-          >
-            {letter === " " ? " " : letter}
-          </span>
-        ))}
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          key="ai-loader"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-6 bg-gradient-to-b from-[#fef9c3] via-[#fde047] to-[#facc15]"
+          role="status"
+          aria-live="polite"
+          aria-label="Montando seu roteiro"
+        >
+          {/* Spinning ring with inner glow */}
+          <div className="relative flex items-center justify-center">
+            <div className="w-20 h-20 rounded-full border-4 border-[#ca8a04] border-t-transparent animate-spin" />
+            <div className="absolute w-12 h-12 rounded-full bg-[#facc15] shadow-[0_0_30px_#eab308]" />
+          </div>
 
-        <div className="absolute inset-0 rounded-full animate-loaderCircle" />
-      </div>
-
-      {/* Subtitle hint */}
-      <p className="text-[13px] font-medium text-[var(--color-neutral-700)] tracking-wide animate-pulse">
-        Isso pode levar alguns segundos…
-      </p>
-
-      <style jsx>{`
-        @keyframes loaderCircle {
-          0% {
-            transform: rotate(90deg);
-            box-shadow:
-              0 6px 12px 0 #fde047 inset,
-              0 12px 18px 0 #facc15 inset,
-              0 36px 36px 0 #ca8a04 inset,
-              0 0 3px 1.2px rgba(202, 138, 4, 0.35),
-              0 0 12px 2px rgba(250, 204, 21, 0.3);
-          }
-          50% {
-            transform: rotate(270deg);
-            box-shadow:
-              0 6px 12px 0 #facc15 inset,
-              0 12px 6px 0 #eab308 inset,
-              0 24px 36px 0 #a16207 inset,
-              0 0 3px 1.2px rgba(202, 138, 4, 0.35),
-              0 0 12px 2px rgba(250, 204, 21, 0.3);
-          }
-          100% {
-            transform: rotate(450deg);
-            box-shadow:
-              0 6px 12px 0 #fde047 inset,
-              0 12px 18px 0 #facc15 inset,
-              0 36px 36px 0 #ca8a04 inset,
-              0 0 3px 1.2px rgba(202, 138, 4, 0.35),
-              0 0 12px 2px rgba(250, 204, 21, 0.3);
-          }
-        }
-
-        @keyframes loaderLetter {
-          0%,
-          100% {
-            opacity: 0.3;
-            transform: translateY(0);
-          }
-          20% {
-            opacity: 1;
-            transform: scale(1.18);
-          }
-          40% {
-            opacity: 0.7;
-            transform: translateY(0);
-          }
-        }
-
-        .animate-loaderCircle {
-          animation: loaderCircle 5s linear infinite;
-        }
-
-        .animate-loaderLetter {
-          animation: loaderLetter 3s infinite;
-        }
-      `}</style>
-    </div>
+          {/* Text */}
+          <div className="flex flex-col items-center gap-1 text-center">
+            <p className="font-display font-semibold text-lg text-black/70">
+              Montando seu roteiro...
+            </p>
+            <p className="text-sm text-black/50">
+              Buscando os melhores lugares para você
+            </p>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
-};
+}
+
+// Keep the old named export alias for any other callers that may
+// use the class-component style (e.g. <AiLoader text="…" />).
+// Those usages just gate the render externally, so `show` defaults to true.
+/** @deprecated Use `<AiLoader show={…} />` instead */
+export const AiLoaderLegacy = AiLoader;

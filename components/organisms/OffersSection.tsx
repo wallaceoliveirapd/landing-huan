@@ -6,6 +6,7 @@ import { api } from "@/convex/_generated/api";
 import { HorizontalCarousel } from "./HorizontalCarousel";
 import { OfferCard } from "./OfferCard";
 import { staggerChildren, fadeUp } from "@/lib/motion-presets";
+import { gtmSelectItem } from "@/lib/gtm";
 import type { Tour } from "@/lib/mock-data";
 
 function ratingLabel(reviewCount: number): string {
@@ -55,8 +56,20 @@ export function OffersSection() {
         </motion.div>
 
         <HorizontalCarousel>
-          {tours.map((t) => (
-            <OfferCard key={t.id} tour={t} />
+          {tours.map((t, i) => (
+            <OfferCard
+              key={t.id}
+              tour={t}
+              onSelect={() =>
+                gtmSelectItem({
+                  item_type: "passeio",
+                  item_id: String(t.id),
+                  item_name: t.title,
+                  item_city: null,
+                  list_name: "home",
+                })
+              }
+            />
           ))}
         </HorizontalCarousel>
       </div>

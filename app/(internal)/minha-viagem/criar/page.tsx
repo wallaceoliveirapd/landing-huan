@@ -323,7 +323,7 @@ export default function CriarViagemPage() {
       {/* Fullscreen AI loader while the itinerary is being generated.
           Sits on top of everything (z-100) so the user can't interact
           with the wizard mid-save. */}
-      {saving && <AiLoader text="Montando seu roteiro" />}
+      <AiLoader show={saving} />
 
       {/* ── Header — close icon + title ─────────────────────────── */}
       <div className="flex items-center gap-3 px-6 pt-4 pb-2 shrink-0">

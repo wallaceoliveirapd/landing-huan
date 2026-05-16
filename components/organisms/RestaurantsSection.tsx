@@ -6,6 +6,7 @@ import { api } from "@/convex/_generated/api";
 import { HorizontalCarousel } from "./HorizontalCarousel";
 import { RestaurantCard } from "./RestaurantCard";
 import { staggerChildren, fadeUp } from "@/lib/motion-presets";
+import { gtmSelectItem } from "@/lib/gtm";
 import type { Restaurant } from "@/lib/mock-data";
 
 export function RestaurantsSection() {
@@ -51,7 +52,19 @@ export function RestaurantsSection() {
 
         <HorizontalCarousel>
           {restaurants.map((r) => (
-            <RestaurantCard key={r.id} restaurant={r} />
+            <RestaurantCard
+              key={r.id}
+              restaurant={r}
+              onSelect={() =>
+                gtmSelectItem({
+                  item_type: "restaurante",
+                  item_id: String(r.id),
+                  item_name: r.name,
+                  item_city: null,
+                  list_name: "home",
+                })
+              }
+            />
           ))}
         </HorizontalCarousel>
       </div>

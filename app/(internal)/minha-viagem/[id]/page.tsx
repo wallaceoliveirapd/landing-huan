@@ -236,6 +236,16 @@ export default function TripDetailPage({
     if (!auth.isLoading && !auth.isAuthenticated) auth.openAuthModal();
   }, [auth.isLoading, auth.isAuthenticated]);
 
+  // GTM: fire trip_viewed once when trip data loads
+  useEffect(() => {
+    if (!trip) return;
+    gtmTripViewed({
+      trip_type: trip.type,
+      trip_city: trip.destination,
+      trip_duration: trip.duration ?? 3,
+    });
+  }, [trip?._id]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Poll for itinerary if it's still loading (action runs in background)
   const itineraryReady = !!trip?.itinerary && trip.itinerary.length > 0;
 

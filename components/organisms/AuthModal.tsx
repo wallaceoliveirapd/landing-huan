@@ -9,6 +9,7 @@ import { bottomSheetSpring } from "@/lib/motion-presets";
 import { LegalSheet } from "@/components/organisms/LegalSheet";
 import { TERMS_MD } from "@/content/terms";
 import { PRIVACY_MD } from "@/content/privacy";
+import { gtmUserLoggedIn, gtmUserSignedUp } from "@/lib/gtm";
 
 /** Mask Brazilian WhatsApp number as the user types: (DD) 9XXXX-XXXX */
 function maskWhatsapp(raw: string): string {
@@ -17,6 +18,28 @@ function maskWhatsapp(raw: string): string {
   if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 }
+
+// ── Password strength ────────────────────────────────────────
+type StrengthLevel = "fraca" | "média" | "forte";
+
+function getStrength(pwd: string): StrengthLevel | null {
+  if (!pwd) return null;
+  let score = 0;
+  if (pwd.length >= 8) score++;
+  if (/[A-Z]/.test(pwd)) score++;
+  if (/[0-9]/.test(pwd)) score++;
+  if (/[^A-Za-z0-9]/.test(pwd)) score++;
+  if (score <= 1 || pwd.length < 8) return "fraca";
+  if (score === 2) return "média";
+  return "forte";
+}
+
+const STRENGTH_COLOR: Record<StrengthLevel, string> = {
+  fraca: "bg-red-500",
+  média: "bg-yellow-400",
+  forte: "bg-green-500",
+};
+const STRENGTH_BARS: Record<StrengthLevel, number> = { fraca: 1, média: 2, forte: 3 };
 
 type Step = "form" | "otp";
 
@@ -32,6 +55,7 @@ export function AuthModal() {
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   // OTP step
   const [otpCode, setOtpCode] = useState("");
@@ -47,6 +71,7 @@ export function AuthModal() {
     setWhatsapp("");
     setEmail("");
     setPassword("");
+    setConfirmPassword("");
     setOtpCode("");
     setResendCooldown(0);
     setError("");
@@ -75,6 +100,14 @@ export function AuthModal() {
         setError("Preencha seu nome e WhatsApp para criar a conta.");
         return;
       }
+      if (password !== confirmPassword) {
+        setError("As senhas não coincidem.");
+        return;
+      }
+      if (getStrength(password) === "fraca") {
+        setError("Senha fraca. Use ao menos 8 caracteres, uma letra maiúscula e um número.");
+        return;
+      }
     }
 
     setError("");
@@ -97,6 +130,8 @@ export function AuthModal() {
         setStep("otp");
         setResendCooldown(45);
       } else {
+        // Direct sign-in (no OTP required)
+        gtmUserLoggedIn("email");
         handleClose();
       }
     } catch (err) {
@@ -126,6 +161,11 @@ export function AuthModal() {
     setLoading(true);
     try {
       await signIn("resend-otp", { email, code: digits });
+      if (tab === "signUp") {
+        gtmUserSignedUp("email");
+      } else {
+        gtmUserLoggedIn("email");
+      }
       handleClose();
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -273,15 +313,23 @@ export function AuthModal() {
                   required
                 />
 
-                <Field
+                <PasswordField
                   label="Senha"
-                  type="password"
                   value={password}
                   onChange={setPassword}
                   placeholder="Mínimo 8 caracteres"
-                  required
-                  minLength={8}
+                  showStrength={tab === "signUp"}
                 />
+
+                {tab === "signUp" && (
+                  <PasswordField
+                    label="Confirmar senha"
+                    value={confirmPassword}
+                    onChange={setConfirmPassword}
+                    placeholder="Repita a senha"
+                    confirmValue={password}
+                  />
+                )}
 
                 {error && (
                   <p className="text-[13px] text-red-600 bg-red-50 rounded-[12px] px-4 py-3">
@@ -394,6 +442,87 @@ export function AuthModal() {
         </>
       )}
     </AnimatePresence>
+  );
+}
+
+// ─── PasswordField ──────────────────────────────────────────────────────────
+function PasswordField({
+  label,
+  value,
+  onChange,
+  placeholder,
+  showStrength,
+  confirmValue,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  showStrength?: boolean;
+  confirmValue?: string; // if set, shows match indicator instead of strength
+}) {
+  const [visible, setVisible] = useState(false);
+  const strength = showStrength ? getStrength(value) : null;
+  const mismatch = confirmValue !== undefined && value.length > 0 && value !== confirmValue;
+  const match = confirmValue !== undefined && value.length > 0 && value === confirmValue;
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="text-[13px] font-medium text-[var(--color-neutral-800)]">
+        {label}
+      </label>
+      <div className="relative">
+        <input
+          type={visible ? "text" : "password"}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          required
+          minLength={8}
+          className="h-12 w-full rounded-[16px] border border-[var(--color-neutral-300)] px-4 pr-12 text-[15px] text-[var(--color-neutral-800)] outline-none focus:border-[var(--color-neutral-800)] transition-colors"
+        />
+        <button
+          type="button"
+          onClick={() => setVisible((v) => !v)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[var(--color-neutral-500)] hover:text-[var(--color-neutral-800)] transition-colors"
+          aria-label={visible ? "Ocultar senha" : "Mostrar senha"}
+        >
+          <Icon name={visible ? "eye-off" : "eye"} size={18} />
+        </button>
+      </div>
+
+      {/* Strength meter */}
+      {showStrength && value.length > 0 && strength && (
+        <div className="flex flex-col gap-1">
+          <div className="flex gap-1">
+            {[1, 2, 3].map((bar) => (
+              <div
+                key={bar}
+                className={`h-1 flex-1 rounded-full transition-colors ${
+                  bar <= STRENGTH_BARS[strength]
+                    ? STRENGTH_COLOR[strength]
+                    : "bg-[var(--color-neutral-200)]"
+                }`}
+              />
+            ))}
+          </div>
+          <p className={`text-[11px] font-medium ${
+            strength === "forte" ? "text-green-600" :
+            strength === "média" ? "text-yellow-600" : "text-red-600"
+          }`}>
+            Senha {strength}
+            {strength === "fraca" && " — adicione maiúsculas, números ou símbolos"}
+          </p>
+        </div>
+      )}
+
+      {/* Confirm match indicator */}
+      {confirmValue !== undefined && value.length > 0 && (
+        <p className={`text-[11px] font-medium ${match ? "text-green-600" : "text-red-600"}`}>
+          {match ? "✓ Senhas coincidem" : "✗ Senhas não coincidem"}
+        </p>
+      )}
+    </div>
   );
 }
 

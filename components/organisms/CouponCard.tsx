@@ -187,11 +187,12 @@ function CouponSheet({ coupon, onClose }: { coupon: CouponData; onClose: () => v
  *     - Code pill: neutral-100 rounded-[8px], holds "•••••••" + Copiar button
  *     - Footer row: Válido até DATE   /   Regras >
  */
-export function CouponCard({ coupon }: { coupon: CouponData }) {
+export function CouponCard({ coupon, onSelect }: { coupon: CouponData; onSelect?: () => void }) {
   const auth = useAuth();
   const [sheetOpen, setSheetOpen] = useState(false);
 
   function handleOpenDetails() {
+    onSelect?.();
     if (auth.requireAuth()) setSheetOpen(true);
   }
 

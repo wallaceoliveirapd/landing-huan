@@ -77,7 +77,8 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Navegação principal"
-      className="fixed bottom-4 inset-x-0 z-30 flex justify-center pointer-events-none"
+      className="fixed inset-x-0 z-30 flex justify-center pointer-events-none"
+      style={{ bottom: "calc(1rem + env(safe-area-inset-bottom))" }}
     >
       <div
         className="pointer-events-auto flex items-center gap-1 rounded-full bg-white py-2 px-2"
