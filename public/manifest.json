@@ -1,0 +1,24 @@
+{
+  "name": "Huan Falcão — Viajando o Nordeste",
+  "short_name": "Huan Falcão",
+  "description": "Roteiros pelo Nordeste do Brasil com o Huan Falcão e o NordestAI.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#F9FD17",
+  "icons": [
+    {
+      "src": "/images/icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

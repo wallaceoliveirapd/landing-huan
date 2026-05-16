@@ -1,0 +1,36 @@
+import { HeroPromo } from "@/components/organisms/HeroPromo";
+import { FeaturedHeroSection } from "@/components/organisms/FeaturedHeroSection";
+import { OffersSection } from "@/components/organisms/OffersSection";
+import { CouponsSection } from "@/components/organisms/CouponsSection";
+import { RestaurantsSection } from "@/components/organisms/RestaurantsSection";
+import { SectionSpacer } from "@/components/organisms/SectionSpacer";
+import { DicasPreview } from "@/components/organisms/DicasPreview";
+import { LoggedOutCta } from "@/components/organisms/LoggedOutCta";
+import { SITE_CONTENT } from "@/lib/mock-data";
+
+export default function HomePage() {
+  return (
+    <main className="bg-white overflow-x-hidden">
+      <HeroPromo
+        title={SITE_CONTENT.hero.title}
+        subtitle={SITE_CONTENT.hero.subtitle}
+        searchPlaceholder={SITE_CONTENT.hero.searchPlaceholder}
+      />
+      <OffersSection />
+      {/*
+        LoggedOutCta returns null when logged in — avoid double spacer by
+        rendering a single SectionSpacer INSIDE the component when visible.
+        The spacer before CouponsSection always renders.
+      */}
+      <LoggedOutCta />
+      <SectionSpacer />
+      <CouponsSection />
+      <SectionSpacer />
+      <RestaurantsSection />
+      <SectionSpacer />
+      <FeaturedHeroSection />
+      <SectionSpacer />
+      <DicasPreview />
+    </main>
+  );
+}

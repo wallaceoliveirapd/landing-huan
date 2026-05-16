@@ -1,0 +1,101 @@
+@import "tailwindcss";
+@import "mapbox-gl/dist/mapbox-gl.css";
+
+@theme {
+  /* Brand */
+  --color-brand-yellow: #f9fd17;
+  --color-brand-purple: #6c47ff;
+  --color-success-green: #028574;
+  --color-success-500: #028574;
+
+  /* Neutrals from Figma — Airbnb-style clean palette */
+  --color-neutral-100: #f2f4f5;
+  --color-neutral-200: #e8ebed;
+  --color-neutral-300: #dde1e8;
+  --color-neutral-400: #b4b8be;
+  --color-neutral-500: #94989e;
+  --color-neutral-600: #72777f;
+  --color-neutral-700: #565a60;
+  --color-neutral-800: #323439;
+  --color-ink: #323439;
+
+  /* Surfaces — site is white. Always white. */
+  --color-surface: #ffffff;
+  --color-app-bg: #ffffff;
+
+  /* Font families bound to next/font CSS variables */
+  --font-display: var(--font-asap), system-ui, sans-serif;
+  --font-body: var(--font-asap), system-ui, sans-serif;
+
+  /* Radii */
+  --radius-pill: 999px;
+  --radius-card: 24px;
+  --radius-card-lg: 28px;
+
+  /* Shadows */
+  --shadow-card: 0 3.206px 6.413px 0 rgba(84, 89, 98, 0.1);
+  --shadow-pill: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* Force brand vars as native CSS custom properties so dev/prod always resolve */
+:root {
+  --color-brand-purple: #6c47ff;
+  --color-brand-yellow: #f9fd17;
+}
+
+html,
+body {
+  background: #ffffff;
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-variation-settings: "wdth" 100;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* iOS Safari: prevent rubber-band overscroll color flash */
+html {
+  background-color: #ffffff;
+}
+
+/* Lucide icons: enforce thin strokes globally for a clean Airbnb-style look */
+.iconify[data-icon^="lucide:"] {
+  stroke-width: 1.7;
+}
+
+/* Hide scrollbars on horizontal carousels but keep scroll behavior */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Smoother iOS momentum + snap that doesn't fight the swipe */
+.carousel-smooth {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline-start: 24px;
+  scroll-padding-inline-end: 24px;
+}
+
+/* Tap highlight removal for buttons in mobile */
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

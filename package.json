@@ -1,0 +1,43 @@
+{
+  "name": "landing-destinos",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "cowork": "node scripts/cowork-dicas.mjs",
+    "seed": "npx convex run seed:run"
+  },
+  "dependencies": {
+    "@auth/core": "^0.37.4",
+    "@aws-sdk/client-s3": "^3.1047.0",
+    "@aws-sdk/s3-request-presigner": "^3.1047.0",
+    "@convex-dev/auth": "^0.0.92",
+    "@google/generative-ai": "^0.24.1",
+    "@iconify/react": "^6.0.2",
+    "@types/mapbox-gl": "^3.4.1",
+    "clsx": "^2.1.1",
+    "convex": "^1.39.1",
+    "groq-sdk": "^1.2.0",
+    "jszip": "^3.10.1",
+    "mapbox-gl": "^3.23.1",
+    "motion": "^12.38.0",
+    "next": "16.2.6",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "resend": "^6.12.3",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.6.0",
+    "web-push": "^3.6.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/web-push": "^3.6.4",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
