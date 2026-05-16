@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAction, useQuery } from "convex/react";
+import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Icon } from "@/components/atoms/Icon";
 
@@ -23,6 +23,7 @@ function fmtDate(ts: number): string {
 
 export default function AdminPushPage() {
   const sendBroadcast = useAction(api.push.sendBroadcast);
+  const clearSubs = useMutation(api.pushQueries.clearAllSubscriptions);
   const history = useQuery(api.pushQueries.listBroadcasts, { limit: 20 });
 
   const [title, setTitle] = useState("");
@@ -30,6 +31,7 @@ export default function AdminPushPage() {
   const [url, setUrl] = useState("/");
   const [segment, setSegment] = useState("all");
   const [sending, setSending] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const [result, setResult] = useState<{ delivered: number; failed: number } | null>(null);
   const [error, setError] = useState("");
 
@@ -57,6 +59,19 @@ export default function AdminPushPage() {
       setError(err instanceof Error ? err.message : "Erro desconhecido.");
     } finally {
       setSending(false);
+    }
+  }
+
+  async function handleClearSubs() {
+    if (!confirm("Limpar TODAS as subscriptions? Usuários precisarão reativar notificações.")) return;
+    setClearing(true);
+    try {
+      const r = await clearSubs({});
+      alert(`${r.removed} subscriptions removidas.`);
+    } catch {
+      alert("Erro ao limpar.");
+    } finally {
+      setClearing(false);
     }
   }
 
@@ -155,14 +170,24 @@ export default function AdminPushPage() {
             </p>
           )}
 
-          <button
-            type="button"
-            onClick={handleSend}
-            disabled={sending || !title.trim() || !body.trim()}
-            className="self-end h-11 px-5 rounded-full bg-[var(--color-neutral-800)] text-white text-[14px] font-medium disabled:opacity-50"
-          >
-            {sending ? "Enviando…" : "Enviar agora"}
-          </button>
+          <div className="flex items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={handleClearSubs}
+              disabled={clearing}
+              className="h-11 px-4 rounded-full border border-red-300 text-red-600 text-[13px] font-medium disabled:opacity-50 hover:bg-red-50"
+            >
+              {clearing ? "Limpando…" : "Limpar subscriptions"}
+            </button>
+            <button
+              type="button"
+              onClick={handleSend}
+              disabled={sending || !title.trim() || !body.trim()}
+              className="h-11 px-5 rounded-full bg-[var(--color-neutral-800)] text-white text-[14px] font-medium disabled:opacity-50"
+            >
+              {sending ? "Enviando…" : "Enviar agora"}
+            </button>
+          </div>
         </div>
       </section>
 

@@ -43,9 +43,11 @@ export function PasseiosContent() {
     () =>
       (convexTours ?? []).map((t) => ({
         id: t._id,
+        slug: t.slug,
         title: t.title,
         image: t.image,
         rating: t.rating,
+        reviewCount: t.reviewCount,
         ratingLabel: t.reviewCount >= 200 ? "Excelente" : t.reviewCount >= 100 ? "Muito bom" : "Bom",
         duration: t.duration,
         price: t.price,
@@ -54,6 +56,8 @@ export function PasseiosContent() {
         url: t.url,
         tags: t.tags,
         city: t.city,
+        description: t.description,
+        shortDesc: t.shortDesc,
       })),
     [convexTours],
   );

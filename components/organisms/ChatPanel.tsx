@@ -214,6 +214,7 @@ export function ChatPanel() {
           exit={{ y: "100%" }}
           transition={{ type: "spring", stiffness: 340, damping: 36, mass: 1 }}
           className="fixed inset-0 z-50 flex flex-col bg-white"
+          style={{ WebkitOverflowScrolling: "touch" }}
           role="dialog"
           aria-modal="true"
           aria-label="NordestAI, seu agente de viagem do Nordeste"
@@ -283,7 +284,7 @@ export function ChatPanel() {
           {/* ── Messages ────────────────────────────────────────── */}
           <div
             ref={scrollRef}
-            className="flex-1 overflow-y-auto px-5 pt-2 pb-4 flex flex-col gap-3 bg-white"
+            className="flex-1 overflow-y-auto overscroll-contain px-5 pt-2 pb-4 flex flex-col gap-3 bg-white"
           >
             {messages.map((m) => {
               if (m.kind === "text") {
@@ -314,7 +315,7 @@ export function ChatPanel() {
                         image={m.card.tour.image}
                         rating={m.card.tour.rating}
                         meta={m.card.tour.duration}
-                        href={m.card.tour.url}
+                        href={`/passeios/${m.card.tour.slug}`}
                       />
                     )}
                     {m.card.type === "restaurant" && (
@@ -382,7 +383,8 @@ export function ChatPanel() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Pergunte sobre passeios, lugares, cupons..."
-                className="flex-1 bg-transparent text-[14px] text-[var(--color-neutral-800)] placeholder:text-[var(--color-neutral-500)] border-none outline-none"
+                className="flex-1 bg-transparent text-[var(--color-neutral-800)] placeholder:text-[var(--color-neutral-500)] border-none outline-none"
+                style={{ fontSize: "16px" }}
               />
             </div>
             <button

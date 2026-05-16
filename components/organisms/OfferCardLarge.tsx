@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { motion } from "motion/react";
 import { Badge } from "@/components/atoms/Badge";
 import { PriceTag } from "@/components/atoms/PriceTag";
@@ -15,11 +16,10 @@ import { toProxyUrl } from "@/lib/imageUpload";
  * - Cada card vive numa <section> própria com bg-white + p-6
  */
 export function OfferCardLarge({ tour }: { tour: Tour }) {
+  const MotionLink = motion(Link);
   return (
-    <motion.a
-      href={tour.url}
-      target="_blank"
-      rel="noopener noreferrer"
+    <MotionLink
+      href={`/passeios/${tour.slug}`}
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
@@ -56,6 +56,6 @@ export function OfferCardLarge({ tour }: { tour: Tour }) {
           ))}
         </div>
       </div>
-    </motion.a>
+    </MotionLink>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { Icon } from "@/components/atoms/Icon";
@@ -46,6 +47,7 @@ type Step = "form" | "otp";
 export function AuthModal() {
   const { authModalOpen, closeAuthModal } = useAuth();
   const { signIn } = useAuthActions();
+  const router = useRouter();
 
   const [step, setStep] = useState<Step>("form");
   const [tab, setTab] = useState<"signIn" | "signUp">("signIn");
@@ -78,10 +80,13 @@ export function AuthModal() {
     setLoading(false);
   }
 
-  function handleClose() {
+  function handleClose(didAuth?: boolean) {
     reset();
     closeAuthModal();
+    if (didAuth) router.refresh();
   }
+
+  function handleCloseClick() { handleClose(); }
 
   // Resend cooldown ticker
   useEffect(() => {
@@ -132,7 +137,7 @@ export function AuthModal() {
       } else {
         // Direct sign-in (no OTP required)
         gtmUserLoggedIn("email");
-        handleClose();
+        handleClose(true);
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -166,7 +171,7 @@ export function AuthModal() {
       } else {
         gtmUserLoggedIn("email");
       }
-      handleClose();
+      handleClose(true);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       if (msg.toLowerCase().includes("invalid") || msg.toLowerCase().includes("expired")) {
@@ -212,8 +217,8 @@ export function AuthModal() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            onClick={handleClose}
-            className="fixed inset-0 z-[60] bg-black/20 backdrop-blur-[2px]"
+            onClick={handleCloseClick}
+            className="fixed inset-0 z-[60] bg-black/20"
           />
 
           {/* Sheet */}
@@ -236,20 +241,20 @@ export function AuthModal() {
                   {step === "otp"
                     ? "Confirme seu email"
                     : tab === "signIn"
-                    ? "Bem-vindo de volta"
-                    : "Criar conta grátis"}
+                      ? "Bem-vindo de volta"
+                      : "Criar conta grátis"}
                 </h2>
                 <p className="text-[13px] text-[var(--color-neutral-600)] mt-1">
                   {step === "otp"
                     ? `Mandei um código pra ${email}.`
                     : tab === "signIn"
-                    ? "Acesse seus favoritos, cupons e o NordestAI"
-                    : "Crie sua conta para salvar viagens e favoritos"}
+                      ? "Acesse seus favoritos, cupons e o NordestAI"
+                      : "Crie sua conta para salvar viagens e favoritos"}
                 </p>
               </div>
               <button
                 type="button"
-                onClick={handleClose}
+                onClick={handleCloseClick}
                 aria-label="Fechar"
                 className="grid size-9 place-items-center rounded-full bg-[var(--color-neutral-100)]"
               >
@@ -265,11 +270,10 @@ export function AuthModal() {
                     key={t}
                     type="button"
                     onClick={() => { setTab(t); setError(""); }}
-                    className={`flex-1 py-2 rounded-full text-[14px] font-medium transition-all ${
-                      tab === t
+                    className={`flex-1 py-2 rounded-full text-[14px] font-medium transition-all ${tab === t
                         ? "bg-white text-[var(--color-neutral-800)]"
                         : "text-[var(--color-neutral-600)]"
-                    }`}
+                      }`}
                   >
                     {t === "signIn" ? "Entrar" : "Criar conta"}
                   </button>
@@ -498,18 +502,16 @@ function PasswordField({
             {[1, 2, 3].map((bar) => (
               <div
                 key={bar}
-                className={`h-1 flex-1 rounded-full transition-colors ${
-                  bar <= STRENGTH_BARS[strength]
+                className={`h-1 flex-1 rounded-full transition-colors ${bar <= STRENGTH_BARS[strength]
                     ? STRENGTH_COLOR[strength]
                     : "bg-[var(--color-neutral-200)]"
-                }`}
+                  }`}
               />
             ))}
           </div>
-          <p className={`text-[11px] font-medium ${
-            strength === "forte" ? "text-green-600" :
-            strength === "média" ? "text-yellow-600" : "text-red-600"
-          }`}>
+          <p className={`text-[11px] font-medium ${strength === "forte" ? "text-green-600" :
+              strength === "média" ? "text-yellow-600" : "text-red-600"
+            }`}>
             Senha {strength}
             {strength === "fraca" && " — adicione maiúsculas, números ou símbolos"}
           </p>
@@ -609,13 +611,12 @@ function OtpInput({
           return (
             <div
               key={i}
-              className={`flex-1 h-14 rounded-[14px] border flex items-center justify-center font-display font-medium text-[22px] text-[var(--color-neutral-800)] ${
-                ch
+              className={`flex-1 h-14 rounded-[14px] border flex items-center justify-center font-display font-medium text-[22px] text-[var(--color-neutral-800)] ${ch
                   ? "border-[var(--color-neutral-800)] bg-white"
                   : isCursor
-                  ? "border-[var(--color-neutral-800)] bg-white"
-                  : "border-[var(--color-neutral-300)] bg-white"
-              }`}
+                    ? "border-[var(--color-neutral-800)] bg-white"
+                    : "border-[var(--color-neutral-300)] bg-white"
+                }`}
             >
               {ch || (isCursor ? <span className="opacity-30">•</span> : "")}
             </div>

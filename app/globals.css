@@ -53,9 +53,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* iOS Safari: prevent rubber-band overscroll color flash */
+/* iOS Safari: safe area e overscroll sempre transparente */
 html {
-  background-color: #ffffff;
+  background-color: transparent;
+  /* evita flash branco no bounce scroll do topo */
+  overscroll-behavior-y: none;
 }
 
 /* Lucide icons: enforce thin strokes globally for a clean Airbnb-style look */

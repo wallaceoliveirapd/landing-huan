@@ -20,7 +20,7 @@ export function CategoriesBottomSheet() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={sheet.close}
-            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-[2px]"
+            className="fixed inset-0 z-40 bg-black/20"
           />
 
           <motion.div
@@ -52,14 +52,6 @@ export function CategoriesBottomSheet() {
                   Explore tudo que separamos para você em João Pessoa.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={sheet.close}
-                aria-label="Fechar"
-                className="grid size-9 place-items-center rounded-full bg-[var(--color-neutral-100)] hover:bg-[var(--color-neutral-300)] transition-colors"
-              >
-                <Icon name="material-symbols:close-rounded" size={20} />
-              </button>
             </header>
 
             <div className="overflow-y-auto px-4 pb-[max(env(safe-area-inset-bottom),24px)]">
@@ -83,7 +75,7 @@ export function CategoriesBottomSheet() {
                     <Link
                       href={c.href}
                       onClick={sheet.close}
-                      className="group flex h-full flex-col gap-2 rounded-card border border-black/10 bg-white p-4 hover:border-[var(--color-brand-purple)] hover: transition-all"
+                      className="group flex h-full flex-col gap-2 rounded-card border border-black/10 bg-white p-5 hover:border-[var(--color-neutral-800)] hover: transition-all"
                     >
                       <span className="grid size-12 place-items-center rounded-full bg-[#F2F4F5] text-[#323439] group-hover:scale-110 transition-transform">
                         <Icon name={c.icon ?? "lucide:grip"} size={22} />

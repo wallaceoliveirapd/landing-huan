@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { toProxyUrl } from "@/lib/imageUpload";
@@ -84,7 +85,7 @@ function CouponSheet({ coupon, onClose }: { coupon: CouponData; onClose: () => v
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
         onClick={onClose}
-        className="fixed inset-0 z-40 bg-black/50 backdrop-blur-[2px]"
+        className="fixed inset-0 z-40 bg-black/20"
       />
       <motion.div
         role="dialog" aria-modal="true" aria-label={coupon.title}
@@ -273,11 +274,14 @@ export function CouponCard({ coupon, onSelect }: { coupon: CouponData; onSelect?
         </div>
       </div>
 
-      <AnimatePresence>
-        {sheetOpen && (
-          <CouponSheet coupon={coupon} onClose={() => setSheetOpen(false)} />
-        )}
-      </AnimatePresence>
+      {typeof document !== "undefined" && createPortal(
+        <AnimatePresence>
+          {sheetOpen && (
+            <CouponSheet coupon={coupon} onClose={() => setSheetOpen(false)} />
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </>
   );
 }

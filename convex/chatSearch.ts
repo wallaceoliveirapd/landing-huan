@@ -151,16 +151,21 @@ export const search = query({
   handler: async (ctx, { q, type }) => {
     const tokens = tokenize(q);
     const isEmptyQuery = tokens.length === 0;
+    // If ALL tokens are generic category words (e.g. "restaurante", "passeio"),
+    // there are no discriminating terms — fall back to browse mode and return
+    // everything in the requested category.
+    const specificTokens = tokens.filter((t) => !GENERIC_CATEGORY_TOKENS.has(t));
+    const isBrowseQuery = isEmptyQuery || specificTokens.length === 0;
 
     const results: { score: number; item: Record<string, unknown> }[] = [];
 
     function pushScored(item: Record<string, unknown>, raw: object) {
-      const score = scoreItem(raw, tokens);
-      // Browse mode (empty query) — include everything.
-      if (isEmptyQuery) {
+      // Browse mode — empty query OR only generic tokens → include everything.
+      if (isBrowseQuery) {
         results.push({ score: 1, item });
         return;
       }
+      const score = scoreItem(raw, tokens);
       // Specific query — require a STRONG match. Score >= 1.5 means we
       // matched at least once in a description, or at the title level.
       // This drops weak coincidental matches (e.g. tour titled "Passeio
@@ -182,6 +187,7 @@ export const search = query({
             kind: "tour",
             id: t._id,
             title: t.title,
+            slug: t.slug,
             shortDesc: t.shortDesc,
             price: t.price,
             duration: t.duration,
@@ -380,6 +386,7 @@ export const getContentForItinerary = query({
         kind: "tour",
         id: t._id,
         title: t.title,
+        slug: t.slug,
         shortDesc: t.shortDesc,
         duration: t.duration,
         price: t.price,

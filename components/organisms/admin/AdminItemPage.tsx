@@ -30,6 +30,8 @@ interface AdminItemPageProps {
   initialValues?: AnyDoc;
   /** If set → edit mode */
   itemId?: string;
+  /** Show Civitatis/GetYourGuide import panel */
+  civitatis?: boolean;
 }
 
 function defaultValues(fields: Field[]): Record<string, unknown> {
@@ -292,6 +294,7 @@ export function AdminItemPage({
   backPath,
   initialValues,
   itemId,
+  civitatis,
 }: AdminItemPageProps) {
   const router = useRouter();
   const isEdit = !!itemId;
@@ -306,6 +309,10 @@ export function AdminItemPage({
   );
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [civUrl, setCivUrl] = useState("");
+  const [civLoading, setCivLoading] = useState(false);
+  const [civError, setCivError] = useState<string | null>(null);
+  const [civImported, setCivImported] = useState(false);
   const slugManuallyEdited = useRef(isEdit); // in edit mode, don't auto-overwrite slug
 
   const slugField = fields.find((f) => f.key === "slug");
@@ -348,6 +355,44 @@ export function AdminItemPage({
     }
   }
 
+  async function handleCivitatiImport() {
+    if (!civUrl.trim()) return;
+    setCivLoading(true);
+    setCivError(null);
+    setCivImported(false);
+    try {
+      const res = await fetch("/api/scrape-civitatis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: civUrl.trim() }),
+      });
+      const data = await res.json();
+      if (data.blocked || data.error) {
+        setCivError(data.error ?? "Erro ao importar.");
+        return;
+      }
+      setForm((prev) => ({
+        ...prev,
+        ...(data.title && { title: data.title }),
+        ...(data.description && { description: data.description }),
+        ...(data.shortDesc && { shortDesc: data.shortDesc }),
+        ...(data.price && { price: data.price }),
+        ...(data.originalPrice && { originalPrice: data.originalPrice }),
+        ...(data.image && { image: data.image }),
+        ...(data.duration && { duration: data.duration }),
+        ...(data.rating && { rating: data.rating }),
+        ...(data.reviewCount && { reviewCount: data.reviewCount }),
+        url: civUrl.trim(),
+      }));
+      slugManuallyEdited.current = false;
+      setCivImported(true);
+    } catch {
+      setCivError("Erro de conexão ao importar.");
+    } finally {
+      setCivLoading(false);
+    }
+  }
+
   // Group fields into "main" (first half) and "side" (meta fields at end)
   const metaKeys = new Set(["featured", "active", "order"]);
   const mainFields = fields.filter((f) => !metaKeys.has(f.key));
@@ -378,6 +423,50 @@ export function AdminItemPage({
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5 items-start">
         {/* Main fields */}
         <div className="flex flex-col gap-4">
+          {civitatis && (
+            <div className="rounded-2xl bg-[var(--color-brand-purple)]/5 border border-[var(--color-brand-purple)]/20 p-5 flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <Icon name="lucide:download" size={16} className="text-[var(--color-brand-purple)]" />
+                <span className="text-sm font-semibold text-[var(--color-brand-purple)]">
+                  Importar da Civitatis / GetYourGuide
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  value={civUrl}
+                  onChange={(e) => { setCivUrl(e.target.value); setCivImported(false); setCivError(null); }}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleCivitatiImport(); } }}
+                  placeholder="https://www.civitatis.com/pt/joao-pessoa/passeio-..."
+                  className="flex-1 rounded-xl border border-[var(--color-brand-purple)]/30 px-3 py-2.5 text-sm outline-none focus:border-[var(--color-brand-purple)] transition-colors bg-white"
+                />
+                <button
+                  type="button"
+                  onClick={handleCivitatiImport}
+                  disabled={civLoading || !civUrl.trim()}
+                  className="flex items-center gap-2 rounded-xl bg-[var(--color-brand-purple)] px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50 hover:opacity-90 transition-opacity shrink-0"
+                >
+                  {civLoading ? (
+                    <Icon name="svg-spinners:ring-resize" size={15} />
+                  ) : (
+                    <Icon name="lucide:sparkles" size={15} />
+                  )}
+                  {civLoading ? "Importando…" : "Importar"}
+                </button>
+              </div>
+              {civError && (
+                <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2 leading-relaxed">
+                  {civError}
+                </p>
+              )}
+              {civImported && (
+                <p className="text-xs text-emerald-700 bg-emerald-50 rounded-lg px-3 py-2 flex items-center gap-1.5">
+                  <Icon name="lucide:check-circle" size={13} />
+                  Dados importados. Revise e ajuste antes de salvar.
+                </p>
+              )}
+            </div>
+          )}
           {mainFields.map((field) => {
             if (field.type === "boolean") {
               return (

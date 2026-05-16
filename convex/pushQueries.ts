@@ -171,6 +171,20 @@ export const removeSubscriptions = internalMutation({
   },
 });
 
+/** Admin: wipe ALL push subscriptions (use after rotating VAPID keys). */
+export const clearAllSubscriptions = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+    const all = await ctx.db.query("pushSubscriptions").collect();
+    for (const s of all) {
+      await ctx.db.delete(s._id);
+    }
+    return { removed: all.length };
+  },
+});
+
 /** Persist a broadcast attempt to the audit log. */
 export const recordBroadcast = internalMutation({
   args: {

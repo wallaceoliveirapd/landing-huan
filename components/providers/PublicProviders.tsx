@@ -9,6 +9,7 @@ import { CategoriesBottomSheet } from "@/components/organisms/CategoriesBottomSh
 import { AuthModal } from "@/components/organisms/AuthModal";
 import { BottomNav } from "@/components/organisms/BottomNav";
 import { PushPrompt } from "@/components/organisms/PushPrompt";
+import { PullToRefresh } from "@/components/organisms/PullToRefresh";
 
 /**
  * Providers + global UI for public pages (home + internal).
@@ -28,6 +29,7 @@ export function PublicProviders({ children }: { children: ReactNode }) {
           <AuthModal />
           <BottomNav />
           <PushPrompt />
+          <PullToRefresh />
         </ChatProvider>
       </CategoriesSheetProvider>
     </AuthProvider>

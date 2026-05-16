@@ -54,7 +54,7 @@ function normalize(item: RawCardItem): Normalized {
 
   switch (kind) {
     case "tour":
-      href = String(item.url ?? "/passeios");
+      href = item.slug ? `/passeios/${String(item.slug)}` : "/passeios";
       meta = item.duration ? String(item.duration) : undefined;
       badge = item.rating ? `★ ${Number(item.rating).toFixed(1)}` : undefined;
       break;
@@ -148,7 +148,6 @@ function ChatCard({ item }: { item: RawCardItem }) {
   const km = KIND_META[kind] ?? KIND_META.tour;
   const isExternal =
     href.startsWith("http") ||
-    kind === "tour" ||
     kind === "hosting" ||
     kind === "coupon";
 

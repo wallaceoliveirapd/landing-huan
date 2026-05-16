@@ -90,7 +90,11 @@ export const sendBroadcast = action({
         } catch (err) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const status = (err as any)?.statusCode;
-          if (status === 404 || status === 410) {
+          // 410 Gone   = subscription permanently removed by browser vendor
+          // 404 NotFnd  = endpoint no longer exists
+          // 401 Unauth  = VAPID key mismatch — subscription was created with
+          //               different keys, can never be delivered; remove it.
+          if (status === 401 || status === 404 || status === 410) {
             expired.push(s._id);
           } else {
             console.warn("[push] send error:", err);

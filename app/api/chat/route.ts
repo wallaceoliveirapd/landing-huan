@@ -16,10 +16,11 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY ?? "" });
 // ─── Model fallback chain ──────────────────────────────────────────────────
 // Only models with proper native tool-calling support — gemma + mixtral
 // emit function calls as plain text which breaks the chat experience.
+// Order: cheap+fast first, larger fallbacks last.
 const MODEL_CHAIN = [
-  { provider: "gemini" as const, id: "gemini-1.5-flash" },
+  { provider: "gemini" as const, id: "gemini-flash-latest" },
+  { provider: "gemini" as const, id: "gemini-2.0-flash" },
   { provider: "groq" as const, id: "llama-3.3-70b-versatile" },
-  { provider: "groq" as const, id: "llama-3.1-70b-versatile" },
   { provider: "groq" as const, id: "llama-3.1-8b-instant" },
 ];
 
@@ -187,10 +188,18 @@ async function callTool(
       { url: convexUrl },
     )) as Record<string, unknown>[];
 
-    // Trust the primary search: if it found something, return it as-is.
-    // If it returned ZERO, we don't aggressively dump every item of the
-    // category — that pollutes results with irrelevant content. Return
-    // empty and let the caller (or the model) say "não temos X agora".
+    // If primary specific search returned nothing AND we have a concrete
+    // category, fall back to browse mode (empty query) so the user sees
+    // the available items in that category instead of "nada encontrado".
+    if (primary.length === 0 && searchType !== "any") {
+      const browse = (await fetchQuery(
+        api.chatSearch.search,
+        { q: "", type: searchType },
+        { url: convexUrl },
+      )) as Record<string, unknown>[];
+      return browse;
+    }
+
     return primary;
   } catch (err) {
     console.error(`Tool ${name} error:`, err);
@@ -688,7 +697,23 @@ export async function POST(req: Request) {
   const lastUserMsg =
     [...messages].reverse().find((m) => m.role === "user")?.content ?? "";
   const isItineraryRequest = detectItineraryIntent(lastUserMsg);
-  const intents = detectSearchIntents(lastUserMsg);
+  let intents = detectSearchIntents(lastUserMsg);
+
+  // If the current user msg has no category intents (e.g. just answered with
+  // a city name "João Pessoa"), look back through prior user messages to find
+  // the most recent unresolved intent. This handles the common "intent →
+  // clarification → city" flow where the original ask gets lost otherwise.
+  if (intents.length === 0) {
+    for (let i = messages.length - 2; i >= 0; i--) {
+      const m = messages[i];
+      if (m.role !== "user") continue;
+      const prior = detectSearchIntents(m.content);
+      if (prior.length > 0) {
+        intents = prior;
+        break;
+      }
+    }
+  }
 
   // ── City context ──────────────────────────────────────────────────
   // If the user is asking about specific content (passeios, restaurantes,
@@ -862,13 +887,8 @@ export async function POST(req: Request) {
         allCards.push(c);
       }
 
-      // ── Stream cards first ──────────────────────────────────────────
-      for (const card of allCards) {
-        controller.enqueue(encode({ type: "card", data: card }));
-      }
-
-      // ── If this is an itinerary request, append a router card ──────
-      // that opens the trip creator on the client.
+      // ── Stream router card FIRST when this is an itinerary request ──
+      // so it never gets clipped by the client's 5-card slice limit.
       if (isItineraryRequest) {
         controller.enqueue(
           encode({
@@ -883,6 +903,11 @@ export async function POST(req: Request) {
             },
           }),
         );
+      }
+
+      // ── Then stream content cards ───────────────────────────────────
+      for (const card of allCards) {
+        controller.enqueue(encode({ type: "card", data: card }));
       }
 
       // ── Stream text word-by-word ────────────────────────────────────

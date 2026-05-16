@@ -32,7 +32,7 @@ export function LegalSheet({ open, onClose, title, source }: Props) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={onClose}
-            className="fixed inset-0 z-[80] bg-black/30 backdrop-blur-[2px]"
+            className="fixed inset-0 z-[80] bg-black/20"
           />
 
           {/* Sheet */}

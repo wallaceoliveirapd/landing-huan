@@ -73,7 +73,7 @@ export function DeleteAccountSheet({ open, onClose }: Props) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={handleClose}
-            className="fixed inset-0 z-[80] bg-black/30 backdrop-blur-[2px]"
+            className="fixed inset-0 z-[80] bg-black/20"
           />
 
           <motion.div
@@ -128,16 +128,14 @@ export function DeleteAccountSheet({ open, onClose }: Props) {
                       key={r.value}
                       type="button"
                       onClick={() => setReason(r.value)}
-                      className={`flex items-start gap-3 p-4 rounded-[16px] bg-white border text-left transition-colors ${
-                        sel
+                      className={`flex items-start gap-3 p-4 rounded-[16px] bg-white border text-left transition-colors ${sel
                           ? "border-[var(--color-neutral-800)] border-2"
                           : "border-[var(--color-neutral-300)]"
-                      }`}
+                        }`}
                     >
                       <span
-                        className={`grid size-5 place-items-center rounded-full border-2 shrink-0 mt-0.5 ${
-                          sel ? "border-[var(--color-neutral-800)]" : "border-[var(--color-neutral-300)]"
-                        }`}
+                        className={`grid size-5 place-items-center rounded-full border-2 shrink-0 mt-0.5 ${sel ? "border-[var(--color-neutral-800)]" : "border-[var(--color-neutral-300)]"
+                          }`}
                       >
                         {sel && <span className="size-2 rounded-full bg-[var(--color-neutral-800)]" />}
                       </span>

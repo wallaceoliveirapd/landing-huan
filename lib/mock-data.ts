@@ -2,6 +2,7 @@ import { unsplash } from "./unsplash";
 
 export type Tour = {
   id: string;
+  slug: string;
   title: string;
   image: string;
   rating: number;
@@ -12,6 +13,9 @@ export type Tour = {
   discountPct?: number;
   url: string;
   tags: string[];
+  description?: string;
+  shortDesc?: string;
+  reviewCount?: number;
 };
 
 export type Restaurant = {
@@ -42,6 +46,7 @@ export type Dica = {
 export const TOURS: Tour[] = [
   {
     id: "t1",
+    slug: "tour-litoral-norte",
     title: "Tour de um dia pelas praias do litoral norte de João Pessoa",
     image: unsplash("tour-praia-aerea", 600, 400),
     rating: 4.4,
@@ -55,6 +60,7 @@ export const TOURS: Tour[] = [
   },
   {
     id: "t2",
+    slug: "catamara-picaozinho",
     title: "Passeio de catamarã ao Picãozinho com snorkeling",
     image: unsplash("tour-catamaran", 600, 400),
     rating: 4.7,
@@ -68,6 +74,7 @@ export const TOURS: Tour[] = [
   },
   {
     id: "t3",
+    slug: "buggy-litoral-sul",
     title: "Buggy pelo litoral sul: Tambaba, Coqueirinho e Tabatinga",
     image: unsplash("tour-buggy", 600, 400),
     rating: 4.6,
@@ -79,6 +86,7 @@ export const TOURS: Tour[] = [
   },
   {
     id: "t4",
+    slug: "city-tour-historico",
     title: "City tour histórico pelo centro de João Pessoa",
     image: unsplash("jp-litoral", 600, 400),
     rating: 4.3,

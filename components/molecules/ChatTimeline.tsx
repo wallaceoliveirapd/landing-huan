@@ -88,9 +88,7 @@ function CompactStop({ stop }: { stop: ItineraryStop }) {
   if (!tour) return null;
   return (
     <a
-      href={tour.url}
-      target="_blank"
-      rel="noopener noreferrer"
+      href={`/passeios/${tour.slug}`}
       className="flex h-full w-[180px] flex-none flex-col overflow-hidden rounded-xl border border-black/10 bg-white snap-start"
     >
       <div className="relative h-[90px] w-full flex-none">

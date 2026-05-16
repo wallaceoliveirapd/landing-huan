@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { motion } from "motion/react";
 import { cn } from "@/lib/cn";
 import { Icon } from "@/components/atoms/Icon";
@@ -18,11 +19,10 @@ import { formatBRL } from "@/lib/format";
  *   Footer info: white rounded-[19px], px-4 py-2 — title + price/rating
  */
 export function OfferCard({ tour, className, onSelect }: { tour: Tour; className?: string; onSelect?: () => void }) {
+  const MotionLink = motion(Link);
   return (
-    <motion.a
-      href={tour.url}
-      target="_blank"
-      rel="noopener noreferrer"
+    <MotionLink
+      href={`/passeios/${tour.slug}`}
       onClick={onSelect}
       whileHover={{ y: -2 }}
       whileTap={{ scale: 0.99 }}
@@ -88,6 +88,6 @@ export function OfferCard({ tour, className, onSelect }: { tour: Tour; className
           </div>
         </div>
       </div>
-    </motion.a>
+    </MotionLink>
   );
 }

@@ -12,6 +12,7 @@ export default function NovoPasseioPage() {
       createMutation={api.tours.create}
       updateMutation={api.tours.update}
       backPath="/admin/passeios"
+      civitatis
     />
   );
 }

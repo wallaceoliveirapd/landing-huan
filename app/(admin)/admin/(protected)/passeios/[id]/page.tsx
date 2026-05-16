@@ -30,6 +30,7 @@ export default function EditPasseioPage({ params }: { params: Promise<{ id: stri
       backPath="/admin/passeios"
       initialValues={item as never}
       itemId={id}
+      civitatis
     />
   );
 }

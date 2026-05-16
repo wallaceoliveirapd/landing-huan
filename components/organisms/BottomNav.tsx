@@ -73,6 +73,20 @@ export function BottomNav() {
 
   if (pathname.startsWith("/minha-viagem/criar")) return null;
   if (pathname.startsWith("/admin")) return null;
+  // Hide on detail pages (they have a back button in the hero).
+  // Pattern: /{section}/{slug} where section is a detail category.
+  const DETAIL_SECTIONS = [
+    "passeios",
+    "restaurantes",
+    "praias",
+    "dicas",
+    "vida-noturna",
+    "roteiros",
+  ];
+  const segments = pathname.split("/").filter(Boolean);
+  if (segments.length === 2 && DETAIL_SECTIONS.includes(segments[0])) {
+    return null;
+  }
 
   return (
     <nav

@@ -21,6 +21,7 @@ export function OffersSection() {
 
   const tours: Tour[] = (convexTours ?? []).map((t) => ({
     id: t._id,
+    slug: t.slug,
     title: t.title,
     image: t.image,
     rating: t.rating,
