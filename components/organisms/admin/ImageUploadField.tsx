@@ -18,6 +18,9 @@ export function ImageUploadField({ value, onChange, uploadCategory = "geral" }: 
   const [progress, setProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  // Synchronous guard, the `uploading` React state lags behind double-fired
+  // drop events. Without this, the same drop can enqueue two uploads.
+  const busyRef = useRef(false);
 
   async function processFile(file: File) {
     if (!file.type.startsWith("image/")) {
@@ -58,18 +61,21 @@ export function ImageUploadField({ value, onChange, uploadCategory = "geral" }: 
   }
   async function handleDrop(e: React.DragEvent<HTMLElement>) {
     e.preventDefault();
+    e.stopPropagation();
     setDragOver(false);
-    if (uploading) return;
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      await processFile(file);
-      return;
+    if (busyRef.current) return;
+    busyRef.current = true;
+    try {
+      const file = e.dataTransfer.files?.[0];
+      if (file) {
+        await processFile(file);
+        return;
+      }
+      const url = pickImageUrl(e.dataTransfer);
+      if (url) await processUrl(url);
+    } finally {
+      busyRef.current = false;
     }
-    // Dragged from another browser tab (Google Images, etc.). Extract the
-    // image URL from the dataTransfer and ask the server to download it for
-    // us (bypasses CORS).
-    const url = pickImageUrl(e.dataTransfer);
-    if (url) await processUrl(url);
   }
 
   async function processUrl(url: string) {

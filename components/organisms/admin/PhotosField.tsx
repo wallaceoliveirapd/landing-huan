@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import { Icon } from "@/components/atoms/Icon";
 import { compressToWebP, uploadToR2, deleteFromR2, isR2Url, toProxyUrl } from "@/lib/imageUpload";
@@ -16,6 +16,7 @@ export function PhotosField({ value, onChange, uploadCategory = "geral" }: Props
   const photos = Array.isArray(value) ? value : [];
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const busyRef = useRef(false);
 
   async function processFiles(files: File[]) {
     const images = files.filter((f) => f.type.startsWith("image/"));
@@ -53,16 +54,21 @@ export function PhotosField({ value, onChange, uploadCategory = "geral" }: Props
   }
   async function handleDrop(e: React.DragEvent<HTMLDivElement>) {
     e.preventDefault();
+    e.stopPropagation();
     setDragOver(false);
-    if (uploading) return;
-    const files = Array.from(e.dataTransfer.files ?? []);
-    if (files.length > 0) {
-      await processFiles(files);
-      return;
+    if (busyRef.current) return;
+    busyRef.current = true;
+    try {
+      const files = Array.from(e.dataTransfer.files ?? []);
+      if (files.length > 0) {
+        await processFiles(files);
+        return;
+      }
+      const urls = pickImageUrls(e.dataTransfer);
+      if (urls.length > 0) await processUrls(urls);
+    } finally {
+      busyRef.current = false;
     }
-    // Dropped from another browser tab — pull URL(s) via dataTransfer.
-    const urls = pickImageUrls(e.dataTransfer);
-    if (urls.length > 0) await processUrls(urls);
   }
 
   async function processUrls(urls: string[]) {
