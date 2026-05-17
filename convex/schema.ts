@@ -443,6 +443,38 @@ export default defineSchema({
   })
     .index("by_user_date", ["userId", "dateKey"]),
 
+  // ── User memory: persistent preferences extracted from chat ──
+  // One row per (userId, key). Key is a stable slug ("dietary", "trip_companions",
+  // "favorite_activity", "budget_band", etc). Value is free-form short string.
+  // confidence: 0..1 from the extractor. source = "chat" | "manual_admin".
+  userPreferences: defineTable({
+    userId: v.string(),
+    key: v.string(),
+    value: v.string(),
+    confidence: v.number(),
+    source: v.string(),
+    capturedAt: v.number(),
+    /** Optional human-readable note shown in admin (e.g. "from message 'sou vegetariano'"). */
+    note: v.optional(v.string()),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_key", ["userId", "key"]),
+
+  // ── City knowledge: admin-curated facts injected into the chat
+  // and itinerary prompts when the active city matches.
+  cityKnowledge: defineTable({
+    city: v.string(),           // canonical city name ("João Pessoa")
+    title: v.string(),          // short label ("Estação chuvosa", "Transporte")
+    body: v.string(),           // 1–3 sentences of factual context
+    /** Optional season window (month numbers 1-12). When set, the fact is
+     *  only injected if today falls within [startMonth..endMonth]. */
+    startMonth: v.optional(v.number()),
+    endMonth: v.optional(v.number()),
+    active: v.boolean(),
+    updatedAt: v.number(),
+  })
+    .index("by_city_active", ["city", "active"]),
+
   // ── Categorias (Home stacked cards) ──────────────────────────
   categories: defineTable({
     key: v.string(),                    // "passeios", "restaurantes", "dicas", etc.
