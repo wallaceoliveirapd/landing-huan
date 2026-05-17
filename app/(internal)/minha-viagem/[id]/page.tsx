@@ -592,6 +592,7 @@ export default function TripDetailPage({
         open={addSheetDay !== null}
         tripId={tripId}
         day={addSheetDay ?? 1}
+        city={trip.destination.split(",")[0].trim()}
         onClose={() => setAddSheetDay(null)}
       />
 

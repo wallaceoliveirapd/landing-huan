@@ -12,6 +12,7 @@ import type * as auth from "../auth.js";
 import type * as categories from "../categories.js";
 import type * as chatSearch from "../chatSearch.js";
 import type * as chatUsage from "../chatUsage.js";
+import type * as cityFilter from "../cityFilter.js";
 import type * as coupons from "../coupons.js";
 import type * as dataExport from "../dataExport.js";
 import type * as dicas from "../dicas.js";
@@ -60,6 +61,7 @@ declare const fullApi: ApiFromModules<{
   categories: typeof categories;
   chatSearch: typeof chatSearch;
   chatUsage: typeof chatUsage;
+  cityFilter: typeof cityFilter;
   coupons: typeof coupons;
   dataExport: typeof dataExport;
   dicas: typeof dicas;

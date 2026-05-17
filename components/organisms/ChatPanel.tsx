@@ -289,12 +289,12 @@ export function ChatPanel() {
                 />
               </motion.div>
               <div className="flex flex-col leading-tight min-w-0">
-                <span className="font-display font-medium text-[15px] text-[var(--color-neutral-800)]">
+                <span className="font-display font-medium text-[15px] text-[var(--color-neutral-800)] truncate">
                   Huan
                 </span>
-                <span className="text-[12px] text-[var(--color-neutral-600)] inline-flex items-center gap-1.5">
-                  <span className="size-1.5 rounded-full bg-emerald-500" />
-                  Seu agente de viagem
+                <span className="text-[12px] text-[var(--color-neutral-600)] inline-flex items-center gap-1.5 whitespace-nowrap">
+                  <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
+                  <span className="truncate">Agente de viagem</span>
                 </span>
               </div>
             </div>
@@ -303,22 +303,26 @@ export function ChatPanel() {
               (() => {
                 const low = usage.remaining <= 4 && usage.remaining > 0;
                 const exhausted = usage.remaining === 0;
+                // Always slightly visible (subtle gray) — user wanted the
+                // counter "discreto mas um pouco mais destacado". Bumps to
+                // amber/red when low/exhausted.
                 const cls = exhausted
                   ? "bg-red-50 text-red-700 border-red-200"
                   : low
                     ? "bg-amber-50 text-amber-800 border-amber-200"
-                    : "bg-transparent text-[var(--color-neutral-500)] border-transparent";
+                    : "bg-[var(--color-neutral-100)] text-[var(--color-neutral-700)] border-[var(--color-neutral-200)]";
                 return (
                   <button
                     type="button"
                     onClick={() => setLimitSheetOpen(true)}
-                    title="Saiba mais sobre o limite diário"
-                    className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full border ${cls}`}
+                    title="Limite diário de conversas"
+                    aria-label={`${usage.remaining} mensagens restantes hoje`}
+                    className={`shrink-0 inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full border whitespace-nowrap ${cls}`}
                   >
-                    {low && <Icon name="alert-circle" size={11} />}
+                    {(low || exhausted) && <Icon name="alert-circle" size={11} />}
                     <span>
                       {usage.remaining > 0
-                        ? `${usage.remaining} restantes`
+                        ? `${usage.remaining}/10`
                         : "Limite atingido"}
                     </span>
                     <Icon name="info" size={11} />

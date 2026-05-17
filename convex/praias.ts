@@ -1,19 +1,27 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { requireAdmin } from "./helpers";
+import { matchesCity } from "./cityFilter";
 
 export const list = query({
-  args: { activeOnly: v.optional(v.boolean()) },
-  handler: async (ctx, { activeOnly = true }) => {
+  args: {
+    activeOnly: v.optional(v.boolean()),
+    city: v.optional(v.string()),
+  },
+  handler: async (ctx, { activeOnly = true, city }) => {
     const items = await (activeOnly
       ? ctx.db
           .query("praias")
           .withIndex("by_active", (q) => q.eq("active", true))
       : ctx.db.query("praias")
     ).collect();
-    return items.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+    const filtered = city
+      ? items.filter((i) => matchesCity(i.city, city))
+      : items;
+    return filtered.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
   },
 });
+
 
 export const featured = query({
   handler: async (ctx) => {

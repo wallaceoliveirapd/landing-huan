@@ -63,30 +63,38 @@ const OSM_FILTERS: Record<OsmKind, string[]> = {
  * Trip-style → OSM categories. Some styles span multiple OSM kinds
  * (e.g. "natureza" wants viewpoints, nature reserves AND parks).
  */
+/**
+ * Trip-style → OSM categories.
+ *
+ * Restaurants are deliberately excluded: we want generic suggestions like
+ * "Jantar em restaurante típico na Orla" instead of random OSM entries
+ * (cafeterias de faculdade, padarias, etc.). Users add real restaurants
+ * via AddActivitySheet from the curated DB.
+ */
 export function osmKindsForTripType(tripType: string): OsmKind[] {
   switch (tripType) {
     case "praia":
-      return ["praia", "restaurant"];
+      return ["praia"];
     case "historica":
-      return ["attraction", "restaurant"];
+      return ["attraction"];
     case "natureza":
-      return ["attraction", "tour", "restaurant"];
+      return ["attraction", "tour"];
     case "aventura":
-      return ["tour", "praia", "restaurant"];
+      return ["tour", "praia"];
     case "gastronomia":
-      return ["restaurant", "attraction"];
+      return ["attraction"];
     case "festa":
-      return ["nightlife", "restaurant"];
+      return ["nightlife"];
     case "roadtrip":
-      return ["attraction", "praia", "restaurant", "tour"];
+      return ["attraction", "praia", "tour"];
     case "familia":
-      return ["attraction", "praia", "restaurant"];
+      return ["attraction", "praia"];
     case "solo":
-      return ["attraction", "tour", "restaurant", "praia"];
+      return ["attraction", "tour", "praia"];
     case "cultural":
-      return ["attraction", "restaurant", "nightlife"];
+      return ["attraction", "nightlife"];
     default:
-      return ["attraction", "restaurant"];
+      return ["attraction"];
   }
 }
 

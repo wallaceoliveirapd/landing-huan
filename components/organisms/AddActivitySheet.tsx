@@ -34,10 +34,12 @@ interface Props {
   open: boolean;
   tripId: Id<"trips">;
   day: number;
+  /** City name from trip.destination ("Cidade, Estado") used to filter results. */
+  city?: string;
   onClose: () => void;
 }
 
-export function AddActivitySheet({ open, tripId, day, onClose }: Props) {
+export function AddActivitySheet({ open, tripId, day, city, onClose }: Props) {
   const [tab, setTab] = useState<Tab>("tour");
   const [search, setSearch] = useState("");
   const [time, setTime] = useState("");
@@ -48,19 +50,22 @@ export function AddActivitySheet({ open, tripId, day, onClose }: Props) {
 
   const addActivity = useMutation(api.trips.addActivity);
 
-  // Load items only for the active DB-backed tab. Skip query for "custom".
   const apiKind = KIND_TO_API[tab];
-  const tours = useQuery(api.tours.list, apiKind === "tour" ? { activeOnly: true } : "skip");
+  const listArgs = useMemo(
+    () => ({ activeOnly: true as const, city: city || undefined }),
+    [city],
+  );
+  const tours = useQuery(api.tours.list, apiKind === "tour" ? listArgs : "skip");
   const restaurants = useQuery(
     api.restaurants.list,
-    apiKind === "restaurant" ? { activeOnly: true } : "skip",
+    apiKind === "restaurant" ? listArgs : "skip",
   );
-  const praias = useQuery(api.praias.list, apiKind === "praia" ? { activeOnly: true } : "skip");
+  const praias = useQuery(api.praias.list, apiKind === "praia" ? listArgs : "skip");
   const nightlife = useQuery(
     api.nightlife.list,
-    apiKind === "nightlife" ? { activeOnly: true } : "skip",
+    apiKind === "nightlife" ? listArgs : "skip",
   );
-  const dicas = useQuery(api.dicas.list, apiKind === "dica" ? { activeOnly: true } : "skip");
+  const dicas = useQuery(api.dicas.list, apiKind === "dica" ? listArgs : "skip");
 
   const items = useMemo(() => {
     if (apiKind === "tour") return tours;
@@ -176,13 +181,15 @@ export function AddActivitySheet({ open, tripId, day, onClose }: Props) {
             style={{ paddingBottom: "max(env(safe-area-inset-bottom), 16px)" }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-5 pt-4 pb-3">
+            <div className="flex items-center justify-between px-5 pt-4 pb-3 shrink-0">
               <div>
                 <h3 className="font-display font-medium text-[16px] text-[var(--color-neutral-800)]">
                   Adicionar ao dia {day}
                 </h3>
                 <p className="text-[12px] text-[var(--color-neutral-600)] mt-0.5">
-                  Escolha algo do nosso guia ou adicione um item próprio.
+                  {city
+                    ? `Itens em ${city}. Aba "Outro" pra adicionar algo livre.`
+                    : "Escolha algo do nosso guia ou adicione um item próprio."}
                 </p>
               </div>
               <button
@@ -195,8 +202,8 @@ export function AddActivitySheet({ open, tripId, day, onClose }: Props) {
               </button>
             </div>
 
-            {/* Time picker, applies to whatever gets added next. */}
-            <div className="px-5 pb-3">
+            {/* Time picker */}
+            <div className="px-5 pb-3 shrink-0">
               <div className="rounded-[16px] bg-[var(--color-neutral-100)] p-3 flex items-center gap-3">
                 <div className="grid size-9 place-items-center rounded-full bg-white shrink-0">
                   <Icon name="clock" size={16} className="text-[var(--color-neutral-800)]" />
@@ -229,7 +236,7 @@ export function AddActivitySheet({ open, tripId, day, onClose }: Props) {
             </div>
 
             {/* Tabs */}
-            <div className="px-5 pb-3 overflow-x-auto no-scrollbar">
+            <div className="px-5 pb-3 overflow-x-auto no-scrollbar shrink-0">
               <div className="flex gap-2">
                 {TABS.map((t) => (
                   <button
@@ -251,8 +258,28 @@ export function AddActivitySheet({ open, tripId, day, onClose }: Props) {
               </div>
             </div>
 
-            {/* Body */}
-            <div className="overflow-y-auto px-5 pb-4 flex flex-col gap-2">
+            {/* Search (only for DB tabs) */}
+            {tab !== "custom" && (
+              <div className="px-5 pb-2 shrink-0">
+                <div className="relative">
+                  <Icon
+                    name="search"
+                    size={14}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-neutral-400)] pointer-events-none"
+                  />
+                  <input
+                    type="search"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder={`Buscar em ${TABS.find((t) => t.key === tab)?.label.toLowerCase() ?? ""}...`}
+                    className="w-full h-10 pl-9 pr-3 rounded-full border border-[var(--color-neutral-300)] text-[13px] outline-none focus:border-[var(--color-neutral-800)] bg-white"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Scrollable body */}
+            <div className="flex-1 min-h-0 overflow-y-auto px-5 pb-4">
               {tab === "custom" ? (
                 <CustomForm
                   title={customTitle}
@@ -264,71 +291,51 @@ export function AddActivitySheet({ open, tripId, day, onClose }: Props) {
                   onSave={handleSaveCustom}
                   saving={saving}
                 />
+              ) : filtered === undefined ? (
+                <div className="flex flex-col gap-2 pt-1">
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className="h-[68px] rounded-[14px] bg-[var(--color-neutral-100)] animate-pulse" />
+                  ))}
+                </div>
+              ) : filtered === null || filtered.length === 0 ? (
+                <p className="text-[12px] text-[var(--color-neutral-500)] text-center py-8">
+                  {city
+                    ? `Nenhum item cadastrado em ${city} ainda.`
+                    : "Nenhum item encontrado."}
+                </p>
               ) : (
-                <>
-                  <div className="relative">
-                    <Icon
-                      name="search"
-                      size={14}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-neutral-400)] pointer-events-none"
-                    />
-                    <input
-                      type="search"
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      placeholder={`Buscar em ${TABS.find((t) => t.key === tab)?.label.toLowerCase() ?? ""}...`}
-                      className="w-full h-10 pl-9 pr-3 rounded-full border border-[var(--color-neutral-300)] text-[13px] outline-none focus:border-[var(--color-neutral-800)] bg-white"
-                    />
-                  </div>
-                  {filtered === undefined && (
-                    <div className="flex flex-col gap-2 mt-2">
-                      {[0, 1, 2].map((i) => (
-                        <div key={i} className="h-[68px] rounded-[14px] bg-[var(--color-neutral-100)] animate-pulse" />
-                      ))}
-                    </div>
-                  )}
-                  {filtered !== undefined && filtered !== null && filtered.length === 0 && (
-                    <p className="text-[12px] text-[var(--color-neutral-500)] text-center py-8">
-                      Nenhum item encontrado.
-                    </p>
-                  )}
-                  {filtered !== undefined && filtered !== null && filtered.length > 0 && (
-                    <div className="flex flex-col gap-2 mt-1">
-                      {(filtered as Array<Record<string, unknown>>).map((item) => (
-                        <button
-                          key={String(item._id)}
-                          type="button"
-                          disabled={saving}
-                          onClick={() =>
-                            apiKind && handlePickDbItem(apiKind, item)
-                          }
-                          className="flex items-center gap-3 p-2 rounded-[14px] border border-[var(--color-neutral-200)] bg-white hover:border-[var(--color-neutral-800)] transition-colors disabled:opacity-50"
-                        >
-                          <div className="relative size-[60px] rounded-[10px] overflow-hidden bg-[var(--color-neutral-100)] shrink-0">
-                            {item.image || item.cover ? (
-                              <Image
-                                src={toProxyUrl(String(item.image ?? item.cover))}
-                                alt={String(item.name ?? item.title ?? "")}
-                                fill
-                                sizes="60px"
-                                className="object-cover"
-                              />
-                            ) : null}
-                          </div>
-                          <div className="flex-1 min-w-0 text-left">
-                            <p className="font-display font-medium text-[13px] text-[var(--color-neutral-800)] line-clamp-1">
-                              {String(item.name ?? item.title ?? "")}
-                            </p>
-                            <p className="text-[11px] text-[var(--color-neutral-600)] line-clamp-1 mt-0.5">
-                              {String(item.shortDesc ?? item.excerpt ?? "")}
-                            </p>
-                          </div>
-                          <Icon name="plus" size={14} className="text-[var(--color-neutral-600)] shrink-0" />
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </>
+                <div className="flex flex-col gap-2 pt-1">
+                  {(filtered as Array<Record<string, unknown>>).map((item) => (
+                    <button
+                      key={String(item._id)}
+                      type="button"
+                      disabled={saving}
+                      onClick={() => apiKind && handlePickDbItem(apiKind, item)}
+                      className="flex items-center gap-3 p-2 rounded-[14px] border border-[var(--color-neutral-200)] bg-white hover:border-[var(--color-neutral-800)] transition-colors disabled:opacity-50"
+                    >
+                      <div className="relative size-[60px] rounded-[10px] overflow-hidden bg-[var(--color-neutral-100)] shrink-0">
+                        {item.image || item.cover ? (
+                          <Image
+                            src={toProxyUrl(String(item.image ?? item.cover))}
+                            alt={String(item.name ?? item.title ?? "")}
+                            fill
+                            sizes="60px"
+                            className="object-cover"
+                          />
+                        ) : null}
+                      </div>
+                      <div className="flex-1 min-w-0 text-left">
+                        <p className="font-display font-medium text-[13px] text-[var(--color-neutral-800)] line-clamp-1">
+                          {String(item.name ?? item.title ?? "")}
+                        </p>
+                        <p className="text-[11px] text-[var(--color-neutral-600)] line-clamp-1 mt-0.5">
+                          {String(item.shortDesc ?? item.excerpt ?? "")}
+                        </p>
+                      </div>
+                      <Icon name="plus" size={14} className="text-[var(--color-neutral-600)] shrink-0" />
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
           </motion.div>

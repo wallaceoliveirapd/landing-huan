@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query } from "./_generated/server";
+import { matchesCity } from "./cityFilter";
 
 // ─── Tokenization + scoring helpers ────────────────────────────────────────
 
@@ -147,31 +148,45 @@ export const search = query({
       v.literal("coupon"),
       v.literal("any"),
     ),
+    /** Optional city filter (e.g. "Natal"). Compared on the first comma
+     *  segment, accent-insensitive. */
+    city: v.optional(v.string()),
   },
-  handler: async (ctx, { q, type }) => {
+  handler: async (ctx, { q, type, city }) => {
     const tokens = tokenize(q);
     const isEmptyQuery = tokens.length === 0;
-    // If ALL tokens are generic category words (e.g. "restaurante", "passeio"),
-    // there are no discriminating terms, fall back to browse mode and return
-    // everything in the requested category.
     const specificTokens = tokens.filter((t) => !GENERIC_CATEGORY_TOKENS.has(t));
     const isBrowseQuery = isEmptyQuery || specificTokens.length === 0;
 
     const results: { score: number; item: Record<string, unknown> }[] = [];
+    /** Near-miss bucket: items in the requested category that did NOT clear
+     *  the strict score threshold. Used to fill the response when the strict
+     *  search returns 0 so the user always sees the closest available items. */
+    const nearMiss: { score: number; item: Record<string, unknown> }[] = [];
 
-    function pushScored(item: Record<string, unknown>, raw: object) {
-      // Browse mode, empty query OR only generic tokens → include everything.
+    function passesCity(rawCity: string | undefined): boolean {
+      if (!city) return true;
+      return matchesCity(rawCity, city);
+    }
+
+    function pushScored(
+      item: Record<string, unknown>,
+      raw: Record<string, unknown>,
+    ) {
+      const rawCity =
+        typeof raw.city === "string" ? raw.city : undefined;
+      if (!passesCity(rawCity)) return;
       if (isBrowseQuery) {
         results.push({ score: 1, item });
         return;
       }
       const score = scoreItem(raw, tokens);
-      // Specific query, require a STRONG match. Score >= 1.5 means we
-      // matched at least once in a description, or at the title level.
-      // This drops weak coincidental matches (e.g. tour titled "Passeio
-      // ..." that only matches the generic word "passeio").
       if (score >= 1.5) {
         results.push({ score, item });
+      } else {
+        // Keep weakly-matching items so we can fall back to "closest" results
+        // when no strong match exists in this category.
+        nearMiss.push({ score: score + 0.01, item });
       }
     }
 
@@ -357,10 +372,38 @@ export const search = query({
       }
     }
 
-    return results
+    const sorted = results.sort((a, b) => b.score - a.score).slice(0, 8);
+    if (sorted.length > 0) {
+      return { items: sorted.map((r) => r.item), partial: false };
+    }
+    // Strict search empty: surface the closest matches so the chat can
+    // present "não encontrei X exato, mas posso te indicar estes".
+    const near = nearMiss
       .sort((a, b) => b.score - a.score)
-      .slice(0, 8)
+      .slice(0, 6)
       .map((r) => r.item);
+    return { items: near, partial: near.length > 0 };
+  },
+});
+
+/**
+ * Returns true when at least one active piece of content (tour, restaurant,
+ * praia, nightlife, dica, hosting, coupon) exists for the given city. Used
+ * by the chat to decide whether to pre-search or to admit "ainda não tenho
+ * conteúdo cadastrado dessa cidade".
+ */
+export const cityHasContent = query({
+  args: { city: v.string() },
+  handler: async (ctx, { city }) => {
+    const tables = ["tours", "restaurants", "praias", "nightlife", "dicas"] as const;
+    for (const t of tables) {
+      const items = await ctx.db
+        .query(t)
+        .withIndex("by_active", (q) => q.eq("active", true))
+        .collect();
+      if (items.some((i) => matchesCity(i.city, city))) return true;
+    }
+    return false;
   },
 });
 

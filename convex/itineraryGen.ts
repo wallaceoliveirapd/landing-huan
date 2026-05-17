@@ -159,64 +159,57 @@ async function planWithAI(
     },
   });
 
-  // Build context blocks for prompt
+  // Restaurants are EXCLUDED from the db/osm pools so the model never
+  // pins a real restaurant. Dining slots are always generic "suggestion"
+  // titles; the user picks a real restaurant later from AddActivitySheet.
   const dbItems = [
     ...content.tours.map((t) => ({ ...t, source: "db" })),
-    ...content.restaurants.map((r) => ({ ...r, source: "db" })),
     ...content.praias.map((p) => ({ ...p, source: "db" })),
     ...content.nightlife.map((n) => ({ ...n, source: "db" })),
   ];
 
-  // Compact OSM payload (limit + drop noise fields to fit context window)
-  const osmCompact = osmPlaces.slice(0, 40).map((p) => ({
-    osmId: p.osmId,
-    name: p.name,
-    kind: p.kind,
-    address: p.address,
-    cuisine: p.cuisine,
-    tags: p.tags.slice(0, 4),
-  }));
+  const osmCompact = osmPlaces
+    .filter((p) => p.kind !== "restaurant")
+    .slice(0, 40)
+    .map((p) => ({
+      osmId: p.osmId,
+      name: p.name,
+      kind: p.kind,
+      address: p.address,
+      tags: p.tags.slice(0, 4),
+    }));
 
   const days = trip.duration ?? 3;
   const groupSize = trip.groupSize ?? 2;
+  const cityName = trip.destination.split(",")[0].trim();
 
-  const prompt = `Você é o Huan, agente de viagem do app NordestAI, planejador de viagens pelo Nordeste do Brasil.
+  const prompt = `Planejador de viagens pelo Nordeste/BR. Monte JSON do roteiro.
 
-DADOS DA VIAGEM:
-- Destino: ${trip.destination}
-- Estilo: ${trip.type}
-- Duração: ${days} dia(s)
-- Grupo: ${groupSize} pessoa(s)
-- Orçamento: ${trip.budget ?? "medio"}
+VIAGEM: destino=${trip.destination} estilo=${trip.type} dias=${days} grupo=${groupSize} orcamento=${trip.budget ?? "medio"}
 
-FONTE 1, CONTEÚDO CURADO NO SISTEMA (source: "db", use o _id como itemId):
-${JSON.stringify(dbItems.slice(0, 30), null, 2)}
+DB CURADO (passeios/praias/vida noturna) — use _id em itemId:
+${JSON.stringify(dbItems.slice(0, 30))}
 
-FONTE 2, LUGARES REAIS DA CIDADE (OpenStreetMap; source: "osm", use osmId como itemId):
-${JSON.stringify(osmCompact, null, 2)}
+OSM REAL (atrações/passeios/praias) — use osmId em itemId:
+${JSON.stringify(osmCompact)}
 
-REGRAS DE PRIORIDADE:
-1. PRIMEIRO use itens da FONTE 1 (db) que combinem com o estilo "${trip.type}".
-2. DEPOIS complete com lugares reais da FONTE 2 (osm), esses existem na cidade, são SEMPRE preferíveis a inventar.
-3. SOMENTE em último caso use source "suggestion" (sua invenção), e só quando ambas fontes não cobrirem alguma necessidade.
+REGRAS:
+1. Passeios/praias/vida noturna: PREFIRA db, depois osm. Suggestion só se nada cobrir.
+2. Restaurantes (kind="restaurant"): SEMPRE source="suggestion". NUNCA cite nome real ou cadastro. Title genérico tipo "Almoço em restaurante regional na Orla" / "Jantar de frutos do mar em ${cityName}" / "Café da manhã em padaria local". Usuário escolhe o restaurante real depois.
+3. Cada dia: tema (3-5 palavras) + 3 a 5 atividades.
+4. Atividade:
+   - source: "db" | "osm" | "suggestion"
+   - kind: "tour" | "restaurant" | "praia" | "nightlife" | "activity"
+   - timeOfDay: "morning" | "afternoon" | "evening" | "fullday"
+   - title curto
+   - note opcional (1 linha)
+   - itemId só se source db/osm
+   - icon só se suggestion (Lucide: "utensils","music","waves","compass","sunset","map-pin","coffee","wind")
+5. fullday substitui manhã+tarde (sem almoço no mesmo dia).
+6. SEMPRE 1 jantar (suggestion) por dia.
+7. Balanceie relax/movimento. Orcamento baixo=grátis/econômico, alto=premium.
 
-REGRAS DE COMPOSIÇÃO:
-- Monte ${days} dia(s), cada um com tema curto (3-5 palavras) e 3 a 5 atividades.
-- Cada atividade tem:
-  - source: "db" | "osm" | "suggestion"
-  - kind: "tour" | "restaurant" | "praia" | "nightlife" | "activity"
-  - timeOfDay: "morning" | "afternoon" | "evening" | "fullday"
-  - title: nome curto do lugar
-  - note: 1 linha breve sobre o porquê (opcional)
-  - itemId: SE source = "db" → use o _id do sistema. SE source = "osm" → use o osmId.
-  - icon: SÓ se source = "suggestion" (nome de ícone Lucide: ex "utensils", "music", "waves", "compass")
-- timeOfDay "fullday" substitui manhã+tarde, NÃO inclua almoço no mesmo dia.
-- Sempre inclua um jantar todos os dias.
-- Equilibre relax (praia/contemplação) e movimento (passeios/atrações).
-- Orçamento "baixo" → prefira atividades gratuitas e restaurantes econômicos.
-- Orçamento "alto" → pode incluir experiências premium.
-
-Retorne JSON: { "days": [{ "day": 1, "theme": "...", "activities": [...] }] }.`;
+Retorne: { "days": [{ "day": 1, "theme": "...", "activities": [...] }] }`;
 
   const result = await model.generateContent(prompt);
   const text = result.response.text();
@@ -226,20 +219,27 @@ Retorne JSON: { "days": [{ "day": 1, "theme": "...", "activities": [...] }] }.`;
     day: d.day ?? i + 1,
     theme: String(d.theme ?? `Dia ${i + 1}`),
     activities: (d.activities ?? []).map((a): Activity => {
-      const source: Activity["source"] =
+      const kind: Activity["kind"] = ["tour", "restaurant", "praia", "nightlife", "activity"].includes(a.kind)
+        ? (a.kind as Activity["kind"])
+        : "activity";
+      // Enforcement: restaurant slots are ALWAYS generic suggestions.
+      // Drops the itemId so we don't accidentally pin a real restaurant
+      // even if the model insisted on returning one.
+      const rawSource: Activity["source"] =
         a.source === "db" ? "db" : a.source === "osm" ? "osm" : "suggestion";
+      const source: Activity["source"] = kind === "restaurant" ? "suggestion" : rawSource;
       return {
         source,
-        kind: ["tour", "restaurant", "praia", "nightlife", "activity"].includes(a.kind)
-          ? (a.kind as Activity["kind"])
-          : "activity",
+        kind,
         timeOfDay: ["morning", "afternoon", "evening", "fullday"].includes(a.timeOfDay)
           ? (a.timeOfDay as Activity["timeOfDay"])
           : "morning",
         title: String(a.title ?? "Atividade"),
         note: a.note ? String(a.note) : undefined,
         itemId: (source === "db" || source === "osm") && a.itemId ? String(a.itemId) : undefined,
-        icon: source === "suggestion" && a.icon ? String(a.icon) : undefined,
+        icon: source === "suggestion" && (a.icon ?? kind === "restaurant")
+          ? String(a.icon ?? "utensils")
+          : undefined,
       };
     }),
   }));
@@ -258,13 +258,14 @@ function deterministicPlan(
   const days = trip.duration ?? 3;
   const dbTours = content.tours.filter((t) => t.relevant);
   const dbPraias = content.praias.filter((p) => p.relevant);
-  const dbRestaurants = content.restaurants;
   const dbNightlife = content.nightlife;
+  const cityName = trip.destination.split(",")[0].trim();
 
-  // Split OSM by kind
+  // Restaurants intentionally NOT pulled from db/osm. Dining slots always
+  // resolve to generic suggestions (the user picks the real restaurant
+  // later from AddActivitySheet).
   const osmTours = osmPlaces.filter((p) => p.kind === "tour" || p.kind === "attraction");
   const osmPraias = osmPlaces.filter((p) => p.kind === "praia");
-  const osmRestaurants = osmPlaces.filter((p) => p.kind === "restaurant");
   const osmNightlife = osmPlaces.filter((p) => p.kind === "nightlife");
 
   const FB = {
@@ -273,7 +274,9 @@ function deterministicPlan(
       { title: "Passeio de buggy nas dunas", icon: "wind", note: "Aventura clássica do Nordeste." },
     ],
     praia: [{ title: "Tarde em uma praia urbana", icon: "waves", note: "Relaxar e curtir o pôr do sol." }],
-    restaurant: [{ title: "Restaurante regional", icon: "utensils", note: "Comida típica nordestina." }],
+    breakfast: [{ title: `Café da manhã em padaria local`, icon: "coffee", note: "Pão, cuscuz e tapioca." }],
+    lunch: [{ title: `Almoço em restaurante regional em ${cityName}`, icon: "utensils", note: "Comida típica nordestina." }],
+    dinner: [{ title: `Jantar de frutos do mar em ${cityName}`, icon: "utensils", note: "Peixe, camarão ou moqueca." }],
     nightlife: [{ title: "Bar com música ao vivo", icon: "music", note: "MPB e forró pé de serra." }],
   };
 
@@ -305,8 +308,20 @@ function deterministicPlan(
 
   const tDb = { i: 0 }, tOsm = { i: 0 };
   const pDb = { i: 0 }, pOsm = { i: 0 };
-  const rDb = { i: 0 }, rOsm = { i: 0 };
   const nDb = { i: 0 }, nOsm = { i: 0 };
+
+  function restaurantSuggestion(kind: "breakfast" | "lunch" | "dinner"): Activity {
+    const fb = FB[kind][0];
+    return {
+      source: "suggestion",
+      kind: "restaurant",
+      timeOfDay:
+        kind === "breakfast" ? "morning" : kind === "lunch" ? "afternoon" : "evening",
+      title: fb.title,
+      icon: fb.icon,
+      note: fb.note,
+    };
+  }
 
   const themes = [
     "Primeiro contato com a cidade",
@@ -334,11 +349,8 @@ function deterministicPlan(
         timeOfDay: "morning",
       });
     }
-    // Lunch
-    activities.push({
-      ...pickActivity(dbRestaurants, rDb, osmRestaurants, rOsm, FB.restaurant, "restaurant"),
-      timeOfDay: "afternoon",
-    });
+    // Lunch (always a generic suggestion, never a real restaurant)
+    activities.push(restaurantSuggestion("lunch"));
     // Afternoon: optional second tour
     if (d % 2 === 0) {
       activities.push({
@@ -346,11 +358,8 @@ function deterministicPlan(
         timeOfDay: "afternoon",
       });
     }
-    // Dinner
-    activities.push({
-      ...pickActivity(dbRestaurants, rDb, osmRestaurants, rOsm, FB.restaurant, "restaurant"),
-      timeOfDay: "evening",
-    });
+    // Dinner (always a generic suggestion)
+    activities.push(restaurantSuggestion("dinner"));
     // Last day: nightlife
     if (d === days) {
       activities.push({
