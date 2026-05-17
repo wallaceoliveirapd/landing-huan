@@ -1,9 +1,33 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { Icon } from "@/components/atoms/Icon";
+import { NORDESTE_CITIES } from "@/lib/nordeste-cities";
 import { cn } from "@/lib/cn";
+
+const MapView = dynamic(
+  () => import("@/components/molecules/MapView").then((m) => m.MapView),
+  {
+    ssr: false,
+    loading: () => <div className="absolute inset-0 bg-[var(--color-neutral-200)] animate-pulse" />,
+  },
+);
+
+function resolveTripCoords(
+  destination: string,
+  lat: number | undefined,
+  lng: number | undefined,
+): { lat: number; lng: number } {
+  if (typeof lat === "number" && typeof lng === "number" && (lat !== 0 || lng !== 0)) {
+    return { lat, lng };
+  }
+  const cityName = (destination ?? "").split(",")[0].trim().toLowerCase();
+  const match = NORDESTE_CITIES.find((c) => c.name.toLowerCase() === cityName);
+  if (match) return { lat: match.lat, lng: match.lng };
+  return { lat: -7.1195, lng: -34.845 };
+}
 
 /**
  * Trip card for /perfil horizontal carousel.
@@ -12,21 +36,6 @@ import { cn } from "@/lib/cn";
  *
  * Width matches OfferCard: min(80vw, 280px). Aspect 4:5 for a taller feel.
  */
-
-const TYPE_GRADIENTS: Record<string, string> = {
-  praia:       "from-[#0ea5e9] via-[#38bdf8] to-[#7dd3fc]",
-  historica:   "from-[#92400e] via-[#b45309] to-[#d97706]",
-  natureza:    "from-[#15803d] via-[#16a34a] to-[#4ade80]",
-  aventura:    "from-[#c2410c] via-[#ea580c] to-[#fb923c]",
-  gastronomia: "from-[#be123c] via-[#e11d48] to-[#fb7185]",
-  festa:       "from-[#6d28d9] via-[#7c3aed] to-[#a78bfa]",
-  roadtrip:    "from-[#854d0e] via-[#a16207] to-[#ca8a04]",
-  familia:     "from-[#0f766e] via-[#0d9488] to-[#2dd4bf]",
-  solo:        "from-[#334155] via-[#475569] to-[#94a3b8]",
-  cultural:    "from-[#3730a3] via-[#4338ca] to-[#818cf8]",
-};
-
-const DEFAULT_GRADIENT = "from-[#323439] via-[#565a60] to-[#94989e]";
 
 const STATUS_LABELS: Record<string, string> = {
   planejando:  "Planejando",
@@ -65,12 +74,14 @@ interface Trip {
   status: string;
   startDate?: number;
   duration?: number;
+  lat?: number;
+  lng?: number;
 }
 
 export function TripCard({ trip, className }: { trip: Trip; className?: string }) {
-  const gradient = TYPE_GRADIENTS[trip.type] ?? DEFAULT_GRADIENT;
   const countdown = getCountdown(trip.startDate, trip.duration);
   const statusColor = STATUS_COLORS[trip.status] ?? STATUS_COLORS.planejando;
+  const coords = resolveTripCoords(trip.destination, trip.lat, trip.lng);
 
   return (
     <motion.div
@@ -85,11 +96,20 @@ export function TripCard({ trip, className }: { trip: Trip; className?: string }
       style={{ aspectRatio: "4/5" }}
     >
       <Link href={`/minha-viagem/${trip._id}`} className="absolute inset-0 flex flex-col">
-        {/* Full-bleed gradient background */}
-        <div className={cn("absolute inset-0 bg-gradient-to-br", gradient)} />
+        {/* Mini map background */}
+        <div className="absolute inset-0">
+          <MapView
+            lat={coords.lat}
+            lng={coords.lng}
+            zoom={10}
+            label={trip.destination.split(",")[0]}
+            staticView
+            className="!h-full !rounded-none"
+          />
+        </div>
 
-        {/* Subtle texture overlay */}
-        <div className="absolute inset-0 bg-black/10" />
+        {/* Subtle dim for legibility of overlaid info */}
+        <div className="absolute inset-0 bg-black/0 pointer-events-none" />
 
         {/* Content layer */}
         <div className="relative flex-1 flex flex-col justify-between p-3">

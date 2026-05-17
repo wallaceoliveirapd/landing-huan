@@ -1,10 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Icon } from "@/components/atoms/Icon";
+import { toProxyUrl } from "@/lib/imageUpload";
 
 /** Limit on the badge counter, anything above shows as "9+". */
 const BADGE_MAX = 9;
@@ -43,6 +45,7 @@ export function Header() {
     (viewer as { email?: string } | null)?.email?.split("@")[0];
 
   const initial = firstName?.[0]?.toUpperCase() ?? "?";
+  const avatarUrl = (viewer as { image?: string } | null)?.image;
 
   return (
     <header className="w-full bg-white">
@@ -54,12 +57,27 @@ export function Header() {
         {loading ? (
           <div className="size-[42px] flex-none rounded-full bg-[var(--color-neutral-100)] animate-pulse" />
         ) : auth.isAuthenticated && viewer ? (
-          <Link
-            href="/perfil"
-            className="grid size-[42px] flex-none place-items-center rounded-full bg-[var(--color-brand-yellow)] font-display font-medium text-[16px] text-black"
-          >
-            {initial}
-          </Link>
+          avatarUrl ? (
+            <Link
+              href="/perfil"
+              className="relative size-[42px] flex-none overflow-hidden rounded-full"
+            >
+              <Image
+                src={toProxyUrl(avatarUrl)}
+                alt={firstName ?? "Perfil"}
+                fill
+                sizes="42px"
+                className="object-cover"
+              />
+            </Link>
+          ) : (
+            <Link
+              href="/perfil"
+              className="grid size-[42px] flex-none place-items-center rounded-full bg-[var(--color-brand-yellow)] font-display font-medium text-[16px] text-black"
+            >
+              {initial}
+            </Link>
+          )
         ) : (
           <button
             type="button"

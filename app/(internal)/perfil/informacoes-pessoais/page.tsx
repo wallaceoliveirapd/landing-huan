@@ -10,6 +10,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { Icon } from "@/components/atoms/Icon";
 import { toProxyUrl } from "@/lib/imageUpload";
 import { logAndGetMessage } from "@/lib/errors";
+import { AvatarCropModal } from "@/components/organisms/AvatarCropModal";
 
 function maskWhatsapp(raw: string): string {
   const digits = raw.replace(/\D/g, "").slice(0, 11);
@@ -30,6 +31,7 @@ export default function InformacoesPessoaisPage() {
   const [savedMsg, setSavedMsg] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
 
   useEffect(() => {
     if (!auth.isLoading && !auth.isAuthenticated) auth.openAuthModal();
@@ -44,16 +46,22 @@ export default function InformacoesPessoaisPage() {
     }
   }, [viewer]);
 
-  async function handleAvatarPick(file: File) {
+  function handleAvatarPick(file: File) {
     if (uploadingAvatar) return;
-    if (file.size > 4 * 1024 * 1024) {
-      toast.error("Imagem maior que 4MB. Escolha uma menor.");
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("Imagem maior que 8MB. Escolha uma menor.");
       return;
     }
+    const reader = new FileReader();
+    reader.onload = () => setCropSrc(typeof reader.result === "string" ? reader.result : null);
+    reader.readAsDataURL(file);
+  }
+
+  async function uploadCroppedAvatar(blob: Blob) {
     setUploadingAvatar(true);
     try {
       const fd = new FormData();
-      fd.append("file", file);
+      fd.append("file", new File([blob], "avatar.webp", { type: blob.type || "image/webp" }));
       const res = await fetch("/api/upload-avatar", { method: "POST", body: fd });
       if (!res.ok) {
         const { error } = await res.json().catch(() => ({ error: "Falha no upload" }));
@@ -168,6 +176,14 @@ export default function InformacoesPessoaisPage() {
           </>
         )}
       </div>
+      <AvatarCropModal
+        open={cropSrc !== null}
+        src={cropSrc}
+        onClose={() => setCropSrc(null)}
+        onConfirm={async (blob) => {
+          await uploadCroppedAvatar(blob);
+        }}
+      />
     </SettingsLayout>
   );
 }

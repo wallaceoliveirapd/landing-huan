@@ -226,6 +226,8 @@ export default function CriarViagemPage() {
   const [tripTitle, setTripTitle] = useState("");
   const [durationOpen, setDurationOpen] = useState(false);
   const [budgetOpen, setBudgetOpen] = useState(false);
+  const [startDate, setStartDate] = useState<string>(""); // yyyy-mm-dd
+  const [endDate, setEndDate] = useState<string>("");
   const searchRef = useRef<HTMLInputElement>(null);
 
   // 5 steps total: onboarding (0) + 4 actual steps (1..4)
@@ -265,6 +267,7 @@ export default function CriarViagemPage() {
     }
     setSaving(true);
     try {
+      const startTs = startDate ? new Date(startDate).getTime() : undefined;
       const tripId = await createTrip({
         title: tripTitle || `Viagem a ${city.name}`,
         destination: `${city.name}, ${city.state}`,
@@ -274,6 +277,7 @@ export default function CriarViagemPage() {
         duration,
         groupSize,
         budget,
+        startDate: startTs,
       });
       // Wait for the itinerary to be generated so the detail page already
       // has the days ready when the user lands. The fullscreen AiLoader
@@ -617,6 +621,51 @@ export default function CriarViagemPage() {
                       </motion.div>
                     )}
                   </AnimatePresence>
+                </div>
+
+                {/* Dates */}
+                <div className="flex gap-2">
+                  <label className="flex-1 flex flex-col gap-1.5 p-3 rounded-[16px] border border-[var(--color-neutral-200)] bg-white">
+                    <span className="text-[11px] font-medium text-[var(--color-neutral-600)] uppercase tracking-wide">
+                      Ida
+                    </span>
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        setStartDate(v);
+                        if (v && endDate) {
+                          const s = new Date(v).getTime();
+                          const en = new Date(endDate).getTime();
+                          const days = Math.max(1, Math.round((en - s) / 86400000));
+                          if (Number.isFinite(days)) setDuration(days);
+                        }
+                      }}
+                      className="text-[14px] text-[var(--color-neutral-800)] outline-none bg-transparent"
+                    />
+                  </label>
+                  <label className="flex-1 flex flex-col gap-1.5 p-3 rounded-[16px] border border-[var(--color-neutral-200)] bg-white">
+                    <span className="text-[11px] font-medium text-[var(--color-neutral-600)] uppercase tracking-wide">
+                      Volta
+                    </span>
+                    <input
+                      type="date"
+                      value={endDate}
+                      min={startDate || undefined}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        setEndDate(v);
+                        if (v && startDate) {
+                          const s = new Date(startDate).getTime();
+                          const en = new Date(v).getTime();
+                          const days = Math.max(1, Math.round((en - s) / 86400000));
+                          if (Number.isFinite(days)) setDuration(days);
+                        }
+                      }}
+                      className="text-[14px] text-[var(--color-neutral-800)] outline-none bg-transparent"
+                    />
+                  </label>
                 </div>
 
                 {/* Group size */}
