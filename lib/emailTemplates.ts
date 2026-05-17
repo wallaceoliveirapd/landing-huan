@@ -278,3 +278,85 @@ export function broadcastEmail({
     }),
   };
 }
+
+export function tripWeekBeforeEmail({
+  name,
+  tripTitle,
+  destination,
+  tripUrl,
+}: {
+  name?: string;
+  tripTitle: string;
+  destination: string;
+  tripUrl: string;
+}) {
+  const first = name?.split(" ")[0];
+  const greeting = first ? `Ei ${first},` : "Ei,";
+  return {
+    subject: `Falta 1 semana pra sua viagem a ${destination}`,
+    html: baseLayout({
+      title: "Falta 1 semana",
+      preview: `Sua viagem a ${destination} é semana que vem. Bora se organizar?`,
+      body: `
+        <p style="font-size:18px;font-weight:600;line-height:1.4;margin:0 0 12px;color:${BRAND.ink};">${greeting}</p>
+        <p style="font-size:15px;line-height:1.65;margin:0 0 18px;color:${BRAND.ink};">
+          Sua viagem <strong>${tripTitle}</strong> ta chegando! Faltam só 7 dias pra você embarcar pra <strong>${destination}</strong>. Bora começar a organizar?
+        </p>
+        <p style="font-size:15px;line-height:1.65;margin:0 0 18px;color:${BRAND.ink};">
+          Dá uma olhada no roteiro que montei pra você, ajusta o que quiser, e me chama no chat se quiser dicas extras sobre o destino, eu tô aqui pra ajudar.
+        </p>
+        <p style="margin:0 0 28px;">
+          <a href="${tripUrl}" style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-weight:500;font-size:15px;padding:14px 28px;border-radius:999px;">Ver minha viagem</a>
+        </p>
+        <p style="font-size:14px;line-height:1.6;margin:0;color:${BRAND.muted};">
+          Quer falar comigo? Abre o app e clica no botao amarelo do Huan, eu respondo na hora.
+        </p>
+      `,
+    }),
+  };
+}
+
+export function tripChecklistEmail({
+  name,
+  tripTitle,
+  destination,
+  tripUrl,
+}: {
+  name?: string;
+  tripTitle: string;
+  destination: string;
+  tripUrl: string;
+}) {
+  const first = name?.split(" ")[0];
+  const greeting = first ? `${first}, ` : "";
+  return {
+    subject: `Checklist pra sua viagem amanhã, ${destination}`,
+    html: baseLayout({
+      title: "Checklist da viagem",
+      preview: `Amanhã é dia! Checklist rápido pra sua viagem a ${destination}.`,
+      body: `
+        <p style="font-size:18px;font-weight:600;line-height:1.4;margin:0 0 12px;color:${BRAND.ink};">Amanhã é dia, ${greeting}vamos nessa!</p>
+        <p style="font-size:15px;line-height:1.65;margin:0 0 18px;color:${BRAND.ink};">
+          Sua viagem <strong>${tripTitle}</strong> pra <strong>${destination}</strong> começa amanhã. Separei um checklist rápido pra você não esquecer nada:
+        </p>
+        <ul style="font-size:15px;line-height:1.85;margin:0 0 24px;padding-left:20px;color:${BRAND.ink};">
+          <li>Documento com foto (RG ou CNH)</li>
+          <li>Cartao de credito + dinheiro em especie</li>
+          <li>Carregador de celular + cabo</li>
+          <li>Roupas conforme o clima do destino</li>
+          <li>Protetor solar + repelente</li>
+          <li>Remedios pessoais</li>
+          <li>Garrafa de agua reutilizavel</li>
+          <li>Confirmar reserva de hospedagem + transporte</li>
+        </ul>
+        <p style="margin:0 0 28px;">
+          <a href="${tripUrl}" style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-weight:500;font-size:15px;padding:14px 28px;border-radius:999px;">Ver detalhes da viagem</a>
+        </p>
+        <p style="font-size:14px;line-height:1.6;margin:0;color:${BRAND.muted};">
+          Duvida de ultima hora? Me chama no chat do app, eu respondo na hora.
+        </p>
+      `,
+    }),
+  };
+}
+

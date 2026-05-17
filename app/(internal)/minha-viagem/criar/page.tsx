@@ -228,6 +228,25 @@ export default function CriarViagemPage() {
   const [budgetOpen, setBudgetOpen] = useState(false);
   const [startDate, setStartDate] = useState<string>(""); // yyyy-mm-dd
   const [endDate, setEndDate] = useState<string>("");
+  // Custom duration controls
+  const [customMode, setCustomMode] = useState(false);
+  const [customAmount, setCustomAmount] = useState<number>(2);
+  const [customUnit, setCustomUnit] = useState<"dias" | "semanas" | "meses">("semanas");
+
+  function unitToDays(amount: number, unit: "dias" | "semanas" | "meses") {
+    const factor = unit === "dias" ? 1 : unit === "semanas" ? 7 : 30;
+    return Math.max(1, Math.round(amount * factor));
+  }
+
+  function applyDuration(days: number) {
+    setDuration(days);
+    if (startDate) {
+      const s = new Date(startDate).getTime();
+      const end = new Date(s + days * 86400000);
+      const iso = end.toISOString().slice(0, 10);
+      setEndDate(iso);
+    }
+  }
   const searchRef = useRef<HTMLInputElement>(null);
 
   // 5 steps total: onboarding (0) + 4 actual steps (1..4)
@@ -602,12 +621,16 @@ export default function CriarViagemPage() {
                       >
                         <div className="flex flex-wrap gap-2 pt-3">
                           {DURATION_OPTIONS.map((d) => {
-                            const sel = duration === d.value;
+                            const sel = !customMode && duration === d.value;
                             return (
                               <button
                                 key={d.value}
                                 type="button"
-                                onClick={() => { setDuration(d.value); setDurationOpen(false); }}
+                                onClick={() => {
+                                  setCustomMode(false);
+                                  applyDuration(d.value);
+                                  setDurationOpen(false);
+                                }}
                                 className={`rounded-full px-4 py-2 text-[13px] font-medium bg-white border transition-colors ${sel
                                     ? "border-[var(--color-neutral-800)] border-2 text-[var(--color-neutral-800)]"
                                     : "border-[var(--color-neutral-300)] text-[var(--color-neutral-800)]"
@@ -617,7 +640,49 @@ export default function CriarViagemPage() {
                               </button>
                             );
                           })}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCustomMode(true);
+                              applyDuration(unitToDays(customAmount, customUnit));
+                            }}
+                            className={`rounded-full px-4 py-2 text-[13px] font-medium bg-white border transition-colors ${customMode
+                                ? "border-[var(--color-neutral-800)] border-2 text-[var(--color-neutral-800)]"
+                                : "border-[var(--color-neutral-300)] text-[var(--color-neutral-800)]"
+                              }`}
+                          >
+                            Personalizado
+                          </button>
                         </div>
+                        {customMode && (
+                          <div className="flex items-center gap-2 pt-3">
+                            <input
+                              type="number"
+                              min={1}
+                              max={365}
+                              value={customAmount}
+                              onChange={(e) => {
+                                const v = Math.max(1, Number(e.target.value) || 1);
+                                setCustomAmount(v);
+                                applyDuration(unitToDays(v, customUnit));
+                              }}
+                              className="w-20 h-11 rounded-[12px] border border-[var(--color-neutral-300)] px-3 text-[14px] outline-none focus:border-[var(--color-neutral-800)]"
+                            />
+                            <select
+                              value={customUnit}
+                              onChange={(e) => {
+                                const u = e.target.value as "dias" | "semanas" | "meses";
+                                setCustomUnit(u);
+                                applyDuration(unitToDays(customAmount, u));
+                              }}
+                              className="flex-1 h-11 rounded-[12px] border border-[var(--color-neutral-300)] px-3 text-[14px] outline-none focus:border-[var(--color-neutral-800)] bg-white"
+                            >
+                              <option value="dias">dias</option>
+                              <option value="semanas">semanas</option>
+                              <option value="meses">meses</option>
+                            </select>
+                          </div>
+                        )}
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -635,12 +700,12 @@ export default function CriarViagemPage() {
                       onChange={(e) => {
                         const v = e.target.value;
                         setStartDate(v);
-                        if (v && endDate) {
-                          const s = new Date(v).getTime();
-                          const en = new Date(endDate).getTime();
-                          const days = Math.max(1, Math.round((en - s) / 86400000));
-                          if (Number.isFinite(days)) setDuration(days);
-                        }
+                        if (!v) return;
+                        // Auto-fill volta from current duration so the two
+                        // stay in sync.
+                        const s = new Date(v).getTime();
+                        const end = new Date(s + duration * 86400000);
+                        setEndDate(end.toISOString().slice(0, 10));
                       }}
                       className="text-[14px] text-[var(--color-neutral-800)] outline-none bg-transparent"
                     />

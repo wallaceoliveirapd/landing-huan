@@ -1,7 +1,7 @@
 "use node";
 
 import { v } from "convex/values";
-import { action } from "./_generated/server";
+import { action, internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import webpush from "web-push";
 
@@ -14,6 +14,77 @@ function configureVapid() {
   }
   webpush.setVapidDetails(subject, publicKey, privateKey);
 }
+
+/**
+ * Send a push notification to a single user's subscriptions. Used by the
+ * trip reminder scheduler.
+ */
+export const sendToUser = internalAction({
+  args: {
+    userId: v.string(),
+    title: v.string(),
+    body: v.string(),
+    url: v.optional(v.string()),
+  },
+  handler: async (ctx, { userId, title, body, url }): Promise<{ delivered: number; failed: number }> => {
+    configureVapid();
+    const iconUrl = "https://evokemedia.com.br/landing-huan/icon.png";
+
+    // Inbox row for the user
+    await ctx.runMutation(internal.notifications.insertBulk, {
+      userIds: [userId],
+      title,
+      body,
+      url: url ?? "/",
+      icon: iconUrl,
+      kind: "trip-reminder",
+    });
+
+    const subs: { _id: string; endpoint: string; p256dh: string; auth: string; userId: string }[] =
+      await ctx.runQuery(internal.pushQueries.subscriptionsForUsers, { userIds: [userId] });
+
+    const payload = JSON.stringify({
+      title,
+      body,
+      url: url ?? "/",
+      tag: "trip-reminder",
+      icon: iconUrl,
+      badge: iconUrl,
+    });
+
+    let delivered = 0;
+    let failed = 0;
+    const expired: string[] = [];
+
+    await Promise.all(
+      subs.map(async (s) => {
+        try {
+          await webpush.sendNotification(
+            { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
+            payload,
+            { TTL: 60 * 60 * 24 },
+          );
+          delivered++;
+        } catch (err) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const status = (err as any)?.statusCode;
+          if (status === 401 || status === 404 || status === 410) {
+            expired.push(s._id);
+          } else {
+            console.warn("[push:user] send error:", err);
+          }
+          failed++;
+        }
+      }),
+    );
+
+    if (expired.length > 0) {
+      await ctx.runMutation(internal.pushQueries.removeSubscriptions, { ids: expired });
+    }
+
+    return { delivered, failed };
+  },
+});
 
 /**
  * Admin-only broadcast.

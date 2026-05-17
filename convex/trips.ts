@@ -113,6 +113,26 @@ export const create = mutation({
       });
     }
 
+    // Schedule pre-trip reminders (push + email) at 7d and 1d before
+    // startDate. Skipped if startDate is in the past for that window.
+    if (typeof args.startDate === "number") {
+      const now = Date.now();
+      const weekBefore = args.startDate - 7 * 24 * 60 * 60 * 1000;
+      const dayBefore = args.startDate - 1 * 24 * 60 * 60 * 1000;
+      if (weekBefore > now + 60_000) {
+        await ctx.scheduler.runAt(weekBefore, internal.tripReminders.send, {
+          tripId,
+          kind: "week",
+        });
+      }
+      if (dayBefore > now + 60_000) {
+        await ctx.scheduler.runAt(dayBefore, internal.tripReminders.send, {
+          tripId,
+          kind: "day",
+        });
+      }
+    }
+
     // In-app inbox notification, appears in the bell + /notificacoes
     await ctx.db.insert("userNotifications", {
       userId,

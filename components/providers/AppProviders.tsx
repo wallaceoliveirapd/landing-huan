@@ -23,6 +23,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
           richColors
           closeButton
           duration={4500}
+          offset="calc(max(env(safe-area-inset-top), 0px) + 16px)"
           toastOptions={{
             classNames: {
               toast:

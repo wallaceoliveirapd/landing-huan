@@ -21,12 +21,25 @@ export function ImageUploadField({ value, onChange, uploadCategory = "geral" }: 
   // Synchronous guard, the `uploading` React state lags behind double-fired
   // drop events. Without this, the same drop can enqueue two uploads.
   const busyRef = useRef(false);
+  const lastFileKeyRef = useRef<{ key: string; t: number } | null>(null);
+
+  function fileKey(f: File): string {
+    return `${f.name}|${f.size}|${f.lastModified}`;
+  }
 
   async function processFile(file: File) {
     if (!file.type.startsWith("image/")) {
       setError("Arquivo precisa ser uma imagem.");
       return;
     }
+    // Strong dedup: same file dropped twice within 3s is ignored.
+    const key = fileKey(file);
+    const now = Date.now();
+    const prev = lastFileKeyRef.current;
+    if (prev && prev.key === key && now - prev.t < 3000) return;
+    if (busyRef.current) return;
+    busyRef.current = true;
+    lastFileKeyRef.current = { key, t: now };
     setError(null);
     setUploading(true);
     setProgress("Comprimindo…");
@@ -42,6 +55,7 @@ export function ImageUploadField({ value, onChange, uploadCategory = "geral" }: 
     } finally {
       setUploading(false);
       setProgress(null);
+      busyRef.current = false;
       if (inputRef.current) inputRef.current.value = "";
     }
   }
@@ -63,19 +77,13 @@ export function ImageUploadField({ value, onChange, uploadCategory = "geral" }: 
     e.preventDefault();
     e.stopPropagation();
     setDragOver(false);
-    if (busyRef.current) return;
-    busyRef.current = true;
-    try {
-      const file = e.dataTransfer.files?.[0];
-      if (file) {
-        await processFile(file);
-        return;
-      }
-      const url = pickImageUrl(e.dataTransfer);
-      if (url) await processUrl(url);
-    } finally {
-      busyRef.current = false;
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      await processFile(file);
+      return;
     }
+    const url = pickImageUrl(e.dataTransfer);
+    if (url) await processUrl(url);
   }
 
   async function processUrl(url: string) {

@@ -18,14 +18,26 @@ export function PhotosField({ value, onChange, uploadCategory = "geral" }: Props
   const [dragOver, setDragOver] = useState(false);
   const busyRef = useRef(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const recentKeysRef = useRef<Map<string, number>>(new Map());
 
   async function processFiles(files: File[]) {
     const images = files.filter((f) => f.type.startsWith("image/"));
     if (!images.length) return;
+    // Strong dedup: skip files we've just processed within the last 3s.
+    const now = Date.now();
+    const fresh = images.filter((f) => {
+      const key = `${f.name}|${f.size}|${f.lastModified}`;
+      const prev = recentKeysRef.current.get(key);
+      recentKeysRef.current.set(key, now);
+      return !prev || now - prev > 3000;
+    });
+    if (!fresh.length) return;
+    if (busyRef.current) return;
+    busyRef.current = true;
     setUploading(true);
     try {
       const urls = await Promise.all(
-        images.map(async (file) => {
+        fresh.map(async (file) => {
           const blob = await compressToWebP(file);
           const { publicUrl } = await uploadToR2(blob, file.name, uploadCategory);
           return publicUrl;
@@ -36,6 +48,7 @@ export function PhotosField({ value, onChange, uploadCategory = "geral" }: Props
       console.error("Photos upload error:", err);
     } finally {
       setUploading(false);
+      busyRef.current = false;
     }
   }
 

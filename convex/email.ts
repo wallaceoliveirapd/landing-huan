@@ -106,6 +106,52 @@ export const sendTripCreated = internalAction({
   },
 });
 
+// ─── Trip reminder, 1 week before ────────────────────────────────────────
+export const sendTripWeekBefore = internalAction({
+  args: {
+    to: v.string(),
+    name: v.optional(v.string()),
+    tripTitle: v.string(),
+    destination: v.string(),
+    tripUrl: v.string(),
+  },
+  handler: async (_ctx, args) => {
+    const { tripWeekBeforeEmail } = await import("../lib/emailTemplates");
+    const tpl = tripWeekBeforeEmail(args);
+    const resend = getResend();
+    await resend.emails.send({
+      from: getFrom(),
+      to: args.to,
+      subject: tpl.subject,
+      html: tpl.html,
+      replyTo: getReplyTo(),
+    });
+  },
+});
+
+// ─── Trip reminder, 1 day before (checklist) ─────────────────────────────
+export const sendTripChecklist = internalAction({
+  args: {
+    to: v.string(),
+    name: v.optional(v.string()),
+    tripTitle: v.string(),
+    destination: v.string(),
+    tripUrl: v.string(),
+  },
+  handler: async (_ctx, args) => {
+    const { tripChecklistEmail } = await import("../lib/emailTemplates");
+    const tpl = tripChecklistEmail(args);
+    const resend = getResend();
+    await resend.emails.send({
+      from: getFrom(),
+      to: args.to,
+      subject: tpl.subject,
+      html: tpl.html,
+      replyTo: getReplyTo(),
+    });
+  },
+});
+
 // ─── Admin broadcast ─────────────────────────────────────────────────────
 export const sendBroadcast = action({
   args: {

@@ -38,6 +38,8 @@ import type * as seed from "../seed.js";
 import type * as seedAdmin from "../seedAdmin.js";
 import type * as siteContent from "../siteContent.js";
 import type * as tours from "../tours.js";
+import type * as tripReminders from "../tripReminders.js";
+import type * as tripRemindersData from "../tripRemindersData.js";
 import type * as trips from "../trips.js";
 import type * as users from "../users.js";
 import type * as usersAdmin from "../usersAdmin.js";
@@ -81,6 +83,8 @@ declare const fullApi: ApiFromModules<{
   seedAdmin: typeof seedAdmin;
   siteContent: typeof siteContent;
   tours: typeof tours;
+  tripReminders: typeof tripReminders;
+  tripRemindersData: typeof tripRemindersData;
   trips: typeof trips;
   users: typeof users;
   usersAdmin: typeof usersAdmin;
