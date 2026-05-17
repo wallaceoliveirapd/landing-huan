@@ -363,7 +363,10 @@ export default function CriarViagemPage() {
       <AiLoader show={saving} />
 
       {/* ── Header, close icon + title ─────────────────────────── */}
-      <div className="flex items-center gap-3 px-6 pt-4 pb-2 shrink-0">
+      <div
+        className="flex items-center gap-3 px-6 pb-2 shrink-0"
+        style={{ paddingTop: "max(env(safe-area-inset-top), 1rem)" }}
+      >
         <button
           type="button"
           onClick={goBack}

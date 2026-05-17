@@ -119,7 +119,6 @@ export function TripWeatherCard({ tripId, startDate, snapshot }: Props) {
     return snapshot.days[0].weatherCode;
   }, [snapshot]);
 
-  if (!startDate) return null;
   if (!snapshot || snapshot.days.length === 0) {
     if (loading) {
       return (
@@ -131,6 +130,7 @@ export function TripWeatherCard({ tripId, startDate, snapshot }: Props) {
         </section>
       );
     }
+    const missingDate = !startDate;
     return (
       <section className="px-5 pt-6">
         <div className="rounded-[20px] border border-[var(--color-neutral-200)] bg-white p-4 flex items-center gap-3">
@@ -139,21 +139,31 @@ export function TripWeatherCard({ tripId, startDate, snapshot }: Props) {
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-display font-medium text-[14px] text-[var(--color-neutral-800)]">
-              {failed ? "Não consegui carregar o clima" : "Sem dados de clima ainda"}
+              {missingDate
+                ? "Defina a data da viagem"
+                : failed
+                  ? "Não consegui carregar o clima"
+                  : "Sem dados de clima ainda"}
             </p>
             <p className="text-[12px] text-[var(--color-neutral-600)]">
-              {failed ? "Tenta de novo agora." : "Gera a previsão pra sua viagem."}
+              {missingDate
+                ? "Pra ver a previsão, edita a data de início."
+                : failed
+                  ? "Tenta de novo agora."
+                  : "Gera a previsão pra sua viagem."}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => runRefresh(true)}
-            disabled={loading}
-            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full bg-[var(--color-brand-yellow)] text-[var(--color-neutral-800)] text-[12px] font-medium hover:brightness-95 transition disabled:opacity-50"
-          >
-            <Icon name="refresh-cw" size={12} />
-            {failed ? "Tentar de novo" : "Gerar"}
-          </button>
+          {!missingDate && (
+            <button
+              type="button"
+              onClick={() => runRefresh(true)}
+              disabled={loading}
+              className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full bg-[var(--color-brand-yellow)] text-[var(--color-neutral-800)] text-[12px] font-medium hover:brightness-95 transition disabled:opacity-50"
+            >
+              <Icon name="refresh-cw" size={12} />
+              {failed ? "Tentar de novo" : "Gerar"}
+            </button>
+          )}
         </div>
       </section>
     );
