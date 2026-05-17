@@ -101,9 +101,16 @@ export function ImageUploadField({ value, onChange, uploadCategory = "geral" }: 
     }
   }
 
-  function handleRemove() {
-    if (value && isR2Url(value)) deleteFromR2(value);
+  async function handleRemove() {
+    const old = value;
     onChange("");
+    if (old && isR2Url(old)) {
+      try {
+        await deleteFromR2(old);
+      } catch (err) {
+        console.error("[image] R2 delete failed", err);
+      }
+    }
   }
 
   return (

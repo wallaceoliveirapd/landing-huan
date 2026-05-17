@@ -17,6 +17,7 @@ export function PhotosField({ value, onChange, uploadCategory = "geral" }: Props
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const busyRef = useRef(false);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   async function processFiles(files: File[]) {
     const images = files.filter((f) => f.type.startsWith("image/"));
@@ -94,8 +95,16 @@ export function PhotosField({ value, onChange, uploadCategory = "geral" }: Props
 
   async function removePhoto(i: number) {
     const url = photos[i];
-    if (url && isR2Url(url)) deleteFromR2(url);
+    // Optimistic UI: remove from the list first so user sees the change,
+    // then delete from R2 in the background.
     onChange(photos.filter((_, idx) => idx !== i));
+    if (url && isR2Url(url)) {
+      try {
+        await deleteFromR2(url);
+      } catch (err) {
+        console.error("[photos] R2 delete failed", err);
+      }
+    }
   }
 
   return (
@@ -128,8 +137,11 @@ export function PhotosField({ value, onChange, uploadCategory = "geral" }: Props
           </div>
         ))}
 
-        {/* Add button */}
-        <label
+        {/* Add button (file input kept OUTSIDE the dropzone, see below) */}
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
           className={`aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors text-[var(--color-neutral-600)] ${
             uploading ? "opacity-50 pointer-events-none" : ""
           } ${
@@ -148,16 +160,20 @@ export function PhotosField({ value, onChange, uploadCategory = "geral" }: Props
               </span>
             </>
           )}
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            className="hidden"
-            onChange={handleFiles}
-            disabled={uploading}
-          />
-        </label>
+        </button>
       </div>
+      {/* Hidden file input lives outside the drop zone so it does not
+          receive a parallel native drop alongside our onDrop handler,
+          which previously caused two uploads for each dropped image. */}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={handleFiles}
+        disabled={uploading}
+      />
       <p className="text-xs text-[var(--color-neutral-600)]">
         Arraste imagens pra adicionar. Comprimidas automaticamente para WebP.
       </p>
