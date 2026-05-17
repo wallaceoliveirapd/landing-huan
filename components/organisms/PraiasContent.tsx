@@ -12,6 +12,24 @@ import { EmptyState } from "./EmptyState";
 import { ListingSearch } from "@/components/molecules/ListingSearch";
 import { Icon } from "@/components/atoms/Icon";
 import { toProxyUrl } from "@/lib/imageUpload";
+import { NORDESTE_CITIES } from "@/lib/nordeste-cities";
+
+const STATE_LABEL: Record<string, string> = {
+  AL: "Alagoas",
+  BA: "Bahia",
+  CE: "Ceará",
+  MA: "Maranhão",
+  PB: "Paraíba",
+  PE: "Pernambuco",
+  PI: "Piauí",
+  RN: "Rio Grande do Norte",
+  SE: "Sergipe",
+};
+
+function parseCity(value: string): { name: string; state: string } {
+  const [name, state] = value.split(",").map((s) => s.trim());
+  return { name: name ?? "", state: (state ?? "").toUpperCase() };
+}
 
 function shuffle<T>(arr: T[]): T[] {
   const out = arr.slice();
@@ -27,8 +45,11 @@ export function PraiasContent() {
 
   const [search, setSearch] = useState("");
   const [activeCity, setActiveCity] = useState<string | null>(null);
+  const [activeState, setActiveState] = useState<string | null>(null);
   const [activeFeature, setActiveFeature] = useState<string | null>(null);
   const [cityMenuOpen, setCityMenuOpen] = useState(false);
+  const [stateQuery, setStateQuery] = useState("");
+  const [cityQuery, setCityQuery] = useState("");
 
   // Random order, stable per session (re-shuffles only when DB list size
   // changes). useState lazy init runs once at mount.
@@ -59,6 +80,34 @@ export function PraiasContent() {
     [allPraias],
   );
 
+  // Source of all Nordeste cities for the autocomplete (independent of what's
+  // currently in the praias DB).
+  const allCityOptions = useMemo(
+    () => NORDESTE_CITIES.map((c) => ({ name: c.name, state: c.state })),
+    [],
+  );
+
+  const stateOptions = useMemo(() => {
+    const seen = new Set<string>();
+    for (const c of allCityOptions) seen.add(c.state);
+    return [...seen].sort();
+  }, [allCityOptions]);
+
+  const stateSuggestions = useMemo(() => {
+    const q = stateQuery.trim().toLowerCase();
+    return stateOptions.filter((s) =>
+      !q || s.toLowerCase().includes(q) || (STATE_LABEL[s] ?? "").toLowerCase().includes(q),
+    );
+  }, [stateOptions, stateQuery]);
+
+  const citySuggestions = useMemo(() => {
+    const q = cityQuery.trim().toLowerCase();
+    const base = activeState
+      ? allCityOptions.filter((c) => c.state === activeState)
+      : allCityOptions;
+    return base.filter((c) => !q || c.name.toLowerCase().includes(q)).slice(0, 30);
+  }, [allCityOptions, activeState, cityQuery]);
+
   // Top recurring features across all praias
   const topFeatures = useMemo(() => {
     const freq: Record<string, number> = {};
@@ -70,17 +119,31 @@ export function PraiasContent() {
     const q = search.toLowerCase().trim();
     return allPraias.filter((p) => {
       if (q && !p.name.toLowerCase().includes(q) && !p.location.toLowerCase().includes(q)) return false;
-      if (activeCity && p.city !== activeCity) return false;
+      if (activeCity) {
+        const pc = parseCity(p.city ?? "");
+        const ac = parseCity(activeCity);
+        if (pc.name.toLowerCase() !== ac.name.toLowerCase()) return false;
+      }
+      if (activeState) {
+        const { state } = parseCity(p.city ?? "");
+        if (state !== activeState) return false;
+      }
       if (activeFeature && !(p.features ?? []).includes(activeFeature)) return false;
       return true;
     });
-  }, [allPraias, search, activeCity, activeFeature]);
+  }, [allPraias, search, activeCity, activeState, activeFeature]);
+
+  const locationChipLabel = activeCity
+    ? `Cidade: ${parseCity(activeCity).name}`
+    : activeState
+    ? `Estado: ${activeState}`
+    : "Localização";
 
   const chips = [
     {
       key: "city-picker",
-      label: activeCity ? `Cidade: ${activeCity.split(",")[0]}` : "Cidade",
-      active: !!activeCity,
+      label: locationChipLabel,
+      active: !!activeCity || !!activeState,
       onToggle: () => setCityMenuOpen((v) => !v),
     },
     ...topFeatures.map((f) => ({
@@ -91,10 +154,42 @@ export function PraiasContent() {
     })),
   ];
 
-  function pickCity(c: string | null) {
-    setActiveCity(c);
-    setCityMenuOpen(false);
-    if (c) gtmFilterApplied("cidade", c.split(",")[0], "praias");
+  function pickCity(c: { name: string; state: string } | null) {
+    if (!c) {
+      setActiveCity(null);
+      setCityQuery("");
+      return;
+    }
+    const value = `${c.name}, ${c.state}`;
+    setActiveCity(value);
+    setCityQuery(c.name);
+    gtmFilterApplied("cidade", c.name, "praias");
+  }
+
+  function pickState(state: string | null) {
+    if (!state) {
+      setActiveState(null);
+      setStateQuery("");
+      return;
+    }
+    setActiveState(state);
+    setStateQuery(state);
+    // If a city was selected and doesn't belong to this state, clear it.
+    if (activeCity) {
+      const { state: cityState } = parseCity(activeCity);
+      if (cityState !== state) {
+        setActiveCity(null);
+        setCityQuery("");
+      }
+    }
+    gtmFilterApplied("estado", state, "praias");
+  }
+
+  function clearLocation() {
+    setActiveCity(null);
+    setActiveState(null);
+    setCityQuery("");
+    setStateQuery("");
   }
 
   if (convexPraias === undefined) {
@@ -157,7 +252,7 @@ export function PraiasContent() {
             >
               <div className="flex items-center justify-between px-5 pt-4 pb-3">
                 <h3 className="font-display font-medium text-[16px] text-[var(--color-neutral-800)]">
-                  Filtrar por cidade
+                  Filtrar por localização
                 </h3>
                 <button
                   type="button"
@@ -168,33 +263,81 @@ export function PraiasContent() {
                   <Icon name="x" size={16} className="text-[var(--color-neutral-800)]" />
                 </button>
               </div>
-              <div className="overflow-y-auto px-5 pt-2 pb-3 flex flex-col">
-                <button
-                  type="button"
-                  onClick={() => pickCity(null)}
-                  className={`flex items-center justify-between py-3 text-left border-b border-[var(--color-neutral-100)] last:border-0 ${
-                    !activeCity ? "text-[var(--color-neutral-800)] font-medium" : "text-[var(--color-neutral-700)]"
-                  }`}
-                >
-                  <span className="text-[14px]">Todas as cidades</span>
-                  {!activeCity && <Icon name="check" size={16} />}
-                </button>
-                {cities.map((c) => {
-                  const selected = activeCity === c;
-                  return (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => pickCity(c)}
-                      className={`flex items-center justify-between py-3 text-left border-b border-[var(--color-neutral-100)] last:border-0 ${
-                        selected ? "text-[var(--color-neutral-800)] font-medium" : "text-[var(--color-neutral-700)]"
-                      }`}
-                    >
-                      <span className="text-[14px]">{c}</span>
-                      {selected && <Icon name="check" size={16} />}
-                    </button>
-                  );
-                })}
+
+              <div className="overflow-y-auto px-5 pb-4 flex flex-col gap-4">
+                {/* Estado autocomplete */}
+                <FilterAutocomplete
+                  label="Estado"
+                  placeholder="Ex: Paraíba, PB"
+                  query={stateQuery}
+                  onQueryChange={setStateQuery}
+                  selected={activeState}
+                  onClear={() => pickState(null)}
+                  renderSelected={(s) => `${s}, ${STATE_LABEL[s] ?? ""}`.replace(/, $/, "")}
+                  suggestions={stateSuggestions.slice(0, 9).map((s) => ({
+                    key: s,
+                    primary: STATE_LABEL[s] ?? s,
+                    secondary: s,
+                    onPick: () => pickState(s),
+                  }))}
+                />
+
+                {/* Cidade autocomplete */}
+                <FilterAutocomplete
+                  label="Cidade"
+                  placeholder={activeState ? `Buscar cidade em ${activeState}` : "Buscar cidade do Nordeste"}
+                  query={cityQuery}
+                  onQueryChange={setCityQuery}
+                  selected={activeCity}
+                  onClear={() => pickCity(null)}
+                  renderSelected={(c) => c}
+                  suggestions={citySuggestions.map((c) => ({
+                    key: `${c.name}-${c.state}`,
+                    primary: c.name,
+                    secondary: c.state,
+                    onPick: () => pickCity(c),
+                  }))}
+                />
+
+                {/* Limpar tudo */}
+                {(activeCity || activeState) && (
+                  <button
+                    type="button"
+                    onClick={() => { clearLocation(); setCityMenuOpen(false); }}
+                    className="self-start mt-1 text-[13px] font-medium text-[var(--color-neutral-600)]"
+                  >
+                    Limpar filtros
+                  </button>
+                )}
+
+                {/* Quick picks from current DB cities */}
+                {cities.length > 0 && (
+                  <div className="pt-2 border-t border-[var(--color-neutral-100)]">
+                    <p className="text-[11px] font-medium uppercase tracking-wide text-[var(--color-neutral-500)] mb-2">
+                      Cidades com praias cadastradas
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {cities.map((c) => {
+                        const parsed = parseCity(c);
+                        const selected = activeCity === c;
+                        return (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => pickCity(parsed)}
+                            className={`px-3 h-8 rounded-full text-[12px] font-medium border transition-colors ${
+                              selected
+                                ? "bg-[var(--color-neutral-800)] text-white border-[var(--color-neutral-800)]"
+                                : "bg-white text-[var(--color-neutral-700)] border-[var(--color-neutral-300)]"
+                            }`}
+                          >
+                            {parsed.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.div>
           </>
@@ -257,6 +400,85 @@ export function PraiasContent() {
             {i < filtered.length - 1 && <SectionSpacer />}
           </div>
         ))
+      )}
+    </div>
+  );
+}
+
+function FilterAutocomplete({
+  label,
+  placeholder,
+  query,
+  onQueryChange,
+  selected,
+  onClear,
+  renderSelected,
+  suggestions,
+}: {
+  label: string;
+  placeholder: string;
+  query: string;
+  onQueryChange: (v: string) => void;
+  selected: string | null;
+  onClear: () => void;
+  renderSelected: (v: string) => string;
+  suggestions: { key: string; primary: string; secondary?: string; onPick: () => void }[];
+}) {
+  const [focused, setFocused] = useState(false);
+  const showSuggestions = focused && suggestions.length > 0;
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="text-[12px] font-medium text-[var(--color-neutral-600)]">
+        {label}
+      </label>
+      {selected ? (
+        <div className="flex items-center gap-2 h-11 px-3 rounded-[12px] border border-[var(--color-neutral-300)] bg-[var(--color-neutral-100)]">
+          <Icon name="map-pin" size={14} className="text-[var(--color-neutral-600)]" />
+          <span className="flex-1 text-[14px] text-[var(--color-neutral-800)]">
+            {renderSelected(selected)}
+          </span>
+          <button
+            type="button"
+            onClick={onClear}
+            aria-label="Limpar"
+            className="grid size-7 place-items-center rounded-full bg-white"
+          >
+            <Icon name="x" size={12} className="text-[var(--color-neutral-700)]" />
+          </button>
+        </div>
+      ) : (
+        <div className="relative">
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => onQueryChange(e.target.value)}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setTimeout(() => setFocused(false), 150)}
+            placeholder={placeholder}
+            className="w-full h-11 px-3 rounded-[12px] border border-[var(--color-neutral-300)] text-[14px] outline-none focus:border-[var(--color-neutral-800)] bg-white"
+          />
+          {showSuggestions && (
+            <div className="absolute z-10 mt-1 w-full rounded-[12px] border border-[var(--color-neutral-200)] bg-white shadow-lg overflow-hidden max-h-64 overflow-y-auto">
+              {suggestions.map((s) => (
+                <button
+                  key={s.key}
+                  type="button"
+                  onMouseDown={(e) => { e.preventDefault(); s.onPick(); }}
+                  className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-[var(--color-neutral-100)]"
+                >
+                  <span className="text-[14px] text-[var(--color-neutral-800)]">
+                    {s.primary}
+                  </span>
+                  {s.secondary && (
+                    <span className="text-[11px] text-[var(--color-neutral-500)] font-medium">
+                      {s.secondary}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
