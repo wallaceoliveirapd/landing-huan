@@ -8,7 +8,6 @@ import { AnimatePresence, motion } from "motion/react";
 import { Icon } from "@/components/atoms/Icon";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useChat } from "@/components/providers/ChatProvider";
-import { NordestAIOnboarding } from "./NordestAIOnboarding";
 import { cn } from "@/lib/cn";
 
 type Item =
@@ -40,7 +39,6 @@ export function BottomNav() {
   const auth = useAuth();
   const chat = useChat();
   const [tooltipOpen, setTooltipOpen] = useState(false);
-  const [onboardingOpen, setOnboardingOpen] = useState(false);
 
   // ── NordestAI tooltip schedule ─────────────────────────────────────────
   // Behavior:
@@ -114,11 +112,7 @@ export function BottomNav() {
                 tooltipOpen={tooltipOpen}
                 onClick={() => {
                   setTooltipOpen(false);
-                  if (auth.isAuthenticated) {
-                    chat.open();
-                  } else {
-                    setOnboardingOpen(true);
-                  }
+                  chat.requestOpen();
                 }}
               />
             );
@@ -164,17 +158,6 @@ export function BottomNav() {
         })}
       </div>
 
-      {/* NordestAI onboarding modal (logged-out users) */}
-      <div className="pointer-events-auto">
-        <NordestAIOnboarding
-          open={onboardingOpen}
-          onClose={() => setOnboardingOpen(false)}
-          onLogin={() => {
-            setOnboardingOpen(false);
-            auth.openAuthModal();
-          }}
-        />
-      </div>
     </nav>
   );
 }

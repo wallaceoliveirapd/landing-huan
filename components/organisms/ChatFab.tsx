@@ -3,13 +3,11 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { useChat } from "@/components/providers/ChatProvider";
-import { useAuth } from "@/components/providers/AuthProvider";
 import { Icon } from "@/components/atoms/Icon";
 import { trackChatOpen } from "@/lib/analytics";
 
 export function ChatFab() {
   const chat = useChat();
-  const auth = useAuth();
   const [atBottom, setAtBottom] = useState(false);
 
   useEffect(() => {
@@ -37,9 +35,7 @@ export function ChatFab() {
 
   function handleOpen() {
     trackChatOpen();
-    if (auth.requireAuth()) {
-      chat.open();
-    }
+    chat.requestOpen();
   }
 
   return (

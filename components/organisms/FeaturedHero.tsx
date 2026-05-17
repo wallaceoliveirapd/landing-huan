@@ -82,7 +82,7 @@ export function FeaturedHero({
           <motion.button
             variants={fadeUp}
             type="button"
-            onClick={chat.open}
+            onClick={chat.requestOpen}
             whileTap={{ scale: 0.97 }}
             className="inline-flex items-center gap-2 rounded-full bg-white pl-3 pr-4 py-2 text-[var(--color-neutral-800)] font-display font-medium text-[13px] leading-[1.1]"
           >

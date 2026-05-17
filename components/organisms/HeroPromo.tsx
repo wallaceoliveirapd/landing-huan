@@ -5,7 +5,6 @@ import { SearchBar } from "@/components/molecules/SearchBar";
 import { CategoryGrid } from "./CategoryGrid";
 import { fadeUp, staggerChildren } from "@/lib/motion-presets";
 import { useChat } from "@/components/providers/ChatProvider";
-import { useAuth } from "@/components/providers/AuthProvider";
 import { trackChatOpen } from "@/lib/analytics";
 
 /**
@@ -23,13 +22,10 @@ export function HeroPromo({
   searchPlaceholder: string;
 }) {
   const chat = useChat();
-  const auth = useAuth();
 
   function handleSearchOpen() {
     trackChatOpen();
-    if (auth.requireAuth()) {
-      chat.open();
-    }
+    chat.requestOpen();
   }
 
   return (
