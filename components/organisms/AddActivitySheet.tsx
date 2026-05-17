@@ -163,7 +163,7 @@ export function AddActivitySheet({ open, tripId, day, onClose }: Props) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={resetAndClose}
-            className="fixed inset-0 z-[70] bg-black/40 backdrop-blur-sm"
+            className="fixed inset-0 z-[70] bg-black/20"
           />
           <motion.div
             role="dialog"
@@ -239,11 +239,10 @@ export function AddActivitySheet({ open, tripId, day, onClose }: Props) {
                       setTab(t.key);
                       setSearch("");
                     }}
-                    className={`shrink-0 inline-flex items-center gap-1.5 px-3 h-8 rounded-full text-[12px] font-medium border transition-colors ${
-                      tab === t.key
+                    className={`shrink-0 inline-flex items-center gap-1.5 px-3 h-8 rounded-full text-[12px] font-medium border transition-colors ${tab === t.key
                         ? "bg-[var(--color-neutral-800)] text-white border-[var(--color-neutral-800)]"
                         : "bg-white text-[var(--color-neutral-700)] border-[var(--color-neutral-300)]"
-                    }`}
+                      }`}
                   >
                     <Icon name={t.icon} size={12} />
                     {t.label}

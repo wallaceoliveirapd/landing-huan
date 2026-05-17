@@ -144,8 +144,8 @@ export function PraiasContent() {
   const locationChipLabel = activeCity
     ? `Cidade: ${parseCity(activeCity).name}`
     : activeState
-    ? `Estado: ${activeState}`
-    : "Localização";
+      ? `Estado: ${activeState}`
+      : "Localização";
 
   const chips = [
     {
@@ -248,7 +248,7 @@ export function PraiasContent() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setCityMenuOpen(false)}
-              className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+              className="fixed inset-0 z-40 bg-black/20"
             />
             <motion.div
               role="dialog"
@@ -335,11 +335,10 @@ export function PraiasContent() {
                             key={c}
                             type="button"
                             onClick={() => pickCity(parsed)}
-                            className={`px-3 h-8 rounded-full text-[12px] font-medium border transition-colors ${
-                              selected
+                            className={`px-3 h-8 rounded-full text-[12px] font-medium border transition-colors ${selected
                                 ? "bg-[var(--color-neutral-800)] text-white border-[var(--color-neutral-800)]"
                                 : "bg-white text-[var(--color-neutral-700)] border-[var(--color-neutral-300)]"
-                            }`}
+                              }`}
                           >
                             {parsed.name}
                           </button>

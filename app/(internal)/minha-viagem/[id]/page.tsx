@@ -130,6 +130,7 @@ function ActivityCard({
   osmAddress,
   osmWebsite,
 }: ActivityCardProps) {
+  const router = useRouter();
   const setActivityTime = useMutation(api.trips.setActivityTime);
   const removeActivity = useMutation(api.trips.removeActivity);
   const color = KIND_COLOR[kind] ?? "#323439";
@@ -167,117 +168,104 @@ function ActivityCard({
   })();
 
   const isExternal = !!linkHref?.startsWith("http");
-  const Container = linkHref ? "a" : "div";
+  function handleNavigate() {
+    if (!linkHref) return;
+    if (isExternal) {
+      window.open(linkHref, "_blank", "noopener,noreferrer");
+    } else {
+      router.push(linkHref);
+    }
+  }
 
   return (
-    <Container
-      href={linkHref}
-      target={isExternal ? "_blank" : undefined}
-      rel={isExternal ? "noopener noreferrer" : undefined}
-      className="relative flex gap-3 w-full rounded-[16px] bg-white border border-[var(--color-neutral-200)] p-3 hover:border-[var(--color-neutral-800)] transition-colors"
-    >
+    <div className="relative flex overflow-hidden gap-3 w-full rounded-[16px] bg-white border border-[var(--color-neutral-200)] p-3 hover:border-[var(--color-neutral-800)] transition-colors">
       <span
         aria-hidden
-        className="absolute left-0 top-0 bottom-0 w-1 rounded-l-[16px]"
+        className="absolute left-0 top-0 bottom-0 w-1 rounded-l-[px]"
         style={{ backgroundColor: color }}
       />
-      <div className="ml-1 grid size-12 flex-none place-items-center rounded-xl bg-[var(--color-neutral-100)]">
-        <Icon
-          name={
-            isSuggestion
-              ? icon ?? "compass"
-              : isOsm
-              ? "map-pin"
-              : TIME_ICON[timeOfDay] ?? "compass"
+      <div
+        role={linkHref ? "button" : undefined}
+        tabIndex={linkHref ? 0 : undefined}
+        onClick={handleNavigate}
+        onKeyDown={(e) => {
+          if (linkHref && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            handleNavigate();
           }
-          size={20}
-          className="text-[var(--color-neutral-800)]"
-        />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span
-            className="text-[10px] font-medium uppercase tracking-wide"
-            style={{ color }}
-          >
-            {kindLabel}
-          </span>
-          <span className="text-[10px] text-[var(--color-neutral-500)]">·</span>
-          {time ? (
-            <span className="text-[10px] font-medium text-[var(--color-neutral-800)] bg-[var(--color-brand-yellow)] rounded-full px-2 py-0.5 inline-flex items-center gap-1">
-              <Icon name="clock" size={10} />
-              {time}
+        }}
+        className={`ml-1 flex flex-1 gap-3 min-w-0 ${linkHref ? "cursor-pointer" : ""}`}
+      >
+        <div className="grid size-12 flex-none place-items-center rounded-xl bg-[var(--color-neutral-100)]">
+          <Icon
+            name={
+              isSuggestion
+                ? icon ?? "compass"
+                : isOsm
+                  ? "map-pin"
+                  : TIME_ICON[timeOfDay] ?? "compass"
+            }
+            size={20}
+            className="text-[var(--color-neutral-800)]"
+          />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span
+              className="text-[10px] font-medium uppercase tracking-wide"
+              style={{ color }}
+            >
+              {kindLabel}
             </span>
-          ) : (
+            <span className="text-[10px] text-[var(--color-neutral-500)]">·</span>
             <span className="text-[10px] font-medium uppercase tracking-wide text-[var(--color-neutral-600)]">
               {TIME_LABEL[timeOfDay] ?? "Atividade"}
             </span>
+            {isSuggestion && (
+              <span className="text-[10px] font-medium text-[var(--color-neutral-500)] bg-[var(--color-neutral-100)] rounded-full px-2 py-0.5">
+                sugestão
+              </span>
+            )}
+            {isOsm && (
+              <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 rounded-full px-2 py-0.5 inline-flex items-center gap-1">
+                <Icon name="check-circle-2" size={10} />
+                local real
+              </span>
+            )}
+          </div>
+          <p className="font-display font-medium text-[14px] leading-[1.3] text-[var(--color-neutral-800)] mt-0.5 line-clamp-2">
+            {displayTitle}
+          </p>
+          {displayNote && (
+            <p className="text-[12px] leading-[1.4] text-[var(--color-neutral-600)] mt-1 line-clamp-2">
+              {displayNote}
+            </p>
           )}
-          {isSuggestion && (
-            <span className="ml-auto text-[10px] font-medium text-[var(--color-neutral-500)] bg-[var(--color-neutral-100)] rounded-full px-2 py-0.5">
-              sugestão
-            </span>
-          )}
-          {isOsm && (
-            <span className="ml-auto text-[10px] font-medium text-emerald-700 bg-emerald-50 rounded-full px-2 py-0.5 inline-flex items-center gap-1">
-              <Icon name="check-circle-2" size={10} />
-              local real
-            </span>
+          {isOsm && osmWebsite && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                window.open(osmWebsite, "_blank", "noopener,noreferrer");
+              }}
+              className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-[var(--color-neutral-700)] underline underline-offset-2"
+            >
+              <Icon name="globe" size={11} />
+              Site oficial
+            </button>
           )}
         </div>
-        <p className="font-display font-medium text-[14px] leading-[1.3] text-[var(--color-neutral-800)] mt-0.5 line-clamp-2">
-          {displayTitle}
-        </p>
-        {displayNote && (
-          <p className="text-[12px] leading-[1.4] text-[var(--color-neutral-600)] mt-1 line-clamp-2">
-            {displayNote}
-          </p>
-        )}
-        {/* OSM website link (secondary). Use a button to avoid nested <a>
-            when the whole card is already an anchor. */}
-        {isOsm && osmWebsite && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              window.open(osmWebsite, "_blank", "noopener,noreferrer");
-            }}
-            className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-[var(--color-neutral-700)] underline underline-offset-2"
-          >
-            <Icon name="globe" size={11} />
-            Site oficial
-          </button>
-        )}
       </div>
-      {linkHref && (
-        <Icon
-          name={isExternal ? "external-link" : "chevron-right"}
-          size={14}
-          className="text-[var(--color-neutral-500)] shrink-0 self-center"
-        />
-      )}
-      <span
-        className="absolute -top-2.5 right-2 flex items-center gap-1.5 z-10"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-        }}
-      >
-        {/* Time picker, the surrounding label wraps a real native time input
-            so mobile gets the OS picker. preventDefault on outer span stops
-            the card-level anchor navigation. */}
+
+      {/* Right rail: time pill + trash button + chevron. Outside the
+          click-to-navigate area, so they never collide with it. */}
+      <div className="flex flex-col items-end gap-1.5 shrink-0">
         <label
           title={time ? "Mudar horário" : "Definir horário"}
-          className="relative inline-flex items-center gap-1 h-7 px-2 rounded-full bg-white border border-[var(--color-neutral-300)] cursor-pointer hover:border-[var(--color-neutral-800)] transition-colors shadow-sm"
-          onClick={(e) => {
-            // The native <input type="time"> already opens on click, but the
-            // anchor parent intercepts the default. Cancel the default again
-            // here to be safe.
-            e.stopPropagation();
-          }}
+          className="relative inline-flex items-center gap-1 h-7 px-2 rounded-full bg-white border-[1px] border-neutral-200 cursor-pointer hover:brightness-95 transition"
         >
-          <Icon name="clock" size={11} className="text-[var(--color-neutral-700)]" />
+          <Icon name="clock" size={11} className="text-[var(--color-neutral-800)]" />
           <span className="text-[10px] font-medium text-[var(--color-neutral-800)]">
             {time ? time : "Horário"}
           </span>
@@ -290,25 +278,39 @@ function ActivityCard({
             className="absolute inset-0 opacity-0 cursor-pointer"
           />
         </label>
-        <button
-          type="button"
-          title="Remover do roteiro"
-          onClick={async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (!confirm(`Remover "${displayTitle}" do roteiro? Essa ação não pode ser desfeita.`)) return;
-            try {
-              await removeActivity({ tripId, day, index });
-            } catch (err) {
-              console.error(err);
-            }
-          }}
-          className="inline-flex items-center justify-center size-7 rounded-full bg-white border border-[var(--color-neutral-300)] hover:border-red-400 hover:text-red-600 hover:bg-red-50 transition-colors shadow-sm"
-        >
-          <Icon name="trash-2" size={11} />
-        </button>
-      </span>
-    </Container>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            title="Remover do roteiro"
+            onClick={async () => {
+              if (!confirm(`Remover "${displayTitle}" do roteiro? Essa ação não pode ser desfeita.`)) return;
+              try {
+                await removeActivity({ tripId, day, index });
+              } catch (err) {
+                console.error(err);
+              }
+            }}
+            className="inline-flex items-center justify-center size-7 rounded-full bg-white border border-[var(--color-neutral-300)] hover:border-red-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+          >
+            <Icon name="trash-2" size={11} />
+          </button>
+          {linkHref && (
+            <button
+              type="button"
+              onClick={handleNavigate}
+              aria-label="Ver detalhes"
+              className="inline-flex items-center justify-center size-7 rounded-full bg-white border border-[var(--color-neutral-300)] hover:border-[var(--color-neutral-800)] transition-colors"
+            >
+              <Icon
+                name={isExternal ? "external-link" : "chevron-right"}
+                size={11}
+                className="text-[var(--color-neutral-700)]"
+              />
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -480,8 +482,8 @@ export default function TripDetailPage({
                 trip.budget === "baixo"
                   ? "Econômico"
                   : trip.budget === "alto"
-                  ? "Confortável"
-                  : "Moderado"
+                    ? "Confortável"
+                    : "Moderado"
               }
             />
           )}
@@ -531,7 +533,7 @@ export default function TripDetailPage({
                       </div>
                     </div>
                     {dayDate && (
-                      <div className="flex flex-col items-center rounded-[14px] bg-[var(--color-brand-yellow)] px-3 py-1.5 shrink-0">
+                      <div className="flex flex-col items-center rounded-[14px] bg-neutral-100 px-3 py-1.5 shrink-0">
                         <span className="text-[10px] font-medium uppercase tracking-wide text-black/70">
                           {dayDate.toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", "")}
                         </span>

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { Icon } from "@/components/atoms/Icon";
@@ -31,6 +31,15 @@ export function InternalPageHero({
   intervalMs?: number;
 }) {
   const list: Slide[] = slides && slides.length > 0 ? slides : image ? [{ src: image, alt: "" }] : [];
+
+  const router = useRouter();
+  function handleBack() {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push(backHref);
+    }
+  }
 
   const [index, setIndex] = useState(0);
   useEffect(() => {
@@ -102,17 +111,18 @@ export function InternalPageHero({
         style={{ paddingTop: "max(env(safe-area-inset-top), 1rem)" }}
       >
         <motion.div variants={fadeUp}>
-          <Link
-            href={backHref}
+          <button
+            type="button"
+            onClick={handleBack}
             aria-label="Voltar"
-            className="grid size-[42px] place-items-center rounded-full bg-white  hover:bg-[var(--color-neutral-100)] transition-colors"
+            className="grid size-[42px] place-items-center rounded-full bg-white hover:bg-[var(--color-neutral-100)] transition-colors"
           >
             <Icon
               name="material-symbols:chevron-left"
               size={28}
               className="text-[var(--color-ink)]"
             />
-          </Link>
+          </button>
         </motion.div>
 
         <motion.h1

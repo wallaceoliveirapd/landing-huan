@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import Link from "next/link";
 import { fetchQuery } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
 import { Icon } from "@/components/atoms/Icon";
 import { toProxyUrl } from "@/lib/imageUpload";
 import { GtmViewItem } from "@/components/atoms/GtmViewItem";
 import { PraiaPhotosGrid } from "@/components/organisms/PraiaPhotosGrid";
+import { BackButton } from "@/components/atoms/BackButton";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -46,14 +46,15 @@ export default async function PraiaDetailPage({ params }: PageProps) {
           className="object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/35 to-transparent pointer-events-none" />
-        <Link
-          href="/praias"
-          aria-label="Voltar"
-          className="absolute left-4 grid size-10 place-items-center rounded-full bg-white/95 backdrop-blur-sm"
+        <div
+          className="absolute left-4"
           style={{ top: "max(env(safe-area-inset-top), 1rem)" }}
         >
-          <Icon name="arrow-left" size={18} className="text-[var(--color-neutral-800)]" />
-        </Link>
+          <BackButton
+            fallbackHref="/praias"
+            className="grid size-10 place-items-center rounded-full bg-white/95 backdrop-blur-sm text-[var(--color-neutral-800)]"
+          />
+        </div>
         {(() => {
           const label = praia.city || (praia.location && !isMapsUrl(praia.location) ? praia.location : "");
           if (!label) return null;

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { Icon } from "@/components/atoms/Icon";
 import { RatingLine } from "@/components/molecules/RatingLine";
@@ -18,8 +18,17 @@ export function RestaurantDetailHero({
   image: string;
   rating: number;
   ratingLabel: string;
+  /** Fallback when there's no history to go back to (e.g. opened directly). */
   backHref?: string;
 }) {
+  const router = useRouter();
+  function handleBack() {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push(backHref);
+    }
+  }
   return (
     <section className="relative w-full h-[453px] overflow-hidden">
       <div className="absolute inset-0">
@@ -45,17 +54,18 @@ export function RestaurantDetailHero({
         style={{ paddingTop: "max(env(safe-area-inset-top), 2rem)" }}
       >
         <motion.div variants={fadeUp}>
-          <Link
-            href={backHref}
+          <button
+            type="button"
+            onClick={handleBack}
             aria-label="Voltar"
-            className="grid size-[42px] place-items-center rounded-full bg-white  hover:bg-[var(--color-neutral-100)] transition-colors"
+            className="grid size-[42px] place-items-center rounded-full bg-white hover:bg-[var(--color-neutral-100)] transition-colors"
           >
             <Icon
               name="material-symbols:chevron-left"
               size={28}
               className="text-[var(--color-ink)]"
             />
-          </Link>
+          </button>
         </motion.div>
 
         <motion.div variants={fadeUp} className="flex flex-col gap-3">

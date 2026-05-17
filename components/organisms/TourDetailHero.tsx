@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { Icon } from "@/components/atoms/Icon";
 import { RatingLine } from "@/components/molecules/RatingLine";
@@ -21,6 +21,14 @@ export function TourDetailHero({
   ratingLabel: string;
   backHref?: string;
 }) {
+  const router = useRouter();
+  function handleBack() {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push(backHref);
+    }
+  }
   return (
     <section className="relative w-full h-[453px] overflow-hidden">
       <div className="absolute inset-0">
@@ -46,8 +54,9 @@ export function TourDetailHero({
         style={{ paddingTop: "max(env(safe-area-inset-top), 2rem)" }}
       >
         <motion.div variants={fadeUp}>
-          <Link
-            href={backHref}
+          <button
+            type="button"
+            onClick={handleBack}
             aria-label="Voltar"
             className="grid size-[42px] place-items-center rounded-full bg-white hover:bg-[var(--color-neutral-100)] transition-colors"
           >
@@ -56,7 +65,7 @@ export function TourDetailHero({
               size={28}
               className="text-[var(--color-ink)]"
             />
-          </Link>
+          </button>
         </motion.div>
 
         <motion.div variants={fadeUp} className="flex flex-col gap-3">

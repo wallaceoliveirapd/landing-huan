@@ -307,8 +307,8 @@ export function ChatPanel() {
                 const cls = exhausted
                   ? "bg-red-50 text-red-700 border-red-200"
                   : low
-                  ? "bg-amber-50 text-amber-800 border-amber-200"
-                  : "bg-transparent text-[var(--color-neutral-500)] border-transparent";
+                    ? "bg-amber-50 text-amber-800 border-amber-200"
+                    : "bg-transparent text-[var(--color-neutral-500)] border-transparent";
                 return (
                   <button
                     type="button"
@@ -467,7 +467,7 @@ export function ChatPanel() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   onClick={() => setLimitSheetOpen(false)}
-                  className="absolute inset-0 z-[60] bg-black/40 backdrop-blur-sm"
+                  className="absolute inset-0 z-[60] bg-black/20"
                 />
                 <motion.div
                   role="dialog"

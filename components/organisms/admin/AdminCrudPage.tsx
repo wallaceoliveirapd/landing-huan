@@ -540,7 +540,7 @@ export function AdminCrudPage({
       {/* Modal */}
       {open !== null && (
         <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/20"
           onClick={(e) => e.target === e.currentTarget && setOpen(null)}
         >
           <div className="w-full sm:max-w-xl rounded-t-2xl sm:rounded-2xl bg-white flex flex-col max-h-[92dvh]">
