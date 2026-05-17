@@ -6,9 +6,9 @@ import { Icon } from "@/components/atoms/Icon";
 
 const FEATURES = [
   {
-    icon: "compass",
-    title: "Roteiros sob medida",
-    desc: "Conte pra mim seu estilo de viagem e eu monto passos pra cada dia no Nordeste.",
+    icon: "message-circle",
+    title: "10 mensagens por dia, grátis",
+    desc: "Cada conta tem 10 conversas diárias comigo. Esse limite mantém o app gratuito durante a fase de testes.",
   },
   {
     icon: "map-pin",

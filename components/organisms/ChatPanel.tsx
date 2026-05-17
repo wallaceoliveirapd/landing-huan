@@ -54,7 +54,6 @@ export function ChatPanel() {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [limitSheetOpen, setLimitSheetOpen] = useState(false);
-  const [loggedOutSheetOpen, setLoggedOutSheetOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -95,10 +94,8 @@ export function ChatPanel() {
     const t = text.trim();
     if (!t || isTyping) return;
 
-    // Logged-out gate: show a perks sheet first so the user understands
-    // what they get before opening the auth modal.
     if (!auth.isAuthenticated) {
-      setLoggedOutSheetOpen(true);
+      auth.openAuthModal();
       return;
     }
     let usageAfter: { blocked: boolean } | null = null;
@@ -513,116 +510,6 @@ export function ChatPanel() {
             )}
           </AnimatePresence>
 
-          {/* ── Logged-out perks sheet ───────────────────────────── */}
-          <AnimatePresence>
-            {loggedOutSheetOpen && (
-              <>
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  onClick={() => setLoggedOutSheetOpen(false)}
-                  className="absolute inset-0 z-[60] bg-black/30"
-                />
-                <motion.div
-                  role="dialog"
-                  aria-modal="true"
-                  initial={{ y: "100%" }}
-                  animate={{ y: 0 }}
-                  exit={{ y: "100%" }}
-                  transition={{ type: "spring", stiffness: 360, damping: 32 }}
-                  className="absolute inset-x-0 bottom-0 z-[70] rounded-t-[28px] bg-white shadow-[0_-12px_40px_rgba(0,0,0,0.22)] flex flex-col"
-                  style={{ paddingBottom: "max(env(safe-area-inset-bottom), 16px)" }}
-                >
-                  <div className="flex justify-center pt-3 pb-1">
-                    <span className="h-1 w-12 rounded-full bg-black/15" />
-                  </div>
-                  <div className="flex items-center justify-between px-5 pt-1 pb-2">
-                    <h3 className="font-display font-medium text-[18px] leading-tight text-[var(--color-neutral-800)]">
-                      Cria sua conta pra falar comigo
-                    </h3>
-                    <button
-                      type="button"
-                      onClick={() => setLoggedOutSheetOpen(false)}
-                      aria-label="Fechar"
-                      className="grid size-9 place-items-center rounded-full bg-[var(--color-neutral-100)] shrink-0"
-                    >
-                      <Icon name="x" size={16} className="text-[var(--color-neutral-800)]" />
-                    </button>
-                  </div>
-                  <p className="px-5 text-[13px] text-[var(--color-neutral-600)] leading-[1.5] mb-3">
-                    É grátis e leva 30 segundos. Sua conta libera:
-                  </p>
-                  <ul className="px-5 flex flex-col gap-3 mb-5">
-                    <li className="flex items-start gap-3">
-                      <div className="grid size-9 place-items-center rounded-full bg-[var(--color-brand-yellow)] shrink-0">
-                        <Icon name="message-circle" size={16} className="text-[var(--color-neutral-800)]" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-display font-medium text-[14px] text-[var(--color-neutral-800)] leading-tight">
-                          10 mensagens por dia com o Huan
-                        </p>
-                        <p className="text-[12px] text-[var(--color-neutral-600)] leading-[1.45] mt-0.5">
-                          Recomendações reais de passeios, restaurantes, praias e dicas no Nordeste.
-                        </p>
-                      </div>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="grid size-9 place-items-center rounded-full bg-[var(--color-brand-yellow)] shrink-0">
-                        <Icon name="map" size={16} className="text-[var(--color-neutral-800)]" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-display font-medium text-[14px] text-[var(--color-neutral-800)] leading-tight">
-                          3 roteiros de viagem personalizados
-                        </p>
-                        <p className="text-[12px] text-[var(--color-neutral-600)] leading-[1.45] mt-0.5">
-                          Com previsão do clima, horários e tudo customizável.
-                        </p>
-                      </div>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="grid size-9 place-items-center rounded-full bg-[var(--color-brand-yellow)] shrink-0">
-                        <Icon name="heart" size={16} className="text-[var(--color-neutral-800)]" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-display font-medium text-[14px] text-[var(--color-neutral-800)] leading-tight">
-                          Favoritos e cupons exclusivos
-                        </p>
-                        <p className="text-[12px] text-[var(--color-neutral-600)] leading-[1.45] mt-0.5">
-                          Salve lugares que você curtiu e acesse cupons de parceiros.
-                        </p>
-                      </div>
-                    </li>
-                  </ul>
-                  <div className="px-5 pb-2 flex flex-col gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setLoggedOutSheetOpen(false);
-                        auth.openAuthModal();
-                      }}
-                      className="h-12 rounded-full bg-[var(--color-neutral-800)] text-white font-display font-medium text-[15px]"
-                    >
-                      Criar conta grátis
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setLoggedOutSheetOpen(false);
-                        auth.openAuthModal();
-                      }}
-                      className="h-11 rounded-full bg-white border border-[var(--color-neutral-300)] text-[var(--color-neutral-800)] font-display font-medium text-[14px]"
-                    >
-                      Já tenho conta, entrar
-                    </button>
-                  </div>
-                  <p className="px-5 pb-3 pt-1 text-center text-[11px] text-[var(--color-neutral-500)]">
-                    Esse limite mantém o app gratuito enquanto a gente tá em fase de testes.
-                  </p>
-                </motion.div>
-              </>
-            )}
-          </AnimatePresence>
         </motion.div>
       )}
     </AnimatePresence>
