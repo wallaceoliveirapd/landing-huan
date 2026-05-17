@@ -252,13 +252,17 @@ export default defineSchema({
           theme: v.string(),
           activities: v.array(
             v.object({
-              source: v.string(), // "db" | "osm" | "suggestion"
-              kind: v.string(), // "tour" | "restaurant" | "praia" | "nightlife" | "activity"
+              source: v.string(), // "db" | "osm" | "suggestion" | "custom"
+              kind: v.string(), // "tour" | "restaurant" | "praia" | "nightlife" | "dica" | "activity" | "custom"
               timeOfDay: v.string(), // "morning" | "afternoon" | "evening" | "fullday"
               title: v.string(),
               note: v.optional(v.string()),
               itemId: v.optional(v.string()), // db: Convex id; osm: osmId
               icon: v.optional(v.string()), // when source = "suggestion"
+              // User-set precise time (HH:MM) overrides the AI's timeOfDay.
+              time: v.optional(v.string()),
+              // Custom (source = "custom") fields
+              customUrl: v.optional(v.string()),
               // OSM enrichment (only present when source = "osm")
               osmLat: v.optional(v.number()),
               osmLng: v.optional(v.number()),

@@ -17,7 +17,7 @@ const STEPS: Step[] = [
     target: "body",
     placement: "center",
     title: "Bem-vindo!",
-    content: "Bora dar uma volta rápida? Em 5 passos te mostro como aproveitar tudo por aqui.",
+    content: "Bora dar uma volta rápida? Em 7 passos te mostro como aproveitar tudo por aqui.",
     disableBeacon: true,
   },
   {
@@ -35,6 +35,14 @@ const STEPS: Step[] = [
     disableBeacon: true,
   },
   {
+    target: '[data-tour="huan"]',
+    placement: "top",
+    title: "Tô em fase de testes",
+    content:
+      "Cada conta tem 10 conversas comigo por dia. Limite ajuda a manter o app rápido e gratuito enquanto a gente cresce. Vai aumentar com o tempo.",
+    disableBeacon: true,
+  },
+  {
     target: '[data-tour="favorites"]',
     placement: "top",
     title: "Seus favoritos",
@@ -44,8 +52,16 @@ const STEPS: Step[] = [
   {
     target: '[data-tour="profile"]',
     placement: "top",
-    title: "Seu perfil",
-    content: "Suas viagens, cupons e configurações da conta ficam aqui dentro.",
+    title: "Suas viagens",
+    content:
+      "No perfil você cria até 3 viagens completas. Eu monto o roteiro de cada uma e te lembro 1 semana e 1 dia antes da viagem.",
+    disableBeacon: true,
+  },
+  {
+    target: '[data-tour="profile"]',
+    placement: "top",
+    title: "Tudo no seu perfil",
+    content: "Cupons, configurações, foto de perfil, troca de senha. Tudo aqui dentro.",
     disableBeacon: true,
   },
 ];
@@ -99,7 +115,8 @@ export function WelcomeTour() {
       continuous
       showSkipButton
       showProgress={false}
-      disableScrolling
+      scrollToFirstStep
+      scrollOffset={120}
       callback={handleCallback}
       locale={{
         back: "Voltar",

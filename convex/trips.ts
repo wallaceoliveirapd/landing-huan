@@ -196,3 +196,94 @@ export const remove = mutation({
     return ctx.db.delete(id);
   },
 });
+
+const activityShape = v.object({
+  source: v.string(),
+  kind: v.string(),
+  timeOfDay: v.string(),
+  title: v.string(),
+  note: v.optional(v.string()),
+  itemId: v.optional(v.string()),
+  icon: v.optional(v.string()),
+  time: v.optional(v.string()),
+  customUrl: v.optional(v.string()),
+  osmLat: v.optional(v.number()),
+  osmLng: v.optional(v.number()),
+  osmAddress: v.optional(v.string()),
+  osmWebsite: v.optional(v.string()),
+});
+
+/** Append a new activity to a specific day in the trip itinerary. */
+export const addActivity = mutation({
+  args: {
+    tripId: v.id("trips"),
+    day: v.number(),
+    activity: activityShape,
+  },
+  handler: async (ctx, { tripId, day, activity }) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+    const trip = await ctx.db.get(tripId);
+    if (!trip || trip.userId !== userId) throw new Error("Not found");
+    const itinerary = (trip.itinerary ?? []).map((d) => ({ ...d }));
+    let target = itinerary.find((d) => d.day === day);
+    if (!target) {
+      target = { day, theme: "", activities: [] };
+      itinerary.push(target);
+    }
+    target.activities = [...target.activities, activity];
+    itinerary.sort((a, b) => a.day - b.day);
+    await ctx.db.patch(tripId, { itinerary });
+    return null;
+  },
+});
+
+/** Remove an activity at a given index from a day. */
+export const removeActivity = mutation({
+  args: {
+    tripId: v.id("trips"),
+    day: v.number(),
+    index: v.number(),
+  },
+  handler: async (ctx, { tripId, day, index }) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+    const trip = await ctx.db.get(tripId);
+    if (!trip || trip.userId !== userId) throw new Error("Not found");
+    const itinerary = (trip.itinerary ?? []).map((d) => ({
+      ...d,
+      activities: [...d.activities],
+    }));
+    const target = itinerary.find((d) => d.day === day);
+    if (!target) return null;
+    target.activities.splice(index, 1);
+    await ctx.db.patch(tripId, { itinerary });
+    return null;
+  },
+});
+
+/** Set the precise time (HH:MM) on an activity. Pass empty string to clear. */
+export const setActivityTime = mutation({
+  args: {
+    tripId: v.id("trips"),
+    day: v.number(),
+    index: v.number(),
+    time: v.string(),
+  },
+  handler: async (ctx, { tripId, day, index, time }) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+    const trip = await ctx.db.get(tripId);
+    if (!trip || trip.userId !== userId) throw new Error("Not found");
+    const itinerary = (trip.itinerary ?? []).map((d) => ({
+      ...d,
+      activities: d.activities.map((a) => ({ ...a })),
+    }));
+    const target = itinerary.find((d) => d.day === day);
+    if (!target || !target.activities[index]) return null;
+    if (time) target.activities[index].time = time;
+    else delete target.activities[index].time;
+    await ctx.db.patch(tripId, { itinerary });
+    return null;
+  },
+});

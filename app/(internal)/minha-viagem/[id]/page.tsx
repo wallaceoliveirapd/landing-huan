@@ -15,6 +15,7 @@ import { logAndGetMessage } from "@/lib/errors";
 import dynamic from "next/dynamic";
 import { gtmTripViewed } from "@/lib/gtm";
 import { NORDESTE_CITIES } from "@/lib/nordeste-cities";
+import { AddActivitySheet } from "@/components/organisms/AddActivitySheet";
 
 /**
  * Some legacy trips were created before lat/lng were captured (or got
@@ -91,11 +92,16 @@ const TRIP_TYPE_LABEL: Record<string, string> = {
 };
 
 type ActivityCardProps = {
+  tripId: Id<"trips">;
+  day: number;
+  index: number;
   source: string;
   kind: string;
   title: string;
   note?: string;
   timeOfDay: string;
+  time?: string;
+  customUrl?: string;
   icon?: string;
   dbItem?: { name?: unknown; title?: unknown; shortDesc?: unknown; image?: unknown; cover?: unknown; url?: unknown; slug?: unknown; affiliateUrl?: unknown } | undefined;
   // OSM enrichment (only present when source = "osm")
@@ -106,11 +112,16 @@ type ActivityCardProps = {
 };
 
 function ActivityCard({
+  tripId,
+  day,
+  index,
   source,
   kind,
   title,
   note,
   timeOfDay,
+  time,
+  customUrl,
   icon,
   dbItem,
   osmLat,
@@ -118,6 +129,8 @@ function ActivityCard({
   osmAddress,
   osmWebsite,
 }: ActivityCardProps) {
+  const setActivityTime = useMutation(api.trips.setActivityTime);
+  const removeActivity = useMutation(api.trips.removeActivity);
   const color = KIND_COLOR[kind] ?? "#323439";
   const kindLabel = KIND_LABEL[kind] ?? "Atividade";
   const isSuggestion = source === "suggestion";
@@ -134,14 +147,17 @@ function ActivityCard({
   // Primary link target:
   //   db → DB detail page or external URL
   //   osm → Google Maps search by lat/lng (always opens externally)
+  //   custom → customUrl
   //   suggestion → no link
   const linkHref = (() => {
     if (dbItem) {
-      if (kind === "tour") return dbItem.url as string | undefined;
+      if (kind === "tour" && dbItem.slug) return `/passeios/${dbItem.slug}`;
       if (kind === "restaurant" && dbItem.slug) return `/restaurantes/${dbItem.slug}`;
       if (kind === "praia" && dbItem.slug) return `/praias/${dbItem.slug}`;
       if (kind === "nightlife" && dbItem.slug) return `/vida-noturna/${dbItem.slug}`;
+      if (kind === "dica" && dbItem.slug) return `/dicas/${dbItem.slug}`;
     }
+    if (source === "custom" && customUrl) return customUrl;
     if (isOsm && typeof osmLat === "number" && typeof osmLng === "number") {
       const q = encodeURIComponent(`${displayTitle}@${osmLat},${osmLng}`);
       return `https://www.google.com/maps/search/?api=1&query=${q}`;
@@ -186,9 +202,16 @@ function ActivityCard({
             {kindLabel}
           </span>
           <span className="text-[10px] text-[var(--color-neutral-500)]">·</span>
-          <span className="text-[10px] font-medium uppercase tracking-wide text-[var(--color-neutral-600)]">
-            {TIME_LABEL[timeOfDay] ?? "Atividade"}
-          </span>
+          {time ? (
+            <span className="text-[10px] font-medium text-[var(--color-neutral-800)] bg-[var(--color-brand-yellow)] rounded-full px-2 py-0.5 inline-flex items-center gap-1">
+              <Icon name="clock" size={10} />
+              {time}
+            </span>
+          ) : (
+            <span className="text-[10px] font-medium uppercase tracking-wide text-[var(--color-neutral-600)]">
+              {TIME_LABEL[timeOfDay] ?? "Atividade"}
+            </span>
+          )}
           {isSuggestion && (
             <span className="ml-auto text-[10px] font-medium text-[var(--color-neutral-500)] bg-[var(--color-neutral-100)] rounded-full px-2 py-0.5">
               sugestão
@@ -230,6 +253,39 @@ function ActivityCard({
           className="text-[var(--color-neutral-500)] shrink-0 self-center"
         />
       )}
+      <span
+        className="absolute -top-2 right-2 flex items-center gap-1"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <label
+          title={time ? "Mudar horário" : "Definir horário"}
+          className="inline-flex items-center justify-center size-6 rounded-full bg-white border border-[var(--color-neutral-200)] cursor-pointer hover:border-[var(--color-neutral-800)] transition-colors"
+        >
+          <Icon name="clock" size={10} className="text-[var(--color-neutral-700)]" />
+          <input
+            type="time"
+            value={time ?? ""}
+            onChange={(e) => {
+              e.stopPropagation();
+              setActivityTime({ tripId, day, index, time: e.target.value });
+            }}
+            className="absolute opacity-0 w-0 h-0 pointer-events-auto"
+          />
+        </label>
+        <button
+          type="button"
+          title="Remover do roteiro"
+          onClick={async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!confirm("Remover do roteiro?")) return;
+            await removeActivity({ tripId, day, index });
+          }}
+          className="inline-flex items-center justify-center size-6 rounded-full bg-white border border-[var(--color-neutral-200)] hover:border-red-300 hover:text-red-600 transition-colors"
+        >
+          <Icon name="trash-2" size={10} className="text-[var(--color-neutral-700)]" />
+        </button>
+      </span>
     </Container>
   );
 }
@@ -252,6 +308,7 @@ export default function TripDetailPage({
 
   const [regenerating, setRegenerating] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [addSheetDay, setAddSheetDay] = useState<number | null>(null);
 
   useEffect(() => {
     if (!auth.isLoading && !auth.isAuthenticated) auth.openAuthModal();
@@ -415,15 +472,6 @@ export default function TripDetailPage({
           <h2 className="font-display font-medium text-[18px] text-[var(--color-neutral-800)]">
             Seu roteiro
           </h2>
-          <button
-            type="button"
-            onClick={handleRegenerate}
-            disabled={regenerating}
-            className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-neutral-100)] px-3 py-1.5 text-[12px] font-medium text-[var(--color-neutral-800)] disabled:opacity-50"
-          >
-            <Icon name="refresh-cw" size={12} />
-            {regenerating ? "Gerando..." : "Refazer"}
-          </button>
         </div>
 
         {!itineraryReady && !regenerating && (
@@ -434,48 +482,88 @@ export default function TripDetailPage({
 
         {itineraryReady && !regenerating && (
           <div className="flex flex-col gap-6">
-            {trip.itinerary!.map((day) => (
-              <div key={day.day} className="flex flex-col gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="grid size-9 place-items-center rounded-full bg-[var(--color-neutral-800)] text-white font-display font-medium text-[13px]">
-                    {day.day}
+            {trip.itinerary!.map((day) => {
+              const dayDate = trip.startDate
+                ? new Date(trip.startDate + (day.day - 1) * 86400000)
+                : null;
+              return (
+                <div key={day.day} className="flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="grid size-10 place-items-center rounded-full bg-[var(--color-neutral-800)] text-white font-display font-medium text-[14px]">
+                        {day.day}
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-medium uppercase tracking-wide text-[var(--color-neutral-500)]">
+                          Dia {day.day}
+                        </p>
+                        <p className="font-display font-medium text-[15px] leading-tight text-[var(--color-neutral-800)]">
+                          {day.theme}
+                        </p>
+                      </div>
+                    </div>
+                    {dayDate && (
+                      <div className="flex flex-col items-center rounded-[14px] bg-[var(--color-brand-yellow)] px-3 py-1.5 shrink-0">
+                        <span className="text-[10px] font-medium uppercase tracking-wide text-black/70">
+                          {dayDate.toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", "")}
+                        </span>
+                        <span className="font-display font-medium text-[16px] leading-none text-black">
+                          {dayDate.toLocaleDateString("pt-BR", { day: "2-digit" })}
+                        </span>
+                        <span className="text-[10px] font-medium text-black/70 mt-0.5">
+                          {dayDate.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <p className="text-[11px] font-medium uppercase tracking-wide text-[var(--color-neutral-500)]">
-                      Dia {day.day}
-                    </p>
-                    <p className="font-display font-medium text-[15px] leading-tight text-[var(--color-neutral-800)]">
-                      {day.theme}
-                    </p>
+                  <div className="flex flex-col gap-2 pl-12">
+                    {day.activities.map((a, idx) => (
+                      <ActivityCard
+                        key={`${day.day}-${idx}`}
+                        tripId={tripId}
+                        day={day.day}
+                        index={idx}
+                        source={a.source}
+                        kind={a.kind}
+                        title={a.title}
+                        note={a.note}
+                        timeOfDay={a.timeOfDay}
+                        time={a.time}
+                        customUrl={a.customUrl}
+                        icon={a.icon}
+                        dbItem={
+                          a.source === "db" && a.itemId
+                            ? (resolvedItems as Record<string, Record<string, unknown>> | undefined)?.[a.itemId]
+                            : undefined
+                        }
+                        osmLat={a.osmLat}
+                        osmLng={a.osmLng}
+                        osmAddress={a.osmAddress}
+                        osmWebsite={a.osmWebsite}
+                      />
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setAddSheetDay(day.day)}
+                      className="self-start inline-flex items-center gap-1.5 rounded-full border border-dashed border-[var(--color-neutral-300)] px-3 py-1.5 text-[12px] font-medium text-[var(--color-neutral-700)] hover:border-[var(--color-neutral-800)] hover:text-[var(--color-neutral-800)] transition-colors"
+                    >
+                      <Icon name="plus" size={12} />
+                      Adicionar ao dia {day.day}
+                    </button>
                   </div>
                 </div>
-                <div className="flex flex-col gap-2 pl-12">
-                  {day.activities.map((a, idx) => (
-                    <ActivityCard
-                      key={`${day.day}-${idx}`}
-                      source={a.source}
-                      kind={a.kind}
-                      title={a.title}
-                      note={a.note}
-                      timeOfDay={a.timeOfDay}
-                      icon={a.icon}
-                      dbItem={
-                        a.source === "db" && a.itemId
-                          ? (resolvedItems as Record<string, Record<string, unknown>> | undefined)?.[a.itemId]
-                          : undefined
-                      }
-                      osmLat={a.osmLat}
-                      osmLng={a.osmLng}
-                      osmAddress={a.osmAddress}
-                      osmWebsite={a.osmWebsite}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </motion.div>
+
+      <AddActivitySheet
+        open={addSheetDay !== null}
+        tripId={tripId}
+        day={addSheetDay ?? 1}
+        onClose={() => setAddSheetDay(null)}
+      />
 
       {/* ── Notes section ──────────────────────────────────── */}
       {trip.notes && (

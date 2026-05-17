@@ -301,17 +301,31 @@ export function ChatPanel() {
             </div>
 
             {usage && auth.isAuthenticated && (
-              <button
-                type="button"
-                onClick={() => setLimitSheetOpen(true)}
-                title="Saiba mais sobre o limite diário"
-                className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--color-neutral-500)] hover:text-[var(--color-neutral-800)] px-2 py-1 rounded-full"
-              >
-                <span>
-                  {usage.used}/{usage.limit}
-                </span>
-                <Icon name="info" size={11} />
-              </button>
+              (() => {
+                const low = usage.remaining <= 4 && usage.remaining > 0;
+                const exhausted = usage.remaining === 0;
+                const cls = exhausted
+                  ? "bg-red-50 text-red-700 border-red-200"
+                  : low
+                  ? "bg-amber-50 text-amber-800 border-amber-200"
+                  : "bg-transparent text-[var(--color-neutral-500)] border-transparent";
+                return (
+                  <button
+                    type="button"
+                    onClick={() => setLimitSheetOpen(true)}
+                    title="Saiba mais sobre o limite diário"
+                    className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full border ${cls}`}
+                  >
+                    {low && <Icon name="alert-circle" size={11} />}
+                    <span>
+                      {usage.remaining > 0
+                        ? `${usage.remaining} restantes`
+                        : "Limite atingido"}
+                    </span>
+                    <Icon name="info" size={11} />
+                  </button>
+                );
+              })()
             )}
 
             <button
