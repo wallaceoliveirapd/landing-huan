@@ -96,8 +96,9 @@ export function TripCard({ trip, className }: { trip: Trip; className?: string }
       style={{ aspectRatio: "4/5" }}
     >
       <Link href={`/minha-viagem/${trip._id}`} className="absolute inset-0 flex flex-col">
-        {/* Mini map background */}
-        <div className="absolute inset-0">
+        {/* Mini map background (hide mapbox attribution chrome on the tiny
+            card, the controls would overlap the info pill below) */}
+        <div className="absolute inset-0 [&_.mapboxgl-ctrl-logo]:!hidden [&_.mapboxgl-ctrl-attrib]:!hidden">
           <MapView
             lat={coords.lat}
             lng={coords.lng}

@@ -52,10 +52,15 @@ export default function RootLayout({
       <head>
         {GTM_ID && (
           <>
-            {/* Consent Mode v2, deny everything before user decides */}
+            {/* Consent Mode v2.
+                Region-aware defaults: deny only in EEA/UK/CH (legally
+                required), grant everywhere else (e.g. Brazil) so analytics
+                don't show 0% consent rate. The CookieBanner still updates
+                consent when the user picks their preference. */}
             <Script id="gtm-consent-defaults" strategy="beforeInteractive">
               {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
-gtag('consent','default',{analytics_storage:'denied',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',wait_for_update:2000});
+gtag('consent','default',{analytics_storage:'denied',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',wait_for_update:2000,region:['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE','GB','CH','NO','IS','LI']});
+gtag('consent','default',{analytics_storage:'granted',ad_storage:'granted',ad_user_data:'granted',ad_personalization:'granted'});
 dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});`}
             </Script>
 
