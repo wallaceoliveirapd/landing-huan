@@ -1,25 +1,34 @@
 "use client";
 
-import { MasonryGallery } from "./MasonryGallery";
+import { Button } from "@/components/atoms/Button";
+import { HorizontalCarousel } from "./HorizontalCarousel";
+import { PhotoTile } from "@/components/molecules/PhotoTile";
 
 export function PhotoGallery({
   photos,
-  alt,
+  onViewAll,
 }: {
   photos: string[];
-  /** Optional alt text used inside the gallery + lightbox */
-  alt?: string;
-  /** Legacy prop, no longer used. Kept for backwards compat. */
   onViewAll?: () => void;
 }) {
-  if (!photos || photos.length === 0) return null;
   return (
     <section className="w-full bg-white">
       <div className="mx-auto flex w-full max-w-screen-md flex-col gap-5 p-6">
-        <h2 className="font-display font-medium text-[32px] leading-[40px] tracking-[-0.02em] text-[var(--color-ink)]">
-          Fotos
-        </h2>
-        <MasonryGallery photos={photos} alt={alt ?? "Foto"} />
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="font-display font-medium text-[32px] leading-[40px] tracking-[-0.02em] text-[var(--color-ink)]">
+            Fotos
+          </h2>
+          <Button variant="pill-outline" size="md" onClick={onViewAll}>
+            Ver todas
+          </Button>
+        </div>
+        <HorizontalCarousel>
+          {photos.map((src, i) => (
+            <div key={src + i} className="snap-start">
+              <PhotoTile src={src} />
+            </div>
+          ))}
+        </HorizontalCarousel>
       </div>
     </section>
   );

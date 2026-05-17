@@ -6,7 +6,6 @@ import { api } from "@/convex/_generated/api";
 import { Icon } from "@/components/atoms/Icon";
 import { toProxyUrl } from "@/lib/imageUpload";
 import { GtmViewItem } from "@/components/atoms/GtmViewItem";
-import { MasonryGallery } from "@/components/organisms/MasonryGallery";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -137,7 +136,22 @@ export default async function PraiaDetailPage({ params }: PageProps) {
           <h2 className="font-display font-medium text-[14px] text-[var(--color-neutral-800)] mb-3">
             Fotos
           </h2>
-          <MasonryGallery photos={praia.photos} alt={`Foto de ${praia.name}`} />
+          <div className="grid grid-cols-2 gap-2">
+            {praia.photos.slice(0, 6).map((src) => (
+              <div
+                key={src}
+                className="relative aspect-square overflow-hidden rounded-[16px] bg-[var(--color-neutral-100)]"
+              >
+                <Image
+                  src={toProxyUrl(src)}
+                  alt={`Foto de ${praia.name}`}
+                  fill
+                  sizes="(min-width: 768px) 350px, 50vw"
+                  className="object-cover"
+                />
+              </div>
+            ))}
+          </div>
         </section>
       )}
     </main>
