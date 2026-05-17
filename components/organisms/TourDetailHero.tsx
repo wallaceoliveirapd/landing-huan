@@ -42,7 +42,8 @@ export function TourDetailHero({
         initial="hidden"
         animate="visible"
         variants={staggerChildren(0.08, 0.05)}
-        className="relative z-10 mx-auto flex h-full w-full max-w-screen-md flex-col justify-between p-8"
+        className="relative z-10 mx-auto flex h-full w-full max-w-screen-md flex-col justify-between px-8 pb-8"
+        style={{ paddingTop: "max(env(safe-area-inset-top), 2rem)" }}
       >
         <motion.div variants={fadeUp}>
           <Link

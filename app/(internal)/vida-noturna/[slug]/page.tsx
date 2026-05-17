@@ -52,7 +52,8 @@ export default async function NightlifeDetailPage({ params }: PageProps) {
         <Link
           href="/vida-noturna"
           aria-label="Voltar"
-          className="absolute top-4 left-4 grid size-10 place-items-center rounded-full bg-white/95 backdrop-blur-sm"
+          className="absolute left-4 grid size-10 place-items-center rounded-full bg-white/95 backdrop-blur-sm"
+          style={{ top: "max(env(safe-area-inset-top), 1rem)" }}
         >
           <Icon name="arrow-left" size={18} className="text-[var(--color-neutral-800)]" />
         </Link>
