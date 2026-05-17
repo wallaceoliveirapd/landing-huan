@@ -12,8 +12,6 @@ import { EmptyState } from "./EmptyState";
 import { ListingSearch } from "@/components/molecules/ListingSearch";
 import { Icon } from "@/components/atoms/Icon";
 import { toProxyUrl } from "@/lib/imageUpload";
-import { NORDESTE_CITIES } from "@/lib/nordeste-cities";
-
 const STATE_LABEL: Record<string, string> = {
   AL: "Alagoas",
   BA: "Bahia",
@@ -80,16 +78,25 @@ export function PraiasContent() {
     [allPraias],
   );
 
-  // Source of all Nordeste cities for the autocomplete (independent of what's
-  // currently in the praias DB).
-  const allCityOptions = useMemo(
-    () => NORDESTE_CITIES.map((c) => ({ name: c.name, state: c.state })),
-    [],
-  );
+  // Build city + state options from the praias actually in the DB. We expect
+  // praia.city in the "Cidade, Estado" format (e.g. "João Pessoa, PB"), so we
+  // parse it and dedupe.
+  const allCityOptions = useMemo(() => {
+    const seen = new Map<string, { name: string; state: string }>();
+    for (const p of allPraias) {
+      const raw = (p.city ?? "").trim();
+      if (!raw) continue;
+      const { name, state } = parseCity(raw);
+      if (!name) continue;
+      const key = `${name}|${state}`;
+      if (!seen.has(key)) seen.set(key, { name, state });
+    }
+    return [...seen.values()].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+  }, [allPraias]);
 
   const stateOptions = useMemo(() => {
     const seen = new Set<string>();
-    for (const c of allCityOptions) seen.add(c.state);
+    for (const c of allCityOptions) if (c.state) seen.add(c.state);
     return [...seen].sort();
   }, [allCityOptions]);
 
