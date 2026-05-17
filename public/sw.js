@@ -1,17 +1,68 @@
-/* Service Worker — push notifications for huanfalcao.com.br */
+/* Service Worker — push notifications + offline fallback for huanfalcao.com.br */
 /* eslint-disable no-restricted-globals */
 
 const ICON_URL = "https://evokemedia.com.br/landing-huan/icon.png";
-const SW_VERSION = "v5";
+const SW_VERSION = "v6";
+const OFFLINE_CACHE = `huan-offline-${SW_VERSION}`;
+const OFFLINE_URL = "/offline";
 
-self.addEventListener("install", () => {
+self.addEventListener("install", (event) => {
   console.log("[sw] installed", SW_VERSION);
+  event.waitUntil(
+    caches.open(OFFLINE_CACHE).then((cache) =>
+      cache.add(new Request(OFFLINE_URL, { cache: "reload" })),
+    ),
+  );
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
   console.log("[sw] activated", SW_VERSION);
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    (async () => {
+      // Drop stale offline caches from prior SW versions.
+      const keys = await caches.keys();
+      await Promise.all(
+        keys
+          .filter((k) => k.startsWith("huan-offline-") && k !== OFFLINE_CACHE)
+          .map((k) => caches.delete(k)),
+      );
+      await self.clients.claim();
+    })(),
+  );
+});
+
+/**
+ * Navigation fallback: when the user navigates to a page and the network is
+ * unreachable, serve the pre-cached /offline page so they see a branded
+ * "you're offline" screen instead of the browser's native error page.
+ *
+ * Static assets (CSS/JS/images) are NOT cached here — we only intervene on
+ * top-level navigations (mode: "navigate") so the rest of the app keeps
+ * its normal fetch behavior.
+ */
+self.addEventListener("fetch", (event) => {
+  const request = event.request;
+  if (request.method !== "GET") return;
+  if (request.mode !== "navigate") return;
+
+  event.respondWith(
+    (async () => {
+      try {
+        return await fetch(request);
+      } catch {
+        const cache = await caches.open(OFFLINE_CACHE);
+        const cached = await cache.match(OFFLINE_URL);
+        return (
+          cached ??
+          new Response(
+            "<h1>Sem conexão</h1><p>Conecte-se à internet e tente de novo.</p>",
+            { headers: { "Content-Type": "text/html; charset=utf-8" } },
+          )
+        );
+      }
+    })(),
+  );
 });
 
 /**

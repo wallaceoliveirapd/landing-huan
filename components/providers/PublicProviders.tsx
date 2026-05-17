@@ -11,6 +11,7 @@ import { BottomNav } from "@/components/organisms/BottomNav";
 import { PushPrompt } from "@/components/organisms/PushPrompt";
 import { PullToRefresh } from "@/components/organisms/PullToRefresh";
 import { WelcomeTour } from "@/components/organisms/WelcomeTour";
+import { ServiceWorkerRegister } from "./ServiceWorkerRegister";
 
 /**
  * Providers + global UI for public pages (home + internal).
@@ -32,6 +33,7 @@ export function PublicProviders({ children }: { children: ReactNode }) {
           <PushPrompt />
           <PullToRefresh />
           <WelcomeTour />
+          <ServiceWorkerRegister />
         </ChatProvider>
       </CategoriesSheetProvider>
     </AuthProvider>
