@@ -233,18 +233,21 @@ function ActivityCard({
             {displayNote}
           </p>
         )}
-        {/* OSM website link (secondary) */}
+        {/* OSM website link (secondary). Use a button to avoid nested <a>
+            when the whole card is already an anchor. */}
         {isOsm && osmWebsite && (
-          <a
-            href={osmWebsite}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              window.open(osmWebsite, "_blank", "noopener,noreferrer");
+            }}
             className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-[var(--color-neutral-700)] underline underline-offset-2"
           >
             <Icon name="globe" size={11} />
             Site oficial
-          </a>
+          </button>
         )}
       </div>
       {linkHref && (

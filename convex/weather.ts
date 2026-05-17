@@ -202,11 +202,13 @@ export const refreshForTrip = internalAction({
 
     const duration = Math.max(1, t.duration ?? 3);
 
-    // Reuse a fresh snapshot (1h TTL) unless caller forces refresh.
+    // Reuse a fresh snapshot (7-day TTL) unless caller forces refresh.
+    // Weather data updates infrequently enough that re-fetching daily is
+    // wasteful, even inside the 16-day forecast window.
     if (
       !force &&
       t.weatherSnapshot &&
-      Date.now() - t.weatherSnapshot.fetchedAt < 60 * 60 * 1000
+      Date.now() - t.weatherSnapshot.fetchedAt < 7 * 24 * 60 * 60 * 1000
     ) {
       return { ok: true, mode: t.weatherSnapshot.mode };
     }

@@ -83,10 +83,12 @@ function packingHint(avgMax: number, avgMin: number, rainy: boolean): string {
 export function TripWeatherCard({ tripId, startDate, snapshot }: Props) {
   const refresh = useAction(api.weather.refresh);
 
-  // Auto-trigger refresh when missing or stale (> 6h)
+  // Auto-trigger refresh when missing or stale (> 7 days). Weather updates
+  // infrequently so we don't burn API calls on every visit.
   useEffect(() => {
     if (!startDate) return;
-    const stale = !snapshot || Date.now() - snapshot.fetchedAt > 6 * 60 * 60 * 1000;
+    const stale =
+      !snapshot || Date.now() - snapshot.fetchedAt > 7 * 24 * 60 * 60 * 1000;
     if (stale) {
       refresh({ tripId }).catch(() => {});
     }
