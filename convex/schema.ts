@@ -274,6 +274,34 @@ export default defineSchema({
       ),
     ),
     itineraryGeneratedAt: v.optional(v.number()),
+    // Weather snapshot, fetched from Open-Meteo. `mode` is "forecast" when
+    // the trip starts within 16 days (precise) and "historical" otherwise
+    // (3-year average of the same date window). Snapshot is auto-refreshed
+    // when stale and at the 7-day-before mark for far-future trips.
+    weatherSnapshot: v.optional(
+      v.object({
+        mode: v.string(), // "forecast" | "historical"
+        fetchedAt: v.number(),
+        days: v.array(
+          v.object({
+            date: v.string(), // YYYY-MM-DD
+            tempMax: v.number(),
+            tempMin: v.number(),
+            precipitationSum: v.number(),
+            precipitationProbabilityMax: v.optional(v.number()),
+            weatherCode: v.number(),
+          }),
+        ),
+        summary: v.optional(
+          v.object({
+            avgTempMax: v.number(),
+            avgTempMin: v.number(),
+            rainyDayCount: v.number(),
+            dominantCode: v.number(),
+          }),
+        ),
+      }),
+    ),
   })
     .index("by_user", ["userId"])
     .index("by_status", ["status"]),

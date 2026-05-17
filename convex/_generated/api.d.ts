@@ -44,6 +44,8 @@ import type * as tripRemindersData from "../tripRemindersData.js";
 import type * as trips from "../trips.js";
 import type * as users from "../users.js";
 import type * as usersAdmin from "../usersAdmin.js";
+import type * as weather from "../weather.js";
+import type * as weatherInternal from "../weatherInternal.js";
 import type * as webhookLog from "../webhookLog.js";
 import type * as webhooks from "../webhooks.js";
 
@@ -90,6 +92,8 @@ declare const fullApi: ApiFromModules<{
   trips: typeof trips;
   users: typeof users;
   usersAdmin: typeof usersAdmin;
+  weather: typeof weather;
+  weatherInternal: typeof weatherInternal;
   webhookLog: typeof webhookLog;
   webhooks: typeof webhooks;
 }>;

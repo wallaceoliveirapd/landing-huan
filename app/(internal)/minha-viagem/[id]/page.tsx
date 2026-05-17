@@ -16,6 +16,7 @@ import dynamic from "next/dynamic";
 import { gtmTripViewed } from "@/lib/gtm";
 import { NORDESTE_CITIES } from "@/lib/nordeste-cities";
 import { AddActivitySheet } from "@/components/organisms/AddActivitySheet";
+import { TripWeatherCard } from "@/components/organisms/TripWeatherCard";
 
 /**
  * Some legacy trips were created before lat/lng were captured (or got
@@ -465,6 +466,12 @@ export default function TripDetailPage({
           )}
         </div>
       </motion.div>
+
+      <TripWeatherCard
+        tripId={tripId}
+        startDate={trip.startDate}
+        snapshot={trip.weatherSnapshot ?? null}
+      />
 
       {/* ── Itinerary section ──────────────────────────────── */}
       <motion.div variants={fadeUp} className="px-5 pt-8">

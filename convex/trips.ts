@@ -113,6 +113,14 @@ export const create = mutation({
       });
     }
 
+    // Fetch the weather snapshot in the background so the detail page
+    // already has it on first load.
+    if (typeof args.startDate === "number") {
+      await ctx.scheduler.runAfter(3_000, internal.weather.refreshForTrip, {
+        tripId,
+      });
+    }
+
     // Schedule pre-trip reminders (push + email) at 7d and 1d before
     // startDate. Skipped if startDate is in the past for that window.
     if (typeof args.startDate === "number") {
