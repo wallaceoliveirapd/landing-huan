@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { gtmViewItemList, gtmSearch, gtmFilterApplied } from "@/lib/gtm";
@@ -13,14 +13,30 @@ import { ListingSearch } from "@/components/molecules/ListingSearch";
 import { Icon } from "@/components/atoms/Icon";
 import { toProxyUrl } from "@/lib/imageUpload";
 
+function shuffle<T>(arr: T[]): T[] {
+  const out = arr.slice();
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
 export function PraiasContent() {
   const convexPraias = useQuery(api.praias.list, { activeOnly: true });
 
   const [search, setSearch] = useState("");
   const [activeCity, setActiveCity] = useState<string | null>(null);
   const [activeFeature, setActiveFeature] = useState<string | null>(null);
+  const [cityMenuOpen, setCityMenuOpen] = useState(false);
 
-  const allPraias = useMemo(() => convexPraias ?? [], [convexPraias]);
+  // Random order, stable per session (re-shuffles only when DB list size
+  // changes). useState lazy init runs once at mount.
+  const allPraias = useMemo(
+    () => shuffle(convexPraias ?? []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [convexPraias?.length],
+  );
 
   // GTM: fire view_item_list once when data first loads
   const firedRef = useRef(false);
@@ -61,19 +77,25 @@ export function PraiasContent() {
   }, [allPraias, search, activeCity, activeFeature]);
 
   const chips = [
+    {
+      key: "city-picker",
+      label: activeCity ? `Cidade: ${activeCity.split(",")[0]}` : "Cidade",
+      active: !!activeCity,
+      onToggle: () => setCityMenuOpen((v) => !v),
+    },
     ...topFeatures.map((f) => ({
       key: `feat-${f}`,
       label: f,
       active: activeFeature === f,
       onToggle: () => { const next = activeFeature === f ? null : f; setActiveFeature(next); if (next) gtmFilterApplied("caracteristica", f, "praias"); },
     })),
-    ...cities.map((c) => ({
-      key: `city-${c}`,
-      label: c.split(",")[0],
-      active: activeCity === c,
-      onToggle: () => { const next = activeCity === c ? null : c; setActiveCity(next); if (next) gtmFilterApplied("cidade", c.split(",")[0], "praias"); },
-    })),
   ];
+
+  function pickCity(c: string | null) {
+    setActiveCity(c);
+    setCityMenuOpen(false);
+    if (c) gtmFilterApplied("cidade", c.split(",")[0], "praias");
+  }
 
   if (convexPraias === undefined) {
     return (
@@ -112,6 +134,72 @@ export function PraiasContent() {
         resultCount={filtered.length}
         totalCount={allPraias.length}
       />
+
+      <AnimatePresence>
+        {cityMenuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setCityMenuOpen(false)}
+              className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+            />
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 360, damping: 32 }}
+              className="fixed inset-x-0 bottom-0 z-50 max-h-[70vh] rounded-t-[24px] bg-white shadow-[0_-12px_40px_rgba(0,0,0,0.18)] flex flex-col"
+              style={{ paddingBottom: "max(env(safe-area-inset-bottom), 16px)" }}
+            >
+              <div className="flex items-center justify-between px-5 pt-4 pb-3">
+                <h3 className="font-display font-medium text-[16px] text-[var(--color-neutral-800)]">
+                  Filtrar por cidade
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setCityMenuOpen(false)}
+                  aria-label="Fechar"
+                  className="grid size-9 place-items-center rounded-full bg-[var(--color-neutral-100)]"
+                >
+                  <Icon name="x" size={16} className="text-[var(--color-neutral-800)]" />
+                </button>
+              </div>
+              <div className="overflow-y-auto px-5 pt-2 pb-3 flex flex-col">
+                <button
+                  type="button"
+                  onClick={() => pickCity(null)}
+                  className={`flex items-center justify-between py-3 text-left border-b border-[var(--color-neutral-100)] last:border-0 ${
+                    !activeCity ? "text-[var(--color-neutral-800)] font-medium" : "text-[var(--color-neutral-700)]"
+                  }`}
+                >
+                  <span className="text-[14px]">Todas as cidades</span>
+                  {!activeCity && <Icon name="check" size={16} />}
+                </button>
+                {cities.map((c) => {
+                  const selected = activeCity === c;
+                  return (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => pickCity(c)}
+                      className={`flex items-center justify-between py-3 text-left border-b border-[var(--color-neutral-100)] last:border-0 ${
+                        selected ? "text-[var(--color-neutral-800)] font-medium" : "text-[var(--color-neutral-700)]"
+                      }`}
+                    >
+                      <span className="text-[14px]">{c}</span>
+                      {selected && <Icon name="check" size={16} />}
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {filtered.length === 0 ? (
         <EmptyState icon="waves" title="Nenhuma praia encontrada" description="Tente outros filtros ou limpe a busca." />
