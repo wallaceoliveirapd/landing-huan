@@ -183,8 +183,14 @@ function round1(n: number) {
  * Idempotent: short-circuits when a fresh snapshot already exists.
  */
 export const refreshForTrip = internalAction({
-  args: { tripId: v.id("trips"), force: v.optional(v.boolean()) },
-  handler: async (ctx, { tripId, force }): Promise<{ ok: boolean; mode?: string } > => {
+  args: {
+    tripId: v.id("trips"),
+    force: v.optional(v.boolean()),
+    // Callers running their own user-facing notification (e.g. weekly
+    // reminder) can suppress the standalone "forecast ready" push+email.
+    skipNotify: v.optional(v.boolean()),
+  },
+  handler: async (ctx, { tripId, force, skipNotify }): Promise<{ ok: boolean; mode?: string } > => {
     const trip = await ctx.runQuery(internal.tripRemindersData.getForReminder, {
       tripId,
     });
@@ -244,11 +250,103 @@ export const refreshForTrip = internalAction({
       snapshot = { mode: "historical", fetchedAt: now, days, summary };
     }
 
+    const prevMode = t.weatherSnapshot?.mode;
+    const promotedToForecast =
+      snapshot.mode === "forecast" && prevMode === "historical";
+
     await ctx.runMutation(internal.weatherInternal.patchSnapshot, {
       tripId,
       snapshot,
     });
+
+    // One-shot push+email when historical estimate is replaced by the real
+    // forecast. Skipped if previously sent. Trip created already inside the
+    // 16-day window will not trigger it (no historical was ever stored).
+    const notifiedAt = (trip.trip as { weatherNotifiedAt?: number })
+      .weatherNotifiedAt;
+    if (promotedToForecast && !notifiedAt && !skipNotify) {
+      try {
+        await ctx.runAction(internal.weather.notifyForecastReady, {
+          tripId,
+        });
+      } catch (err) {
+        console.warn("[weather] notify failed", err);
+      }
+    }
+
     return { ok: true, mode: snapshot.mode };
+  },
+});
+
+/**
+ * Push + email notifying user the real forecast is now available for the
+ * trip. Idempotent via `weatherNotifiedAt`.
+ */
+export const notifyForecastReady = internalAction({
+  args: { tripId: v.id("trips") },
+  handler: async (ctx, { tripId }) => {
+    const data = await ctx.runQuery(internal.tripRemindersData.getForReminder, {
+      tripId,
+    });
+    if (!data) return;
+    const { trip, email, name } = data;
+    const t = trip as {
+      _id: string;
+      destination: string;
+      title: string;
+      weatherNotifiedAt?: number;
+      weatherSnapshot?: {
+        days?: { tempMax: number; tempMin: number }[];
+      };
+    };
+    if (t.weatherNotifiedAt) return; // already sent
+
+    const tripUrl = `https://huanfalcao.com.br/minha-viagem/${t._id}`;
+    const days = t.weatherSnapshot?.days ?? [];
+    const tempMax = days.length
+      ? Math.round(
+          days.reduce((a, d) => a + d.tempMax, 0) / days.length,
+        )
+      : null;
+    const tempMin = days.length
+      ? Math.round(
+          days.reduce((a, d) => a + d.tempMin, 0) / days.length,
+        )
+      : null;
+
+    if (email) {
+      try {
+        await ctx.runAction(internal.email.sendTripWeatherUpdate, {
+          to: email,
+          name,
+          tripTitle: t.title,
+          destination: t.destination,
+          tripUrl,
+          tempMax,
+          tempMin,
+        });
+      } catch (err) {
+        console.warn("[weather] email failed", err);
+      }
+    }
+
+    try {
+      await ctx.runAction(internal.push.sendToUser, {
+        userId: (trip as { userId: string }).userId,
+        title: `Previsão pra ${t.destination} já chegou`,
+        body:
+          tempMax !== null && tempMin !== null
+            ? `Entre ${tempMin}° e ${tempMax}°. Da uma olhada no roteiro.`
+            : "Da uma olhada no roteiro com a previsão real.",
+        url: `/minha-viagem/${t._id}`,
+      });
+    } catch (err) {
+      console.warn("[weather] push failed", err);
+    }
+
+    await ctx.runMutation(internal.weatherInternal.markWeatherNotified, {
+      tripId,
+    });
   },
 });
 

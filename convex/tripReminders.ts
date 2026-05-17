@@ -18,6 +18,21 @@ export const send = internalAction({
     });
     if (!data) return;
     const { trip, email, name } = data;
+
+    // Promote historical snapshot to real forecast now that trip is close
+    // enough to be inside Open-Meteo's 16-day forecast horizon. force:true
+    // bypasses the 7-day TTL.
+    try {
+      await ctx.runAction(internal.weather.refreshForTrip, {
+        tripId: trip._id,
+        force: true,
+        // Skip standalone weather notify, this reminder already pushes/emails.
+        skipNotify: true,
+      });
+    } catch (err) {
+      console.warn("[tripReminders] weather refresh failed", err);
+    }
+
     const tripUrl = `https://huanfalcao.com.br/minha-viagem/${trip._id}`;
 
     if (email) {

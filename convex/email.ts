@@ -129,6 +129,31 @@ export const sendTripWeekBefore = internalAction({
   },
 });
 
+// ─── Trip weather update: historical → forecast promotion ────────────────
+export const sendTripWeatherUpdate = internalAction({
+  args: {
+    to: v.string(),
+    name: v.optional(v.string()),
+    tripTitle: v.string(),
+    destination: v.string(),
+    tripUrl: v.string(),
+    tempMax: v.union(v.number(), v.null()),
+    tempMin: v.union(v.number(), v.null()),
+  },
+  handler: async (_ctx, args) => {
+    const { tripWeatherUpdateEmail } = await import("../lib/emailTemplates");
+    const tpl = tripWeatherUpdateEmail(args);
+    const resend = getResend();
+    await resend.emails.send({
+      from: getFrom(),
+      to: args.to,
+      subject: tpl.subject,
+      html: tpl.html,
+      replyTo: getReplyTo(),
+    });
+  },
+});
+
 // ─── Trip reminder, 1 day before (checklist) ─────────────────────────────
 export const sendTripChecklist = internalAction({
   args: {

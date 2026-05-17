@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -82,17 +82,36 @@ function packingHint(avgMax: number, avgMin: number, rainy: boolean): string {
 
 export function TripWeatherCard({ tripId, startDate, snapshot }: Props) {
   const refresh = useAction(api.weather.refresh);
+  const [loading, setLoading] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const autoTriedRef = useRef(false);
 
-  // Auto-trigger refresh when missing or stale (> 7 days). Weather updates
+  async function runRefresh(force = false) {
+    setLoading(true);
+    setFailed(false);
+    try {
+      const res = await refresh({ tripId, force });
+      if (!res.ok) setFailed(true);
+    } catch {
+      setFailed(true);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Auto-trigger ONCE when missing or stale (> 7 days). Weather updates
   // infrequently so we don't burn API calls on every visit.
   useEffect(() => {
     if (!startDate) return;
+    if (autoTriedRef.current) return;
     const stale =
       !snapshot || Date.now() - snapshot.fetchedAt > 7 * 24 * 60 * 60 * 1000;
     if (stale) {
-      refresh({ tripId }).catch(() => {});
+      autoTriedRef.current = true;
+      runRefresh(false);
     }
-  }, [tripId, startDate, snapshot, refresh]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tripId, startDate, snapshot]);
 
   const headlineCode = useMemo(() => {
     if (!snapshot || snapshot.days.length === 0) return null;
@@ -102,11 +121,39 @@ export function TripWeatherCard({ tripId, startDate, snapshot }: Props) {
 
   if (!startDate) return null;
   if (!snapshot || snapshot.days.length === 0) {
+    if (loading) {
+      return (
+        <section className="px-5 pt-6">
+          <div className="rounded-[20px] bg-[var(--color-neutral-100)] p-4 flex items-center gap-3 animate-pulse">
+            <div className="size-10 rounded-full bg-[var(--color-neutral-200)]" />
+            <div className="flex-1 h-3 rounded bg-[var(--color-neutral-200)]" />
+          </div>
+        </section>
+      );
+    }
     return (
       <section className="px-5 pt-6">
-        <div className="rounded-[20px] bg-[var(--color-neutral-100)] p-4 flex items-center gap-3 animate-pulse">
-          <div className="size-10 rounded-full bg-[var(--color-neutral-200)]" />
-          <div className="flex-1 h-3 rounded bg-[var(--color-neutral-200)]" />
+        <div className="rounded-[20px] border border-[var(--color-neutral-200)] bg-white p-4 flex items-center gap-3">
+          <div className="grid size-10 place-items-center rounded-full bg-[var(--color-neutral-100)] shrink-0">
+            <Icon name="cloud-off" size={18} className="text-[var(--color-neutral-600)]" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-display font-medium text-[14px] text-[var(--color-neutral-800)]">
+              {failed ? "Não consegui carregar o clima" : "Sem dados de clima ainda"}
+            </p>
+            <p className="text-[12px] text-[var(--color-neutral-600)]">
+              {failed ? "Tenta de novo agora." : "Gera a previsão pra sua viagem."}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => runRefresh(true)}
+            disabled={loading}
+            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-full bg-[var(--color-brand-yellow)] text-[var(--color-neutral-800)] text-[12px] font-medium hover:brightness-95 transition disabled:opacity-50"
+          >
+            <Icon name="refresh-cw" size={12} />
+            {failed ? "Tentar de novo" : "Gerar"}
+          </button>
         </div>
       </section>
     );

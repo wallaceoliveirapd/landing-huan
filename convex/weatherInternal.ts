@@ -32,3 +32,11 @@ export const patchSnapshot = internalMutation({
     return null;
   },
 });
+
+export const markWeatherNotified = internalMutation({
+  args: { tripId: v.id("trips") },
+  handler: async (ctx, { tripId }) => {
+    await ctx.db.patch(tripId, { weatherNotifiedAt: Date.now() });
+    return null;
+  },
+});

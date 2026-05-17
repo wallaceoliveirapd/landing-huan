@@ -302,6 +302,9 @@ export default defineSchema({
         ),
       }),
     ),
+    // Timestamp of the one-shot push+email fired when the snapshot
+    // first transitions from historical to forecast. Idempotency flag.
+    weatherNotifiedAt: v.optional(v.number()),
   })
     .index("by_user", ["userId"])
     .index("by_status", ["status"]),

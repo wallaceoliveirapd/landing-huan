@@ -316,6 +316,51 @@ export function tripWeekBeforeEmail({
   };
 }
 
+export function tripWeatherUpdateEmail({
+  name,
+  tripTitle,
+  destination,
+  tripUrl,
+  tempMax,
+  tempMin,
+}: {
+  name?: string;
+  tripTitle: string;
+  destination: string;
+  tripUrl: string;
+  tempMax: number | null;
+  tempMin: number | null;
+}) {
+  const first = name?.split(" ")[0];
+  const greeting = first ? `Ei ${first},` : "Ei,";
+  const tempLine =
+    tempMax !== null && tempMin !== null
+      ? `A previsão indica entre <strong>${tempMin}°</strong> e <strong>${tempMax}°</strong> nos dias da viagem.`
+      : "Já dá pra ver a previsão real direto no app.";
+  return {
+    subject: `Previsão pra ${destination} já chegou`,
+    html: baseLayout({
+      title: "Previsão atualizada",
+      preview: `Agora temos a previsão real pra sua viagem a ${destination}.`,
+      body: `
+        <p style="font-size:18px;font-weight:600;line-height:1.4;margin:0 0 12px;color:${BRAND.ink};">${greeting}</p>
+        <p style="font-size:15px;line-height:1.65;margin:0 0 18px;color:${BRAND.ink};">
+          Sua viagem <strong>${tripTitle}</strong> pra <strong>${destination}</strong> ja entrou na janela de previsão real (até 16 dias). Antes a gente mostrava a média histórica, agora é tempo real.
+        </p>
+        <p style="font-size:15px;line-height:1.65;margin:0 0 18px;color:${BRAND.ink};">
+          ${tempLine}
+        </p>
+        <p style="margin:0 0 28px;">
+          <a href="${tripUrl}" style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-weight:500;font-size:15px;padding:14px 28px;border-radius:999px;">Ver previsão atualizada</a>
+        </p>
+        <p style="font-size:14px;line-height:1.6;margin:0;color:${BRAND.muted};">
+          Quer ajustar o roteiro com base no clima? Me chama no chat, eu te ajudo.
+        </p>
+      `,
+    }),
+  };
+}
+
 export function tripChecklistEmail({
   name,
   tripTitle,

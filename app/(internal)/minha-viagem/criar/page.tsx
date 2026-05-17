@@ -70,13 +70,31 @@ const ONBOARDING_STEPS = [
   },
   {
     icon: "sparkles",
-    title: "Refine seu roteiro",
-    desc: "O NordestAI sugere passeios, restaurantes e dicas com base no que você curte.",
+    title: "A IA monta seu roteiro",
+    desc: "O NordestAI sugere passeios, restaurantes e dicas reais, com endereço e link do Google Maps.",
   },
   {
     icon: "map-pin-check",
     title: "Tudo pronto pra embarcar",
     desc: "Sua viagem fica salva no seu perfil, pronta pra consultar a qualquer momento.",
+  },
+];
+
+const ONBOARDING_PERKS = [
+  {
+    icon: "cloud-sun",
+    title: "Previsão do clima inclusa",
+    desc: "Temperatura, chuva e dica de mala pra cada dia, tempo real até 16 dias antes.",
+  },
+  {
+    icon: "clock",
+    title: "Horários por atividade",
+    desc: "Defina o horário de cada item do roteiro pra organizar bem o dia.",
+  },
+  {
+    icon: "pencil",
+    title: "Customize do seu jeito",
+    desc: "Depois da IA gerar, adicione, remova ou reordene passeios, restaurantes, praias e dicas.",
   },
 ];
 
@@ -454,6 +472,30 @@ export default function CriarViagemPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+
+              {/* Recursos extras inclusos no roteiro */}
+              <div className="mt-6 rounded-[20px] border border-[var(--color-neutral-200)] bg-[var(--color-neutral-100)]/50 p-4">
+                <p className="font-display font-medium text-[13px] uppercase tracking-wide text-[var(--color-neutral-600)] mb-3">
+                  Inclui de graça
+                </p>
+                <div className="flex flex-col gap-3">
+                  {ONBOARDING_PERKS.map((p) => (
+                    <div key={p.title} className="flex items-start gap-3">
+                      <div className="grid size-9 place-items-center rounded-full bg-[var(--color-brand-yellow)] shrink-0">
+                        <Icon name={p.icon} size={16} className="text-[var(--color-neutral-800)]" />
+                      </div>
+                      <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                        <p className="font-display font-medium text-[14px] leading-[1.2] text-[var(--color-neutral-800)]">
+                          {p.title}
+                        </p>
+                        <p className="text-[12px] leading-[1.45] text-[var(--color-neutral-600)]">
+                          {p.desc}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </motion.div>
           )}

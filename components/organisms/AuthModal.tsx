@@ -281,6 +281,29 @@ export function AuthModal() {
               </div>
             )}
 
+            {/* Perks list, only on signUp tab */}
+            {step === "form" && tab === "signUp" && (
+              <div className="mx-6 mt-3 rounded-[16px] border border-[var(--color-neutral-200)] bg-[var(--color-neutral-100)]/60 p-3">
+                <p className="text-[11px] font-medium uppercase tracking-wide text-[var(--color-neutral-600)] mb-2">
+                  Sua conta grátis inclui
+                </p>
+                <ul className="flex flex-col gap-1.5 text-[12px] text-[var(--color-neutral-800)] leading-[1.45]">
+                  <li className="flex items-center gap-2">
+                    <Icon name="message-circle" size={13} className="text-[var(--color-brand-purple)]" />
+                    <span><strong>10 mensagens por dia</strong> com o Huan, seu guia IA</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Icon name="map" size={13} className="text-[var(--color-brand-purple)]" />
+                    <span><strong>3 roteiros de viagem</strong> personalizados pelo Nordeste</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Icon name="heart" size={13} className="text-[var(--color-brand-purple)]" />
+                    <span>Favoritos, cupons exclusivos e clima da viagem</span>
+                  </li>
+                </ul>
+              </div>
+            )}
+
             {/* Body */}
             {step === "form" ? (
               <form
