@@ -54,7 +54,10 @@ export function NordestAIOnboarding({
           className="fixed inset-0 z-[80] bg-white flex flex-col"
         >
           {/* Header */}
-          <div className="flex items-center justify-end px-5 pt-5 shrink-0">
+          <div
+            className="flex items-center justify-end px-5 shrink-0"
+            style={{ paddingTop: "max(env(safe-area-inset-top), 1.25rem)" }}
+          >
             <button
               type="button"
               onClick={onClose}

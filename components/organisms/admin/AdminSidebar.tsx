@@ -94,7 +94,10 @@ export function AdminSidebar() {
       </aside>
 
       {/* ── Mobile top bar ──────────────────────────────────────── */}
-      <div className="md:hidden fixed top-0 inset-x-0 z-30 flex items-center justify-between px-4 py-3 bg-white border-b border-[var(--color-neutral-300)] shadow-sm">
+      <div
+        className="md:hidden fixed top-0 inset-x-0 z-30 flex items-center justify-between px-4 pb-3 bg-white border-b border-[var(--color-neutral-300)] shadow-sm"
+        style={{ paddingTop: "max(env(safe-area-inset-top), 0.75rem)" }}
+      >
         <span className="font-display font-bold text-xl text-[var(--color-brand-purple)]">HUAN Admin</span>
         <button
           onClick={() => setDrawerOpen(true)}

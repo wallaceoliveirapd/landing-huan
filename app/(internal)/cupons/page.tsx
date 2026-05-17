@@ -33,7 +33,11 @@ export default function CuponsListingPage() {
       className="min-h-screen bg-white pb-32"
     >
       {/* Header */}
-      <motion.div variants={fadeUp} className="px-6 pt-8 pb-2">
+      <motion.div
+        variants={fadeUp}
+        className="px-6 pb-2"
+        style={{ paddingTop: "max(env(safe-area-inset-top), 2rem)" }}
+      >
         <h1 className="font-display font-medium text-[28px] leading-[1.2] text-[var(--color-neutral-800)]">
           Cupons & ofertas
         </h1>

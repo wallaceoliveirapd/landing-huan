@@ -221,7 +221,10 @@ export function ChatPanel() {
           aria-label="NordestAI, seu agente de viagem do Nordeste"
         >
           {/* ── Header ──────────────────────────────────────────── */}
-          <header className="flex items-center gap-3 px-5 pt-4 pb-3 bg-white shrink-0">
+          <header
+            className="flex items-center gap-3 px-5 pb-3 bg-white shrink-0"
+            style={{ paddingTop: "max(env(safe-area-inset-top), 1rem)" }}
+          >
             <button
               type="button"
               onClick={chat.close}

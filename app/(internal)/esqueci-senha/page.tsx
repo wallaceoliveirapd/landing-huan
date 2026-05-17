@@ -90,7 +90,10 @@ export default function EsqueciSenhaPage() {
   }
 
   return (
-    <main className="min-h-screen bg-white px-6 py-10 max-w-md mx-auto">
+    <main
+      className="min-h-screen bg-white px-6 pb-10 max-w-md mx-auto"
+      style={{ paddingTop: "max(env(safe-area-inset-top), 2.5rem)" }}
+    >
       <Link
         href="/"
         className="inline-flex items-center gap-2 text-[14px] font-medium text-[var(--color-neutral-700)] mb-8"
