@@ -78,9 +78,6 @@ const ONBOARDING_STEPS = [
     title: "Tudo pronto pra embarcar",
     desc: "Sua viagem fica salva no seu perfil, pronta pra consultar a qualquer momento.",
   },
-];
-
-const ONBOARDING_PERKS = [
   {
     icon: "cloud-sun",
     title: "Previsão do clima inclusa",
@@ -149,8 +146,8 @@ function SelectableCard({
       whileTap={{ scale: 0.97 }}
       onClick={onClick}
       className={`flex flex-col items-start justify-between bg-white rounded-[16px] text-left transition-colors p-5 h-[120px] border ${selected
-          ? "border-[var(--color-neutral-800)] border-2"
-          : "border-[var(--color-neutral-300)]"
+        ? "border-[var(--color-neutral-800)] border-2"
+        : "border-[var(--color-neutral-300)]"
         }`}
     >
       <Icon name={icon} size={28} className="text-[var(--color-neutral-800)]" />
@@ -187,16 +184,15 @@ function ConfigRow({
       onKeyDown={
         interactive
           ? (e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onClick?.();
-              }
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onClick?.();
             }
+          }
           : undefined
       }
-      className={`w-full flex items-center gap-3 px-4 py-4 rounded-[16px] border border-[var(--color-neutral-300)] bg-white text-left ${
-        interactive ? "cursor-pointer" : ""
-      }`}
+      className={`w-full flex items-center gap-3 px-4 py-4 rounded-[16px] border border-[var(--color-neutral-300)] bg-white text-left ${interactive ? "cursor-pointer" : ""
+        }`}
     >
       <Icon name={icon} size={20} className="text-[var(--color-neutral-800)] shrink-0" />
       <p className="flex-1 font-display font-medium text-[14px] text-[var(--color-neutral-800)]">
@@ -422,8 +418,8 @@ export default function CriarViagemPage() {
               ) : (
                 <div
                   className={`mt-5 flex items-center gap-3 px-4 py-3 rounded-[16px] border ${reachedLimit
-                      ? "border-red-300 bg-red-50"
-                      : "border-[var(--color-neutral-300)] bg-white"
+                    ? "border-red-300 bg-red-50"
+                    : "border-[var(--color-neutral-300)] bg-white"
                     }`}
                 >
                   <Icon
@@ -451,8 +447,8 @@ export default function CriarViagemPage() {
                   <div
                     key={s.title}
                     className={`flex items-start gap-4 py-5 ${i !== ONBOARDING_STEPS.length - 1
-                        ? "border-b border-[var(--color-neutral-100)]"
-                        : ""
+                      ? "border-b border-[var(--color-neutral-100)]"
+                      : ""
                       }`}
                   >
                     <div className="grid size-12 place-items-center rounded-full bg-[var(--color-neutral-100)] shrink-0">
@@ -472,30 +468,6 @@ export default function CriarViagemPage() {
                     </div>
                   </div>
                 ))}
-              </div>
-
-              {/* Recursos extras inclusos no roteiro */}
-              <div className="mt-6 rounded-[20px] border border-[var(--color-neutral-200)] bg-[var(--color-neutral-100)]/50 p-4">
-                <p className="font-display font-medium text-[13px] uppercase tracking-wide text-[var(--color-neutral-600)] mb-3">
-                  Inclui de graça
-                </p>
-                <div className="flex flex-col gap-3">
-                  {ONBOARDING_PERKS.map((p) => (
-                    <div key={p.title} className="flex items-start gap-3">
-                      <div className="grid size-9 place-items-center rounded-full bg-[var(--color-brand-yellow)] shrink-0">
-                        <Icon name={p.icon} size={16} className="text-[var(--color-neutral-800)]" />
-                      </div>
-                      <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-                        <p className="font-display font-medium text-[14px] leading-[1.2] text-[var(--color-neutral-800)]">
-                          {p.title}
-                        </p>
-                        <p className="text-[12px] leading-[1.45] text-[var(--color-neutral-600)]">
-                          {p.desc}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
               </div>
             </motion.div>
           )}
@@ -674,8 +646,8 @@ export default function CriarViagemPage() {
                                   setDurationOpen(false);
                                 }}
                                 className={`rounded-full px-4 py-2 text-[13px] font-medium bg-white border transition-colors ${sel
-                                    ? "border-[var(--color-neutral-800)] border-2 text-[var(--color-neutral-800)]"
-                                    : "border-[var(--color-neutral-300)] text-[var(--color-neutral-800)]"
+                                  ? "border-[var(--color-neutral-800)] border-2 text-[var(--color-neutral-800)]"
+                                  : "border-[var(--color-neutral-300)] text-[var(--color-neutral-800)]"
                                   }`}
                               >
                                 {d.label}
@@ -690,8 +662,8 @@ export default function CriarViagemPage() {
                               applyDuration(unitToDays(n, customUnit));
                             }}
                             className={`rounded-full px-4 py-2 text-[13px] font-medium bg-white border transition-colors ${customMode
-                                ? "border-[var(--color-neutral-800)] border-2 text-[var(--color-neutral-800)]"
-                                : "border-[var(--color-neutral-300)] text-[var(--color-neutral-800)]"
+                              ? "border-[var(--color-neutral-800)] border-2 text-[var(--color-neutral-800)]"
+                              : "border-[var(--color-neutral-300)] text-[var(--color-neutral-800)]"
                               }`}
                           >
                             Personalizado
@@ -834,8 +806,8 @@ export default function CriarViagemPage() {
                                 type="button"
                                 onClick={() => { setBudget(b.value); setBudgetOpen(false); }}
                                 className={`flex items-center gap-3 px-4 py-3 rounded-[16px] bg-white border text-left transition-colors ${sel
-                                    ? "border-[var(--color-neutral-800)] border-2"
-                                    : "border-[var(--color-neutral-300)]"
+                                  ? "border-[var(--color-neutral-800)] border-2"
+                                  : "border-[var(--color-neutral-300)]"
                                   }`}
                               >
                                 <div className="flex-1">
