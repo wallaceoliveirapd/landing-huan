@@ -52,12 +52,16 @@ export default async function PraiaDetailPage({ params }: PageProps) {
         >
           <Icon name="arrow-left" size={18} className="text-[var(--color-neutral-800)]" />
         </Link>
-        {praia.location && !isMapsUrl(praia.location) && (
-          <div className="absolute bottom-4 left-4 inline-flex items-center gap-1.5 rounded-full bg-white/95 backdrop-blur-sm px-3 py-1.5 text-[12px] font-medium text-[var(--color-neutral-800)]">
-            <Icon name="map-pin" size={12} />
-            {praia.location}
-          </div>
-        )}
+        {(() => {
+          const label = praia.city || (praia.location && !isMapsUrl(praia.location) ? praia.location : "");
+          if (!label) return null;
+          return (
+            <div className="absolute bottom-4 left-4 inline-flex items-center gap-1.5 rounded-full bg-white/95 backdrop-blur-sm px-3 py-1.5 text-[12px] font-medium text-[var(--color-neutral-800)]">
+              <Icon name="map-pin" size={12} />
+              {label}
+            </div>
+          );
+        })()}
       </div>
 
       {/* ── Maps CTA ───────────────────────────────────────────── */}
