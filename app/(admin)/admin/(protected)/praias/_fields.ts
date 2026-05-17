@@ -7,7 +7,7 @@ export const FIELDS: Field[] = [
   { key: "description", label: "Descrição completa", type: "textarea", required: true },
   { key: "image", label: "Imagem principal", type: "image", required: true, uploadCategory: "praias" },
   { key: "photos", label: "Galeria de fotos", type: "photos", uploadCategory: "praias" },
-  { key: "location", label: "Localização", type: "text", required: true, placeholder: "Cabo Branco, João Pessoa" },
+  { key: "location", label: "Localização (link do Google Maps)", type: "text", required: true, placeholder: "https://maps.app.goo.gl/..." },
   { key: "features", label: "Características (ex: ondas calmas, quiosques)", type: "tags" },
   { key: "city", label: "Cidade (Nordeste)", type: "city" },
   { key: "featured", label: "Destaque", type: "boolean" },

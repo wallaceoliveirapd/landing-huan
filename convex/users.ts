@@ -169,3 +169,14 @@ export const updateProfile = mutation({
     return ctx.db.get(userId);
   },
 });
+
+/** Set the current user's avatar image URL. Pass null to remove it. */
+export const updateAvatar = mutation({
+  args: { image: v.union(v.string(), v.null()) },
+  handler: async (ctx, { image }) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+    await ctx.db.patch(userId, { image: image ?? undefined });
+    return ctx.db.get(userId);
+  },
+});

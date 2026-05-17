@@ -168,6 +168,40 @@ export function otpEmail({ code, ttlMinutes = 10 }: { code: string; ttlMinutes?:
 }
 
 /**
+ * OTP code for password reset / change-password flow. Distinct copy so the
+ * user knows it's about their password, not signup verification.
+ */
+export function passwordResetEmail({
+  code,
+  ttlMinutes = 10,
+}: {
+  code: string;
+  ttlMinutes?: number;
+}) {
+  return {
+    subject: `${code} é seu código pra trocar a senha`,
+    html: baseLayout({
+      title: "Trocar senha",
+      preview: `${code} é o código pra confirmar a troca de senha.`,
+      signOff: "Qualquer dúvida tô por aqui,",
+      body: `
+        <p style="font-size:18px;font-weight:600;line-height:1.4;margin:0 0 12px;color:${BRAND.ink};">Troca de senha</p>
+        <p style="font-size:15px;line-height:1.65;margin:0 0 24px;color:${BRAND.ink};">
+          Recebi um pedido pra trocar a senha da sua conta. Use o código abaixo pra confirmar. Ele expira em <strong>${ttlMinutes} minutos</strong>.
+        </p>
+        <div style="background:${BRAND.light};border-radius:16px;padding:24px;text-align:center;margin:0 0 24px;">
+          <span style="font-family:'SF Mono','Roboto Mono',Menlo,monospace;font-size:36px;font-weight:600;letter-spacing:8px;color:${BRAND.ink};">${code}</span>
+        </div>
+        <p style="font-size:13px;line-height:1.55;color:${BRAND.muted};margin:0 0 16px;">
+          Se você não pediu essa troca, ignora esse email, sua senha atual continua valendo.
+        </p>
+      `,
+      footerNote: "Você recebeu este email porque alguém pediu pra trocar a senha de uma conta no huanfalcao.com.br associada a este email.",
+    }),
+  };
+}
+
+/**
  * Trip-created confirmation, Huan dizendo que o roteiro tá pronto.
  */
 export function tripCreatedEmail({

@@ -2,7 +2,7 @@ import { convexAuth } from "@convex-dev/auth/server";
 import { Password } from "@convex-dev/auth/providers/Password";
 import type { DataModel } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
-import { ResendOTP } from "./otp";
+import { ResendOTP, ResendOTPReset } from "./otp";
 
 /**
  * Password auth with email OTP verification on signup.
@@ -19,6 +19,7 @@ import { ResendOTP } from "./otp";
  */
 const password = Password<DataModel>({
   verify: ResendOTP,
+  reset: ResendOTPReset,
   profile(params) {
     return {
       email: params.email as string,
@@ -30,7 +31,7 @@ const password = Password<DataModel>({
 });
 
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
-  providers: [password, ResendOTP],
+  providers: [password, ResendOTP, ResendOTPReset],
   callbacks: {
     /**
      * Fires after the user document is created OR updated. We send the

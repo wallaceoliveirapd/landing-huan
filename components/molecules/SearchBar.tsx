@@ -18,7 +18,7 @@ export function SearchBar({
   onSearch?: () => void;
 }) {
   return (
-    <div className="w-full bg-[var(--color-neutral-100)] flex gap-1 items-stretch p-1 rounded-pill">
+    <div data-tour="search" className="w-full bg-[var(--color-neutral-100)] flex gap-1 items-stretch p-1 rounded-pill">
       <button
         type="button"
         onClick={onClick}

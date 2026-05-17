@@ -9,6 +9,11 @@ import { GtmViewItem } from "@/components/atoms/GtmViewItem";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
+function isMapsUrl(value: string): boolean {
+  const v = value.trim().toLowerCase();
+  return v.startsWith("http://") || v.startsWith("https://");
+}
+
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
   const p = await fetchQuery(api.praias.getBySlug, { slug });
@@ -47,13 +52,38 @@ export default async function PraiaDetailPage({ params }: PageProps) {
         >
           <Icon name="arrow-left" size={18} className="text-[var(--color-neutral-800)]" />
         </Link>
-        {praia.location && (
+        {praia.location && !isMapsUrl(praia.location) && (
           <div className="absolute bottom-4 left-4 inline-flex items-center gap-1.5 rounded-full bg-white/95 backdrop-blur-sm px-3 py-1.5 text-[12px] font-medium text-[var(--color-neutral-800)]">
             <Icon name="map-pin" size={12} />
             {praia.location}
           </div>
         )}
       </div>
+
+      {/* ── Maps CTA ───────────────────────────────────────────── */}
+      {praia.location && isMapsUrl(praia.location) && (
+        <section className="px-6 pt-6 max-w-screen-md mx-auto">
+          <a
+            href={praia.location}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 p-4 rounded-[16px] border border-[var(--color-neutral-200)] bg-white hover:border-[var(--color-neutral-800)] transition-colors"
+          >
+            <div className="grid size-10 place-items-center rounded-full bg-[var(--color-brand-yellow)] shrink-0">
+              <Icon name="map-pin" size={18} className="text-[var(--color-neutral-800)]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-display font-medium text-[14px] text-[var(--color-neutral-800)]">
+                Ver localização
+              </p>
+              <p className="text-[12px] text-[var(--color-neutral-600)]">
+                Abrir no Google Maps
+              </p>
+            </div>
+            <Icon name="external-link" size={16} className="text-[var(--color-neutral-600)]" />
+          </a>
+        </section>
+      )}
 
       {/* ── Title + description ────────────────────────────────── */}
       <section className="px-6 pt-6 max-w-screen-md mx-auto">

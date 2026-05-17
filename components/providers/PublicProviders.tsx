@@ -10,6 +10,7 @@ import { AuthModal } from "@/components/organisms/AuthModal";
 import { BottomNav } from "@/components/organisms/BottomNav";
 import { PushPrompt } from "@/components/organisms/PushPrompt";
 import { PullToRefresh } from "@/components/organisms/PullToRefresh";
+import { WelcomeTour } from "@/components/organisms/WelcomeTour";
 
 /**
  * Providers + global UI for public pages (home + internal).
@@ -30,6 +31,7 @@ export function PublicProviders({ children }: { children: ReactNode }) {
           <BottomNav />
           <PushPrompt />
           <PullToRefresh />
+          <WelcomeTour />
         </ChatProvider>
       </CategoriesSheetProvider>
     </AuthProvider>

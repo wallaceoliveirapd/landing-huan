@@ -325,6 +325,15 @@ export function AuthModal() {
                   showStrength={tab === "signUp"}
                 />
 
+                {tab === "signIn" && (
+                  <a
+                    href={email ? `/esqueci-senha?email=${encodeURIComponent(email)}` : "/esqueci-senha"}
+                    className="self-end -mt-2 text-[12px] font-medium text-[var(--color-neutral-600)] hover:text-[var(--color-neutral-800)]"
+                  >
+                    Esqueci minha senha
+                  </a>
+                )}
+
                 {tab === "signUp" && (
                   <PasswordField
                     label="Confirmar senha"

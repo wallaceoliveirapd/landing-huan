@@ -26,6 +26,7 @@ const NAV = [
   { href: "/admin/analytics", label: "Analytics / UTM", icon: "lucide:bar-chart-2" },
   { href: "/admin/push", label: "Push notifications", icon: "lucide:bell-ring" },
   { href: "/admin/webhooks", label: "Webhooks (n8n)", icon: "lucide:webhook" },
+  { href: "/admin/tour", label: "Tour guide", icon: "lucide:map" },
 ];
 
 function NavItem({

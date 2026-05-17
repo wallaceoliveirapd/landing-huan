@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { useQuery } from "convex/react";
@@ -10,6 +11,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { staggerChildren, fadeUp } from "@/lib/motion-presets";
 import { TripCard, TripCardSkeleton } from "@/components/organisms/TripCard";
 import { HorizontalCarousel } from "@/components/organisms/HorizontalCarousel";
+import { toProxyUrl } from "@/lib/imageUpload";
 
 const SETTINGS_ITEMS = [
   { icon: "user-circle",  label: "Informações pessoais", href: "/perfil/informacoes-pessoais" },
@@ -60,6 +62,7 @@ export default function PerfilPage() {
     (viewer as { email?: string } | null)?.email?.split("@")[0] ||
     "Viajante";
   const userEmail = (viewer as { email?: string } | null)?.email ?? "";
+  const userImage = (viewer as { image?: string } | null)?.image;
   const initial = userName[0]?.toUpperCase() ?? "?";
 
   return (
@@ -87,6 +90,10 @@ export default function PerfilPage() {
       <motion.div variants={fadeUp} className="px-6 pb-6 flex items-center gap-4">
         {viewerLoading ? (
           <div className="size-14 rounded-full bg-[var(--color-neutral-100)] shrink-0 animate-pulse" />
+        ) : userImage ? (
+          <div className="relative size-14 rounded-full overflow-hidden bg-[var(--color-neutral-100)] shrink-0">
+            <Image src={toProxyUrl(userImage)} alt={userName} fill sizes="56px" className="object-cover" />
+          </div>
         ) : (
           <div className="grid size-14 place-items-center rounded-full bg-[var(--color-neutral-100)] font-display font-medium text-[20px] text-[var(--color-neutral-800)] shrink-0">
             {initial}

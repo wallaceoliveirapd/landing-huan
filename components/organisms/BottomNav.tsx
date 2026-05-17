@@ -15,6 +15,13 @@ type Item =
   | { kind: "link"; href: string; icon: string; label: string; requiresAuth?: boolean }
   | { kind: "chat"; icon: string; label: string };
 
+function tourSlug(href: string): string | undefined {
+  if (href === "/") return "home";
+  if (href === "/favoritos") return "favorites";
+  if (href === "/perfil") return "profile";
+  return undefined;
+}
+
 const ITEMS: Item[] = [
   { kind: "link", href: "/",          icon: "home",     label: "Início" },
   { kind: "link", href: "/favoritos", icon: "heart",    label: "Favoritos", requiresAuth: true },
@@ -134,6 +141,7 @@ export function BottomNav() {
               href={item.href}
               onClick={handleClick}
               aria-label={item.label}
+              data-tour={tourSlug(item.href)}
               className="relative grid place-items-center size-12 rounded-full"
             >
               {isActive && (
@@ -219,6 +227,7 @@ function NordestAIButton({
         transition={{ type: "spring", stiffness: 400, damping: 22 }}
         className="relative grid place-items-center size-12 rounded-full bg-[var(--color-brand-yellow)] overflow-hidden"
         aria-label="NordestAI"
+        data-tour="huan"
       >
         <span
           aria-hidden
