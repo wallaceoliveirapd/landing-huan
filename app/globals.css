@@ -53,6 +53,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Block pinch-zoom + double-tap zoom across browsers + PWA.
+   Kept in a separate rule so Tailwind v4's preflight collapser
+   doesn't drop these properties from the html/body declaration. */
+html, body {
+  touch-action: pan-x pan-y !important;
+  -webkit-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
+}
+
 /* iOS Safari: safe area e overscroll sempre transparente */
 html {
   background-color: transparent;

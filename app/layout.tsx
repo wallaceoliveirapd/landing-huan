@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import { AppProviders } from "@/components/providers/AppProviders";
+import { DisablePinchZoom } from "@/components/atoms/DisablePinchZoom";
 
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 
@@ -37,7 +38,9 @@ export const viewport: Viewport = {
   ],
   width: "device-width",
   initialScale: 1,
-  maximumScale: 5,
+  maximumScale: 1,
+  minimumScale: 1,
+  userScalable: false,
   viewportFit: "cover",
 };
 
@@ -78,6 +81,7 @@ dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});`}
         )}
         <ConvexAuthNextjsServerProvider>
           <AppProviders>
+            <DisablePinchZoom />
             <main className="flex flex-col flex-1 w-full bg-white">
               {children}
             </main>
