@@ -201,12 +201,15 @@ export function TripWeatherCard({ tripId, startDate, snapshot }: Props) {
         </div>
 
         {snapshot.summary && !isForecast && (
-          <div className="px-4 pb-4 pt-1 text-[12px] text-[var(--color-neutral-700)] leading-[1.5]">
-            🧳 {packingHint(
-              snapshot.summary.avgTempMax,
-              snapshot.summary.avgTempMin,
-              snapshot.summary.rainyDayCount > 0,
-            )}
+          <div className="px-4 pb-4 pt-1 flex items-start gap-2 text-[12px] text-[var(--color-neutral-700)] leading-[1.5]">
+            <Icon name="briefcase" size={14} className="text-[var(--color-neutral-700)] shrink-0 mt-0.5" />
+            <span>
+              {packingHint(
+                snapshot.summary.avgTempMax,
+                snapshot.summary.avgTempMin,
+                snapshot.summary.rainyDayCount > 0,
+              )}
+            </span>
           </div>
         )}
       </motion.div>

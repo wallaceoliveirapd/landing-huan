@@ -195,25 +195,37 @@ export function AddActivitySheet({ open, tripId, day, onClose }: Props) {
               </button>
             </div>
 
-            {/* Time picker (applies to whatever gets added) */}
-            <div className="px-5 pb-3 flex items-center gap-2">
-              <Icon name="clock" size={14} className="text-[var(--color-neutral-600)]" />
-              <span className="text-[12px] text-[var(--color-neutral-700)]">Horário (opcional):</span>
-              <input
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                className="text-[13px] text-[var(--color-neutral-800)] outline-none bg-transparent"
-              />
-              {time && (
-                <button
-                  type="button"
-                  onClick={() => setTime("")}
-                  className="text-[11px] text-[var(--color-neutral-500)] underline"
-                >
-                  limpar
-                </button>
-              )}
+            {/* Time picker, applies to whatever gets added next. */}
+            <div className="px-5 pb-3">
+              <div className="rounded-[16px] bg-[var(--color-neutral-100)] p-3 flex items-center gap-3">
+                <div className="grid size-9 place-items-center rounded-full bg-white shrink-0">
+                  <Icon name="clock" size={16} className="text-[var(--color-neutral-800)]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] font-medium text-[var(--color-neutral-800)]">
+                    Horário
+                  </p>
+                  <p className="text-[11px] text-[var(--color-neutral-600)]">
+                    Opcional, pode definir depois também.
+                  </p>
+                </div>
+                <input
+                  type="time"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                  className="h-9 px-3 rounded-[10px] bg-white border border-[var(--color-neutral-300)] text-[14px] font-medium text-[var(--color-neutral-800)] outline-none focus:border-[var(--color-neutral-800)]"
+                />
+                {time && (
+                  <button
+                    type="button"
+                    onClick={() => setTime("")}
+                    aria-label="Limpar horário"
+                    className="grid size-8 place-items-center rounded-full bg-white border border-[var(--color-neutral-300)] hover:border-[var(--color-neutral-800)] transition-colors"
+                  >
+                    <Icon name="x" size={12} className="text-[var(--color-neutral-700)]" />
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Tabs */}

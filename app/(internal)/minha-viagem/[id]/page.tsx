@@ -258,22 +258,36 @@ function ActivityCard({
         />
       )}
       <span
-        className="absolute -top-2 right-2 flex items-center gap-1"
-        onClick={(e) => e.stopPropagation()}
+        className="absolute -top-2.5 right-2 flex items-center gap-1.5 z-10"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
       >
+        {/* Time picker, the surrounding label wraps a real native time input
+            so mobile gets the OS picker. preventDefault on outer span stops
+            the card-level anchor navigation. */}
         <label
           title={time ? "Mudar horário" : "Definir horário"}
-          className="inline-flex items-center justify-center size-6 rounded-full bg-white border border-[var(--color-neutral-200)] cursor-pointer hover:border-[var(--color-neutral-800)] transition-colors"
+          className="relative inline-flex items-center gap-1 h-7 px-2 rounded-full bg-white border border-[var(--color-neutral-300)] cursor-pointer hover:border-[var(--color-neutral-800)] transition-colors shadow-sm"
+          onClick={(e) => {
+            // The native <input type="time"> already opens on click, but the
+            // anchor parent intercepts the default. Cancel the default again
+            // here to be safe.
+            e.stopPropagation();
+          }}
         >
-          <Icon name="clock" size={10} className="text-[var(--color-neutral-700)]" />
+          <Icon name="clock" size={11} className="text-[var(--color-neutral-700)]" />
+          <span className="text-[10px] font-medium text-[var(--color-neutral-800)]">
+            {time ? time : "Horário"}
+          </span>
           <input
             type="time"
             value={time ?? ""}
             onChange={(e) => {
-              e.stopPropagation();
               setActivityTime({ tripId, day, index, time: e.target.value });
             }}
-            className="absolute opacity-0 w-0 h-0 pointer-events-auto"
+            className="absolute inset-0 opacity-0 cursor-pointer"
           />
         </label>
         <button
@@ -282,12 +296,16 @@ function ActivityCard({
           onClick={async (e) => {
             e.preventDefault();
             e.stopPropagation();
-            if (!confirm("Remover do roteiro?")) return;
-            await removeActivity({ tripId, day, index });
+            if (!confirm(`Remover "${displayTitle}" do roteiro? Essa ação não pode ser desfeita.`)) return;
+            try {
+              await removeActivity({ tripId, day, index });
+            } catch (err) {
+              console.error(err);
+            }
           }}
-          className="inline-flex items-center justify-center size-6 rounded-full bg-white border border-[var(--color-neutral-200)] hover:border-red-300 hover:text-red-600 transition-colors"
+          className="inline-flex items-center justify-center size-7 rounded-full bg-white border border-[var(--color-neutral-300)] hover:border-red-400 hover:text-red-600 hover:bg-red-50 transition-colors shadow-sm"
         >
-          <Icon name="trash-2" size={10} className="text-[var(--color-neutral-700)]" />
+          <Icon name="trash-2" size={11} />
         </button>
       </span>
     </Container>
