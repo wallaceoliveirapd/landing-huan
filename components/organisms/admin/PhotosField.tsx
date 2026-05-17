@@ -56,7 +56,34 @@ export function PhotosField({ value, onChange, uploadCategory = "geral" }: Props
     setDragOver(false);
     if (uploading) return;
     const files = Array.from(e.dataTransfer.files ?? []);
-    await processFiles(files);
+    if (files.length > 0) {
+      await processFiles(files);
+      return;
+    }
+    // Dropped from another browser tab — pull URL(s) via dataTransfer.
+    const urls = pickImageUrls(e.dataTransfer);
+    if (urls.length > 0) await processUrls(urls);
+  }
+
+  async function processUrls(urls: string[]) {
+    setUploading(true);
+    try {
+      const downloaded = await Promise.all(
+        urls.map(async (url) => {
+          const res = await fetch(`/api/proxy-image?url=${encodeURIComponent(url)}`);
+          if (!res.ok) return null;
+          const blob = await res.blob();
+          const name = (url.split("/").pop() ?? "image").split("?")[0];
+          return new File([blob], name, { type: blob.type });
+        }),
+      );
+      const files = downloaded.filter((f): f is File => f !== null);
+      if (files.length > 0) await processFiles(files);
+    } catch (err) {
+      console.error("Photos URL drop error:", err);
+    } finally {
+      setUploading(false);
+    }
   }
 
   async function removePhoto(i: number) {
@@ -130,4 +157,27 @@ export function PhotosField({ value, onChange, uploadCategory = "geral" }: Props
       </p>
     </div>
   );
+}
+
+function pickImageUrls(dt: DataTransfer): string[] {
+  const out: string[] = [];
+  for (const type of ["text/uri-list", "text/x-moz-url", "text/plain"]) {
+    const v = dt.getData(type);
+    if (v) {
+      for (const line of v.split(/\r?\n/)) {
+        const c = line.trim();
+        if (c && (c.startsWith("http://") || c.startsWith("https://"))) out.push(c);
+      }
+    }
+  }
+  const html = dt.getData("text/html");
+  if (html) {
+    const re = /<img[^>]+src=["']([^"']+)["']/gi;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(html)) !== null) {
+      const c = m[1];
+      if (c && (c.startsWith("http://") || c.startsWith("https://"))) out.push(c);
+    }
+  }
+  return [...new Set(out)];
 }

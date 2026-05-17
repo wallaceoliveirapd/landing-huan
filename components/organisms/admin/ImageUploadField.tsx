@@ -61,7 +61,38 @@ export function ImageUploadField({ value, onChange, uploadCategory = "geral" }: 
     setDragOver(false);
     if (uploading) return;
     const file = e.dataTransfer.files?.[0];
-    if (file) await processFile(file);
+    if (file) {
+      await processFile(file);
+      return;
+    }
+    // Dragged from another browser tab (Google Images, etc.). Extract the
+    // image URL from the dataTransfer and ask the server to download it for
+    // us (bypasses CORS).
+    const url = pickImageUrl(e.dataTransfer);
+    if (url) await processUrl(url);
+  }
+
+  async function processUrl(url: string) {
+    setError(null);
+    setUploading(true);
+    setProgress("Baixando…");
+    try {
+      const res = await fetch(`/api/proxy-image?url=${encodeURIComponent(url)}`);
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({ error: "Falha ao baixar" }));
+        throw new Error(j.error ?? "Falha ao baixar");
+      }
+      const blob = await res.blob();
+      const fileName = (url.split("/").pop() ?? "image").split("?")[0];
+      const file = new File([blob], fileName, { type: blob.type });
+      await processFile(file);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Falha ao baixar a imagem.";
+      setError(msg);
+    } finally {
+      setUploading(false);
+      setProgress(null);
+    }
   }
 
   function handleRemove() {
@@ -168,4 +199,31 @@ export function ImageUploadField({ value, onChange, uploadCategory = "geral" }: 
       />
     </div>
   );
+}
+
+/**
+ * Extract an image URL from a DragEvent's dataTransfer. Handles a few flavors
+ * that browsers attach when you drag an <img> out of another tab:
+ *   - text/uri-list: the canonical URL list
+ *   - text/x-moz-url: Firefox-specific, "url\ntitle"
+ *   - text/html:     contains <img src="..."> — Chrome on Mac uses this
+ *   - text/plain:    last-resort plain URL
+ */
+function pickImageUrl(dt: DataTransfer): string | null {
+  const candidates: string[] = [];
+  for (const type of ["text/uri-list", "text/x-moz-url", "text/plain"]) {
+    const v = dt.getData(type);
+    if (v) candidates.push(...v.split(/\r?\n/));
+  }
+  const html = dt.getData("text/html");
+  if (html) {
+    const m = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+    if (m) candidates.push(m[1]);
+  }
+  for (const raw of candidates) {
+    const c = raw.trim();
+    if (!c) continue;
+    if (c.startsWith("http://") || c.startsWith("https://")) return c;
+  }
+  return null;
 }
