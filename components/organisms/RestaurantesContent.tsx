@@ -7,6 +7,7 @@ import { gtmViewItemList, gtmSearch, gtmFilterApplied } from "@/lib/gtm";
 import { RestaurantCardLarge } from "./RestaurantCardLarge";
 import { SectionSpacer } from "./SectionSpacer";
 import { ListingSearch } from "@/components/molecules/ListingSearch";
+import { useInfiniteList, InfiniteSentinel } from "@/components/molecules/InfiniteList";
 import { EmptyState } from "./EmptyState";
 import type { Restaurant } from "@/lib/mock-data";
 
@@ -97,6 +98,8 @@ export function RestaurantesContent() {
     })),
   ];
 
+  const { visible, sentinelRef, hasMore } = useInfiniteList(filtered, { initial: 6, step: 6 });
+
   if (convexRestaurants === undefined) {
     return (
       <div className="pb-20">
@@ -126,17 +129,18 @@ export function RestaurantesContent() {
       {filtered.length === 0 ? (
         <EmptyState icon="utensils" title="Nenhum restaurante encontrado" description="Tente outros filtros ou limpe a busca." />
       ) : (
-        filtered.map(({ mapped }, i) => (
+        visible.map(({ mapped }, i) => (
           <div key={mapped.id}>
             <section className="bg-white">
               <div className="mx-auto w-full max-w-screen-md p-4">
                 <RestaurantCardLarge restaurant={mapped} />
               </div>
             </section>
-            {i < filtered.length - 1 && <SectionSpacer />}
+            {i < visible.length - 1 && <SectionSpacer />}
           </div>
         ))
       )}
+      <InfiniteSentinel sentinelRef={sentinelRef} hasMore={hasMore} />
     </div>
   );
 }

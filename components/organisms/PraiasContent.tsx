@@ -10,6 +10,7 @@ import { gtmViewItemList, gtmSearch, gtmFilterApplied } from "@/lib/gtm";
 import { SectionSpacer } from "./SectionSpacer";
 import { EmptyState } from "./EmptyState";
 import { ListingSearch } from "@/components/molecules/ListingSearch";
+import { useInfiniteList, InfiniteSentinel } from "@/components/molecules/InfiniteList";
 import { Icon } from "@/components/atoms/Icon";
 import { toProxyUrl } from "@/lib/imageUpload";
 const STATE_LABEL: Record<string, string> = {
@@ -199,6 +200,8 @@ export function PraiasContent() {
     setStateQuery("");
   }
 
+  const { visible, sentinelRef, hasMore } = useInfiniteList(filtered, { initial: 6, step: 6 });
+
   if (convexPraias === undefined) {
     return (
       <div className="pb-20">
@@ -354,7 +357,7 @@ export function PraiasContent() {
       {filtered.length === 0 ? (
         <EmptyState icon="waves" title="Nenhuma praia encontrada" description="Tente outros filtros ou limpe a busca." />
       ) : (
-        filtered.map((p, i) => (
+        visible.map((p, i) => (
           <div key={p._id}>
             <section className="bg-white">
               <div className="mx-auto w-full max-w-screen-md p-4">
@@ -404,10 +407,11 @@ export function PraiasContent() {
                 </motion.div>
               </div>
             </section>
-            {i < filtered.length - 1 && <SectionSpacer />}
+            {i < visible.length - 1 && <SectionSpacer />}
           </div>
         ))
       )}
+      <InfiniteSentinel sentinelRef={sentinelRef} hasMore={hasMore} />
     </div>
   );
 }

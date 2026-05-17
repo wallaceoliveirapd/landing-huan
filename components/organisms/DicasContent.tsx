@@ -7,6 +7,7 @@ import { gtmViewItemList, gtmSearch, gtmFilterApplied } from "@/lib/gtm";
 import { DicaCardLarge } from "./DicaCardLarge";
 import { SectionSpacer } from "./SectionSpacer";
 import { ListingSearch } from "@/components/molecules/ListingSearch";
+import { useInfiniteList, InfiniteSentinel } from "@/components/molecules/InfiniteList";
 import { EmptyState } from "./EmptyState";
 import type { Dica } from "@/lib/mock-data";
 
@@ -80,6 +81,8 @@ export function DicasContent() {
     },
   }));
 
+  const { visible, sentinelRef, hasMore } = useInfiniteList(filtered, { initial: 6, step: 6 });
+
   if (convexDicas === undefined) {
     return (
       <div className="pb-28">
@@ -109,17 +112,18 @@ export function DicasContent() {
       {filtered.length === 0 ? (
         <EmptyState icon="lightbulb" title="Nenhuma dica encontrada" description="Tente outros filtros ou limpe a busca." />
       ) : (
-        filtered.map((d, i) => (
+        visible.map((d, i) => (
           <div key={d.id}>
             <section className="bg-white">
               <div className="mx-auto w-full max-w-screen-md p-4">
                 <DicaCardLarge dica={d} />
               </div>
             </section>
-            {i < filtered.length - 1 && <SectionSpacer />}
+            {i < visible.length - 1 && <SectionSpacer />}
           </div>
         ))
       )}
+      <InfiniteSentinel sentinelRef={sentinelRef} hasMore={hasMore} />
     </div>
   );
 }

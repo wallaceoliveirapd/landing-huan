@@ -7,11 +7,14 @@ import { api } from "@/convex/_generated/api";
 import { CouponCard, type CouponData } from "@/components/organisms/CouponCard";
 import { staggerChildren, fadeUp } from "@/lib/motion-presets";
 import { Icon } from "@/components/atoms/Icon";
+import { useInfiniteList, InfiniteSentinel } from "@/components/molecules/InfiniteList";
 import { gtmViewItemList, gtmSelectItem } from "@/lib/gtm";
 
 export default function CuponsListingPage() {
   const coupons = useQuery(api.coupons.list, { activeOnly: true });
   const loading = coupons === undefined;
+
+  const { visible, sentinelRef, hasMore } = useInfiniteList(coupons ?? [], { initial: 6, step: 6 });
 
   // GTM: fire view_item_list once when data first loads
   const firedRef = useRef(false);
@@ -66,7 +69,7 @@ export default function CuponsListingPage() {
           </div>
         ) : (
           <div className="flex flex-col gap-4 max-w-md">
-            {coupons.map((c) => {
+            {visible.map((c) => {
               const data: CouponData = {
                 _id: c._id,
                 title: c.title,
@@ -98,6 +101,7 @@ export default function CuponsListingPage() {
                 />
               );
             })}
+            <InfiniteSentinel sentinelRef={sentinelRef} hasMore={hasMore} />
           </div>
         )}
       </motion.div>

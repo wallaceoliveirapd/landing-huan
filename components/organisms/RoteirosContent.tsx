@@ -8,6 +8,7 @@ import { RoteiroListCard } from "./RoteiroListCard";
 import { SectionSpacer } from "./SectionSpacer";
 import { EmptyState } from "./EmptyState";
 import { ListingSearch } from "@/components/molecules/ListingSearch";
+import { useInfiniteList, InfiniteSentinel } from "@/components/molecules/InfiniteList";
 import type { Itinerary } from "@/lib/mock-data";
 
 export function RoteirosContent() {
@@ -81,6 +82,8 @@ export function RoteirosContent() {
     })),
   ];
 
+  const { visible, sentinelRef, hasMore } = useInfiniteList(filtered, { initial: 6, step: 6 });
+
   if (convexItineraries === undefined) {
     return (
       <div className="pb-20">
@@ -122,17 +125,18 @@ export function RoteirosContent() {
       {filtered.length === 0 ? (
         <EmptyState icon="map" title="Nenhum roteiro encontrado" description="Tente outros filtros ou limpe a busca." />
       ) : (
-        filtered.map((it, i) => (
+        visible.map((it, i) => (
           <div key={it.id}>
             <section className="bg-white">
               <div className="mx-auto w-full max-w-screen-md p-4">
                 <RoteiroListCard itinerary={it} />
               </div>
             </section>
-            {i < filtered.length - 1 && <SectionSpacer />}
+            {i < visible.length - 1 && <SectionSpacer />}
           </div>
         ))
       )}
+      <InfiniteSentinel sentinelRef={sentinelRef} hasMore={hasMore} />
     </div>
   );
 }

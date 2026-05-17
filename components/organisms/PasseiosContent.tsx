@@ -7,6 +7,7 @@ import { OfferCardLarge } from "./OfferCardLarge";
 import { SectionSpacer } from "./SectionSpacer";
 import { DiscountBanner } from "@/components/molecules/DiscountBanner";
 import { ListingSearch } from "@/components/molecules/ListingSearch";
+import { useInfiniteList, InfiniteSentinel } from "@/components/molecules/InfiniteList";
 import { EmptyState } from "./EmptyState";
 import { SITE_CONTENT } from "@/lib/mock-data";
 import type { Tour } from "@/lib/mock-data";
@@ -102,6 +103,8 @@ export function PasseiosContent() {
     })),
   ];
 
+  const { visible, sentinelRef, hasMore } = useInfiniteList(filtered, { initial: 6, step: 6 });
+
   if (convexTours === undefined) {
     return (
       <div className="pb-20">
@@ -132,16 +135,17 @@ export function PasseiosContent() {
         <EmptyState icon="map-pin" title="Nenhum passeio encontrado" description="Tente outros filtros ou limpe a busca." />
       ) : (
         <>
-          {filtered.map((t, i) => (
+          {visible.map((t, i) => (
             <div key={t.id}>
               <section className="bg-white">
                 <div className="mx-auto w-full max-w-screen-md p-4">
                   <OfferCardLarge tour={t} />
                 </div>
               </section>
-              {i < filtered.length - 1 && <SectionSpacer />}
+              {i < visible.length - 1 && <SectionSpacer />}
             </div>
           ))}
+          <InfiniteSentinel sentinelRef={sentinelRef} hasMore={hasMore} />
           <SectionSpacer />
           <section className="bg-white">
             <div className="mx-auto w-full max-w-screen-md p-4">
