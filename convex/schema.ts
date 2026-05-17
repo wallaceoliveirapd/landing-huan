@@ -400,6 +400,14 @@ export default defineSchema({
     category: v.optional(v.string()), // "tour", "restaurant", "dica", etc.
   }).index("by_category", ["category"]),
 
+  // ── Chat usage (per-user daily counter for the in-app AI chat) ──
+  chatDailyUsage: defineTable({
+    userId: v.string(),
+    dateKey: v.string(), // YYYY-MM-DD in São Paulo TZ
+    count: v.number(),
+  })
+    .index("by_user_date", ["userId", "dateKey"]),
+
   // ── Categorias (Home stacked cards) ──────────────────────────
   categories: defineTable({
     key: v.string(),                    // "passeios", "restaurantes", "dicas", etc.

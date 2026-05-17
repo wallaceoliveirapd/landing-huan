@@ -3,7 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
+import { useMutation, useQuery } from "convex/react";
+import { toast } from "sonner";
+import { api } from "@/convex/_generated/api";
 import { useChat } from "@/components/providers/ChatProvider";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { Icon } from "@/components/atoms/Icon";
 import { ChatBubble, ChatMarkdown } from "@/components/molecules/ChatBubble";
 import { ChatCarousel } from "@/components/molecules/ChatCarousel";
@@ -40,9 +44,16 @@ function loadMessages(): ChatMessage[] {
  */
 export function ChatPanel() {
   const chat = useChat();
+  const auth = useAuth();
+  const usage = useQuery(
+    api.chatUsage.myStatus,
+    auth.isAuthenticated ? {} : "skip",
+  );
+  const consumeUsage = useMutation(api.chatUsage.consume);
   const [messages, setMessages] = useState<ChatMessage[]>(loadMessages);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [limitSheetOpen, setLimitSheetOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -82,6 +93,23 @@ export function ChatPanel() {
   async function send(text: string) {
     const t = text.trim();
     if (!t || isTyping) return;
+
+    // Daily limit gate (10/day per user). consume() throws if not logged in.
+    if (!auth.isAuthenticated) {
+      auth.openAuthModal();
+      return;
+    }
+    let usageAfter: { blocked: boolean } | null = null;
+    try {
+      usageAfter = await consumeUsage({});
+    } catch {
+      toast.error("Não consegui registrar sua mensagem. Tente de novo.");
+      return;
+    }
+    if (usageAfter?.blocked) {
+      setLimitSheetOpen(true);
+      return;
+    }
 
     trackChatMessage(t);
 
@@ -195,9 +223,9 @@ export function ChatPanel() {
         prev.map((m) =>
           m.id === assistantId && m.kind === "text"
             ? {
-                ...m,
-                content: m.content || "Ops! Tive um probleminha. Pode repetir?",
-              }
+              ...m,
+              content: m.content || "Ops! Tive um probleminha. Pode repetir?",
+            }
             : m,
         ),
       );
@@ -271,6 +299,20 @@ export function ChatPanel() {
                 </span>
               </div>
             </div>
+
+            {usage && auth.isAuthenticated && (
+              <button
+                type="button"
+                onClick={() => setLimitSheetOpen(true)}
+                title="Saiba mais sobre o limite diário"
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--color-neutral-500)] hover:text-[var(--color-neutral-800)] px-2 py-1 rounded-full"
+              >
+                <span>
+                  {usage.used}/{usage.limit}
+                </span>
+                <Icon name="info" size={11} />
+              </button>
+            )}
 
             <button
               type="button"
@@ -402,6 +444,58 @@ export function ChatPanel() {
               <Icon name="arrow-up" size={20} />
             </button>
           </form>
+
+          <AnimatePresence>
+            {limitSheetOpen && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setLimitSheetOpen(false)}
+                  className="absolute inset-0 z-[60] bg-black/40 backdrop-blur-sm"
+                />
+                <motion.div
+                  role="dialog"
+                  aria-modal="true"
+                  initial={{ y: "100%" }}
+                  animate={{ y: 0 }}
+                  exit={{ y: "100%" }}
+                  transition={{ type: "spring", stiffness: 360, damping: 32 }}
+                  className="absolute inset-x-0 bottom-0 z-[70] rounded-t-[24px] bg-white shadow-[0_-12px_40px_rgba(0,0,0,0.18)] flex flex-col"
+                  style={{ paddingBottom: "max(env(safe-area-inset-bottom), 16px)" }}
+                >
+                  <div className="flex items-center justify-between px-5 pt-4 pb-3">
+                    <h3 className="font-display font-medium text-[16px] text-[var(--color-neutral-800)]">
+                      Sobre o limite de conversas
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setLimitSheetOpen(false)}
+                      aria-label="Fechar"
+                      className="grid size-9 place-items-center rounded-full bg-[var(--color-neutral-100)]"
+                    >
+                      <Icon name="x" size={16} className="text-[var(--color-neutral-800)]" />
+                    </button>
+                  </div>
+                  <div className="px-5 pb-5 flex flex-col gap-3 text-[14px] leading-[1.55] text-[var(--color-neutral-700)]">
+                    <p>
+                      Cada conta tem <strong>10 conversas por dia</strong> comigo aqui no chat. Esse contador zera automaticamente todo dia à meia-noite.
+                    </p>
+                    <p>
+                      A gente tá em <strong>fase de testes</strong> e cada conversa minha custa $ pra rodar (modelos de IA). Esse limite ajuda a manter o app gratuito, rápido pra todo mundo e sem surpresas no fim do mês.
+                    </p>
+                    <p>
+                      Conforme o app crescer e as parcerias entrarem, esse limite vai aumentar (ou sumir!). Por enquanto, use suas perguntas com calma, eu prefiro respostas direto ao ponto pra você economizar.
+                    </p>
+                    <p className="text-[12px] text-[var(--color-neutral-500)] pt-1">
+                      Dúvida? Manda email pra <strong>suporte@huanfalcao.com.br</strong>.
+                    </p>
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
         </motion.div>
       )}
     </AnimatePresence>

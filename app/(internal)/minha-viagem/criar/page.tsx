@@ -230,7 +230,7 @@ export default function CriarViagemPage() {
   const [endDate, setEndDate] = useState<string>("");
   // Custom duration controls
   const [customMode, setCustomMode] = useState(false);
-  const [customAmount, setCustomAmount] = useState<number>(2);
+  const [customAmount, setCustomAmount] = useState<string>("2");
   const [customUnit, setCustomUnit] = useState<"dias" | "semanas" | "meses">("semanas");
 
   function unitToDays(amount: number, unit: "dias" | "semanas" | "meses") {
@@ -644,7 +644,8 @@ export default function CriarViagemPage() {
                             type="button"
                             onClick={() => {
                               setCustomMode(true);
-                              applyDuration(unitToDays(customAmount, customUnit));
+                              const n = Math.max(1, Number(customAmount) || 1);
+                              applyDuration(unitToDays(n, customUnit));
                             }}
                             className={`rounded-full px-4 py-2 text-[13px] font-medium bg-white border transition-colors ${customMode
                                 ? "border-[var(--color-neutral-800)] border-2 text-[var(--color-neutral-800)]"
@@ -662,9 +663,12 @@ export default function CriarViagemPage() {
                               max={365}
                               value={customAmount}
                               onChange={(e) => {
-                                const v = Math.max(1, Number(e.target.value) || 1);
-                                setCustomAmount(v);
-                                applyDuration(unitToDays(v, customUnit));
+                                const raw = e.target.value;
+                                setCustomAmount(raw);
+                                const n = Number(raw);
+                                if (Number.isFinite(n) && n >= 1) {
+                                  applyDuration(unitToDays(n, customUnit));
+                                }
                               }}
                               className="w-20 h-11 rounded-[12px] border border-[var(--color-neutral-300)] px-3 text-[14px] outline-none focus:border-[var(--color-neutral-800)]"
                             />
@@ -673,7 +677,8 @@ export default function CriarViagemPage() {
                               onChange={(e) => {
                                 const u = e.target.value as "dias" | "semanas" | "meses";
                                 setCustomUnit(u);
-                                applyDuration(unitToDays(customAmount, u));
+                                const n = Math.max(1, Number(customAmount) || 1);
+                                applyDuration(unitToDays(n, u));
                               }}
                               className="flex-1 h-11 rounded-[12px] border border-[var(--color-neutral-300)] px-3 text-[14px] outline-none focus:border-[var(--color-neutral-800)] bg-white"
                             >
@@ -913,7 +918,10 @@ export default function CriarViagemPage() {
                 <button
                   type="button"
                   onClick={handleSave}
-                  disabled={saving || !city || !tripType || reachedLimit}
+                  disabled={
+                    saving || !city || !tripType || reachedLimit ||
+                    (customMode && (Number(customAmount) || 0) < 1)
+                  }
                   className="h-12 flex-1 rounded-full bg-[var(--color-neutral-800)] font-display font-medium text-[15px] text-white disabled:opacity-40 transition-all"
                 >
                   {saving ? "Criando..." : "Criar viagem"}
