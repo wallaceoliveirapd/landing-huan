@@ -309,6 +309,10 @@ export function AdminItemPage({
   );
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [autosaveStatus, setAutosaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const firstRenderRef = useRef(true);
+  const savingRef = useRef(false);
   const [civUrl, setCivUrl] = useState("");
   const [civLoading, setCivLoading] = useState(false);
   const [civError, setCivError] = useState<string | null>(null);
@@ -327,6 +331,34 @@ export function AdminItemPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sourceValue]);
 
+  // Debounced autosave: only in edit mode. Skip the initial mount and any
+  // change that happens while a manual save is in flight.
+  useEffect(() => {
+    if (!isEdit || !itemId) return;
+    if (firstRenderRef.current) {
+      firstRenderRef.current = false;
+      return;
+    }
+    if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    autosaveTimer.current = setTimeout(async () => {
+      if (savingRef.current) return;
+      savingRef.current = true;
+      setAutosaveStatus("saving");
+      try {
+        await update({ id: itemId, ...form } as never);
+        setAutosaveStatus("saved");
+      } catch {
+        setAutosaveStatus("error");
+      } finally {
+        savingRef.current = false;
+      }
+    }, 1500);
+    return () => {
+      if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form, isEdit, itemId]);
+
   function handleFieldChange(key: string, v: unknown) {
     setForm((prev) => {
       const next = { ...prev, [key]: v };
@@ -338,6 +370,8 @@ export function AdminItemPage({
   }
 
   async function handleSave() {
+    if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    savingRef.current = true;
     setSaving(true);
     setSaveError(null);
     try {
@@ -352,6 +386,7 @@ export function AdminItemPage({
       setSaveError(msg);
     } finally {
       setSaving(false);
+      savingRef.current = false;
     }
   }
 
@@ -557,6 +592,29 @@ export function AdminItemPage({
 
           {/* Save button */}
           <div className="rounded-2xl bg-white p-5 shadow-sm flex flex-col gap-3">
+            {isEdit && autosaveStatus !== "idle" && (
+              <p className={`text-xs rounded-xl px-3 py-2 leading-relaxed inline-flex items-center gap-2 ${
+                autosaveStatus === "error"
+                  ? "text-red-600 bg-red-50"
+                  : "text-[var(--color-neutral-700)] bg-[var(--color-neutral-100)]"
+              }`}>
+                <Icon
+                  name={
+                    autosaveStatus === "saving"
+                      ? "svg-spinners:ring-resize"
+                      : autosaveStatus === "saved"
+                      ? "lucide:cloud-check"
+                      : "lucide:cloud-alert"
+                  }
+                  size={14}
+                />
+                {autosaveStatus === "saving"
+                  ? "Salvando automaticamente..."
+                  : autosaveStatus === "saved"
+                  ? "Salvo automaticamente"
+                  : "Falha no salvamento automático, salve manualmente."}
+              </p>
+            )}
             {saveError && (
               <p className="text-xs text-red-500 bg-red-50 rounded-xl px-3 py-2 leading-relaxed">
                 {saveError}
