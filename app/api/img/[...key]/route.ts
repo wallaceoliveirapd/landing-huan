@@ -1,5 +1,5 @@
 /**
- * /api/img/[...key] — proxy for R2 images.
+ * /api/img/[...key], proxy for R2 images.
  *
  * Serves images from Cloudflare R2 via the AWS SDK so that they always
  * load in development and in production regardless of CDN/custom-domain config.
@@ -54,7 +54,7 @@ export async function GET(
       contentType = head.ContentType ?? contentType;
       contentLength = head.ContentLength;
     } catch {
-      // continue — GET will fail with proper error if object doesn't exist
+      // continue, GET will fail with proper error if object doesn't exist
     }
 
     const obj = await r2.send(

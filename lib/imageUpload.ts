@@ -31,7 +31,7 @@ export function compressToWebP(
 }
 
 /**
- * Upload a blob to R2 via the Next.js API route (server-side PUT — no CORS issues).
+ * Upload a blob to R2 via the Next.js API route (server-side PUT, no CORS issues).
  * Files are stored under: landing-huan/[category]/[timestamp]-[filename].webp
  * Returns the public proxy URL + storage key.
  */
@@ -99,7 +99,7 @@ function extractR2Key(url: string): string | null {
  */
 export function toProxyUrl(url: string): string {
   if (!url) return url;
-  // Only proxy R2 URLs — external CDNs (Unsplash, etc.) pass through unchanged
+  // Only proxy R2 URLs, external CDNs (Unsplash, etc.) pass through unchanged
   if (!isR2Url(url)) return url;
   if (url.startsWith("/api/img/")) return url; // already proxied
   const key = extractR2Key(url);

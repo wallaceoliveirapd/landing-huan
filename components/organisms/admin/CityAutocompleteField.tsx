@@ -50,7 +50,7 @@ export function CityAutocompleteField({ value, onChange, className }: Props) {
     }
     setLoading(true);
     try {
-      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?access_token=${MAPBOX_TOKEN}&types=place,locality,municipality&country=BR&bbox=${NORDESTE_BBOX}&limit=6&language=pt`;
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?access_token=${MAPBOX_TOKEN}&types=place,locality,district&country=BR&bbox=${NORDESTE_BBOX}&limit=6&language=pt`;
       const res = await fetch(url);
       const data = await res.json();
       const features: Suggestion[] = (data.features ?? []).map(
@@ -80,7 +80,7 @@ export function CityAutocompleteField({ value, onChange, className }: Props) {
   function select(suggestion: Suggestion) {
     // Extract "Cidade, Estado" from place_name (drop country suffix)
     const parts = suggestion.place_name.split(", ");
-    // Mapbox returns: "City, State, Brazil" — take first 2
+    // Mapbox returns: "City, State, Brazil", take first 2
     const city = parts.slice(0, 2).join(", ");
     setQuery(city);
     onChange(city);

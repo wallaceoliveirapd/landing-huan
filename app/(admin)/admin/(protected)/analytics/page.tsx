@@ -181,7 +181,7 @@ export default function AnalyticsPage() {
         {/* utm_content (optional) */}
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium text-[var(--color-neutral-800)]">
-            utm_content <span className="font-normal text-[var(--color-neutral-600)]">(opcional — identifica o criativo)</span>
+            utm_content <span className="font-normal text-[var(--color-neutral-600)]">(opcional, identifica o criativo)</span>
           </label>
           <div className="flex flex-wrap gap-2">
             {CONTENT_PRESETS.filter(Boolean).map((p) => (
@@ -203,7 +203,7 @@ export default function AnalyticsPage() {
         {/* utm_term (optional) */}
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium text-[var(--color-neutral-800)]">
-            utm_term <span className="font-normal text-[var(--color-neutral-600)]">(opcional — palavra-chave de busca paga)</span>
+            utm_term <span className="font-normal text-[var(--color-neutral-600)]">(opcional, palavra-chave de busca paga)</span>
           </label>
           <input
             value={term}

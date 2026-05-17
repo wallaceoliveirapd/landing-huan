@@ -16,7 +16,7 @@ const REACTIONS = [
 ] as const;
 
 /**
- * Reaction bar for dicas — 4 emoji buttons.
+ * Reaction bar for dicas, 4 emoji buttons.
  * Tapping again removes; tapping a different one switches.
  */
 export function DicaReactions({ dicaId }: { dicaId: Id<"dicas"> }) {
@@ -28,7 +28,7 @@ export function DicaReactions({ dicaId }: { dicaId: Id<"dicas"> }) {
 
   async function handleClick(reaction: string) {
     if (!auth.requireAuth()) return;
-    // Optimistic UI is tricky with Convex's reactive updates — just await
+    // Optimistic UI is tricky with Convex's reactive updates, just await
     // the mutation. Convex will re-render with the new state in ~ms.
     try {
       await toggle({ dicaId, reaction });

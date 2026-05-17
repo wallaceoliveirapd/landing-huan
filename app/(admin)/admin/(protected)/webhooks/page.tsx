@@ -44,8 +44,8 @@ export default function AdminWebhooksPage() {
           Eventos disparados hoje
         </h2>
         <ul className="text-[13px] text-[var(--color-neutral-700)] space-y-1 list-disc pl-5">
-          <li><code>user.signedUp</code> — quando alguém cria conta</li>
-          <li><code>trip.created</code> — quando uma viagem é criada</li>
+          <li><code>user.signedUp</code>, quando alguém cria conta</li>
+          <li><code>trip.created</code>, quando uma viagem é criada</li>
         </ul>
         <p className="text-[12px] text-[var(--color-neutral-600)] mt-3">
           Cada request leva um header <code>X-Huan-Signature: sha256=…</code> com HMAC do corpo

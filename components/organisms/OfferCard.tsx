@@ -11,12 +11,12 @@ import { toProxyUrl } from "@/lib/imageUpload";
 import { formatBRL } from "@/lib/format";
 
 /**
- * Offer Card — matches Figma node 334:36370.
+ * Offer Card, matches Figma node 334:36370.
  *
  *   Card outer:  317 × 213 px, rounded-[24px], padding 6px
  *   Background image: full bleed (absolute inset 0)
  *   Heart pill (top-right): white rounded-full p-3
- *   Footer info: white rounded-[19px], px-4 py-2 — title + price/rating
+ *   Footer info: white rounded-[19px], px-4 py-2, title + price/rating
  */
 export function OfferCard({ tour, className, onSelect }: { tour: Tour; className?: string; onSelect?: () => void }) {
   const MotionLink = motion(Link);
@@ -42,7 +42,7 @@ export function OfferCard({ tour, className, onSelect }: { tour: Tour; className
         className="object-cover"
       />
 
-      {/* Foreground stack — heart on top, info pinned to bottom */}
+      {/* Foreground stack, heart on top, info pinned to bottom */}
       <div className="absolute inset-0 p-1.5 flex flex-col justify-between">
         <div className="flex w-full justify-end">
           <div className="bg-white rounded-full p-3">

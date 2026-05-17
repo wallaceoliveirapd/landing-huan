@@ -5,7 +5,7 @@ import { getAuthUserId } from "@convex-dev/auth/server";
  * Returns all of the authenticated user's owned data so the client can
  * package it into a CSV/ZIP for download (LGPD compliance).
  *
- * Returns null when the user is not authenticated — caller should treat
+ * Returns null when the user is not authenticated, caller should treat
  * that as 401.
  */
 export const exportMyData = query({

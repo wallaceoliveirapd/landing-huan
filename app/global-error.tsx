@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Root error boundary — catches errors in the root layout itself (when
+ * Root error boundary, catches errors in the root layout itself (when
  * `app/error.tsx` couldn't render). Must render its own <html>/<body>
  * per Next.js docs.
  */

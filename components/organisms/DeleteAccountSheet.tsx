@@ -115,7 +115,7 @@ export function DeleteAccountSheet({ open, onClose }: Props) {
               </button>
             </div>
 
-            {/* Body — scrollable */}
+            {/* Body, scrollable */}
             <div className="overflow-y-auto px-6 pb-4 flex-1">
               <p className="text-[13px] font-medium text-[var(--color-neutral-800)] mb-3">
                 Antes de excluir, conta pra gente: por que está saindo?

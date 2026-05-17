@@ -10,7 +10,7 @@ import { fadeUp, staggerChildren } from "@/lib/motion-presets";
 type Slide = { src: string; alt: string };
 
 /**
- * Featured hero — slimmer version, auto-cycling images, no slider dots.
+ * Featured hero, slimmer version, auto-cycling images, no slider dots.
  * Sits AFTER the restaurants section. Height ~220px.
  */
 export function FeaturedHero({
@@ -38,7 +38,7 @@ export function FeaturedHero({
   return (
     <section className="w-full bg-white px-6 py-6">
       <div className="relative mx-auto w-full max-w-screen-md h-[220px] overflow-hidden rounded-[24px]">
-        {/* All images stay in DOM — only opacity toggles. */}
+        {/* All images stay in DOM, only opacity toggles. */}
         {slides.map((s, i) => (
           <motion.div
             key={s.src}

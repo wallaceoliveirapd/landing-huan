@@ -61,7 +61,7 @@ export default function CuponsListingPage() {
               Nenhum cupom ativo no momento
             </p>
             <p className="text-[13px] text-[var(--color-neutral-600)] max-w-[300px]">
-              Volte em breve — estamos sempre adicionando novas parcerias.
+              Volte em breve, estamos sempre adicionando novas parcerias.
             </p>
           </div>
         ) : (

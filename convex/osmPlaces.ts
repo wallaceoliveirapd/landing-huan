@@ -39,7 +39,7 @@ export const searchAroundCity = action({
       console.log(`[osm] cache HIT ${cacheKey} (${cached.length} places)`);
       return cached as OsmPlace[];
     }
-    console.log(`[osm] cache MISS ${cacheKey} — querying Overpass…`);
+    console.log(`[osm] cache MISS ${cacheKey}, querying Overpass…`);
 
     // Build + send the Overpass QL query
     const query = buildOverpassQuery(lat, lng, validKinds, radius);

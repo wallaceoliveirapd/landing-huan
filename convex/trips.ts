@@ -8,7 +8,7 @@ const SITE_URL = "https://huanfalcao.com.br";
 /** Per-user trip plan limit (must stay in sync with the client-side TRIP_LIMIT). */
 const TRIP_LIMIT = 3;
 
-// Single trip by ID — only returns if user owns it.
+// Single trip by ID, only returns if user owns it.
 export const getById = query({
   args: { id: v.id("trips") },
   handler: async (ctx, { id }) => {
@@ -42,7 +42,7 @@ export const resolveItineraryItems = query({
         const doc = await ctx.db.get(idStr as any);
         if (doc) items[idStr] = doc as Record<string, unknown>;
       } catch {
-        /* invalid id — skip */
+        /* invalid id, skip */
       }
     }
     return items;
@@ -113,7 +113,7 @@ export const create = mutation({
       });
     }
 
-    // In-app inbox notification — appears in the bell + /notificacoes
+    // In-app inbox notification, appears in the bell + /notificacoes
     await ctx.db.insert("userNotifications", {
       userId,
       title: "Sua viagem está pronta",

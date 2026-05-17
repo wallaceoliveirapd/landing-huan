@@ -60,7 +60,7 @@ export async function subscribePush(): Promise<PushSubscription | null> {
 
   return await reg.pushManager.subscribe({
     userVisibleOnly: true,
-    // Cast to BufferSource — TS lib types are stricter than the runtime
+    // Cast to BufferSource, TS lib types are stricter than the runtime
     applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as BufferSource,
   });
 }

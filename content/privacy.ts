@@ -2,7 +2,7 @@ export const PRIVACY_MD = `## Política de privacidade
 
 **Última atualização:** 16 de maio de 2026
 
-Esta Política de Privacidade descreve como **HUAN GOMES DA SILVA SOUZA FALCAO - ME**, CNPJ 55.181.469/0001-66, João Pessoa — PB ("NordestAI", "HUAN", "nós"), controlador dos dados, coleta, usa, compartilha e protege seus dados pessoais ao operar a plataforma disponível em huanfalcao.com.br, em conformidade com a Lei Geral de Proteção de Dados Pessoais (Lei 13.709/2018 — LGPD).
+Esta Política de Privacidade descreve como **HUAN GOMES DA SILVA SOUZA FALCAO - ME**, CNPJ 55.181.469/0001-66, João Pessoa, PB ("NordestAI", "HUAN", "nós"), controlador dos dados, coleta, usa, compartilha e protege seus dados pessoais ao operar a plataforma disponível em huanfalcao.com.br, em conformidade com a Lei Geral de Proteção de Dados Pessoais (Lei 13.709/2018, LGPD).
 
 ---
 
@@ -10,7 +10,7 @@ Esta Política de Privacidade descreve como **HUAN GOMES DA SILVA SOUZA FALCAO -
 
 **Razão social:** HUAN GOMES DA SILVA SOUZA FALCAO - ME
 **CNPJ:** 55.181.469/0001-66
-**Município:** João Pessoa — PB
+**Município:** João Pessoa, PB
 **Serviço:** NordestAI / HUAN (huanfalcao.com.br)
 **E-mail de contato e encarregado de dados (DPO):** suporte@huanfalcao.com.br
 
@@ -23,7 +23,7 @@ Esta Política de Privacidade descreve como **HUAN GOMES DA SILVA SOUZA FALCAO -
 - Nome completo
 - Endereço de e-mail
 - Número de WhatsApp
-- Senha (armazenada exclusivamente como hash criptográfico — nunca em texto)
+- Senha (armazenada exclusivamente como hash criptográfico, nunca em texto)
 - Número de telefone (opcional)
 - Foto de perfil (opcional)
 - Avaliações e comentários sobre restaurantes
@@ -37,7 +37,7 @@ Esta Política de Privacidade descreve como **HUAN GOMES DA SILVA SOUZA FALCAO -
 - **Endereço IP:** coletado a cada acesso, conforme obrigação legal prevista no Art. 15 do Marco Civil da Internet (Lei 12.965/2014)
 - **Dados de dispositivo:** tipo de dispositivo, sistema operacional, navegador, versão do navegador e agente de usuário (user agent)
 - **Registros de acesso:** data, horário e origem de cada conexão, mantidos por no mínimo 6 meses
-- **Dados comportamentais e de navegação:** páginas visitadas, tempo de sessão, cliques em cards, abertura de bottom sheets, interações com cupons, cliques em passeios e restaurantes, prompts sugeridos utilizados — coletados via Google Tag Manager e Meta Pixel
+- **Dados comportamentais e de navegação:** páginas visitadas, tempo de sessão, cliques em cards, abertura de bottom sheets, interações com cupons, cliques em passeios e restaurantes, prompts sugeridos utilizados, coletados via Google Tag Manager e Meta Pixel
 - **Dados de localização aproximada:** inferidos pelo IP, processados pelo Mapbox para exibição de mapas
 - **Dados de sessão:** tokens de autenticação em cookies HttpOnly (não acessíveis por JavaScript)
 - **Armazenamento local (localStorage):** histórico de conversa com a Zéca, registro de descarte de solicitação de push (janela de 23 horas) e controle de primeira visita a páginas específicas
@@ -58,19 +58,19 @@ Caso você opte por receber notificações push, coletamos:
 
 | Dado / Finalidade | Base legal (LGPD Art. 7) |
 |---|---|
-| Nome, e-mail, WhatsApp, senha — criação e autenticação de conta | Execução de contrato — Art. 7, V |
-| Código OTP por e-mail — verificação de identidade | Execução de contrato — Art. 7, V |
-| Dados de viagem, favoritos, roteiro gerado — serviço principal | Execução de contrato — Art. 7, V |
-| Mensagens no chat — operação do agente de IA Zéca | Execução de contrato — Art. 7, V |
-| Geração de roteiro por IA (Google Gemini) — planejamento | Execução de contrato — Art. 7, V |
-| Avaliações de restaurantes e reações em blog | Legítimo interesse — Art. 7, IX |
-| Registros de acesso (IP, horário) — obrigação legal Marco Civil | Obrigação legal — Art. 7, II |
-| Notificações push — comunicação de novidades e viagens | Consentimento — Art. 7, I |
-| Analytics (GTM, Meta Pixel) — análise de uso | Consentimento — Art. 7, I |
-| Geolocalização aproximada via Mapbox — exibição de mapas | Legítimo interesse — Art. 7, IX |
-| Eventos de webhook (n8n) — operação interna | Legítimo interesse — Art. 7, IX |
-| Snapshot de exclusão de conta — análise de produto | Legítimo interesse — Art. 7, IX |
-| E-mails transacionais (boas-vindas, OTP, viagens) | Execução de contrato — Art. 7, V |
+| Nome, e-mail, WhatsApp, senha, criação e autenticação de conta | Execução de contrato, Art. 7, V |
+| Código OTP por e-mail, verificação de identidade | Execução de contrato, Art. 7, V |
+| Dados de viagem, favoritos, roteiro gerado, serviço principal | Execução de contrato, Art. 7, V |
+| Mensagens no chat, operação do agente de IA Zéca | Execução de contrato, Art. 7, V |
+| Geração de roteiro por IA (Google Gemini), planejamento | Execução de contrato, Art. 7, V |
+| Avaliações de restaurantes e reações em blog | Legítimo interesse, Art. 7, IX |
+| Registros de acesso (IP, horário), obrigação legal Marco Civil | Obrigação legal, Art. 7, II |
+| Notificações push, comunicação de novidades e viagens | Consentimento, Art. 7, I |
+| Analytics (GTM, Meta Pixel), análise de uso | Consentimento, Art. 7, I |
+| Geolocalização aproximada via Mapbox, exibição de mapas | Legítimo interesse, Art. 7, IX |
+| Eventos de webhook (n8n), operação interna | Legítimo interesse, Art. 7, IX |
+| Snapshot de exclusão de conta, análise de produto | Legítimo interesse, Art. 7, IX |
+| E-mails transacionais (boas-vindas, OTP, viagens) | Execução de contrato, Art. 7, V |
 
 ---
 
@@ -101,11 +101,11 @@ Os terceiros listados estão sediados nos Estados Unidos. A transferência ocorr
 
 ### 6. Cookies e tecnologias similares
 
-**Cookies estritamente necessários** (sem consentimento — essenciais ao funcionamento):
+**Cookies estritamente necessários** (sem consentimento, essenciais ao funcionamento):
 
 - **Cookie de sessão (HttpOnly):** mantém você autenticado; gerenciado pelo Convex Auth; não acessível por JavaScript
 
-**Armazenamento local (localStorage) — necessário para o serviço:**
+**Armazenamento local (localStorage), necessário para o serviço:**
 
 - Histórico de conversa com a Zéca
 - Controle de exibição do convite de push (janela de 23 horas)
@@ -172,16 +172,16 @@ O serviço é destinado **exclusivamente a maiores de 18 anos**. Não coletamos 
 
 Você pode exercer os seguintes direitos a qualquer momento pelo e-mail **suporte@huanfalcao.com.br**:
 
-- **I — Confirmação:** saber se tratamos seus dados pessoais
-- **II — Acesso:** obter cópia dos seus dados
-- **III — Correção:** corrigir dados incompletos, inexatos ou desatualizados
-- **IV — Anonimização, bloqueio ou eliminação:** de dados desnecessários ou tratados em desconformidade com a LGPD
-- **V — Portabilidade:** receber seus dados em formato estruturado para transferência a outro serviço
-- **VI — Eliminação:** exclusão dos dados tratados com base no consentimento, mediante revogação (também em Perfil > Excluir conta)
-- **VII — Informação sobre compartilhamento:** saber com quais entidades compartilhamos seus dados
-- **VIII — Informação sobre não consentimento:** ser informado sobre as consequências de não fornecer consentimento
-- **IX — Revogação do consentimento:** revogar a qualquer momento, de forma gratuita e simplificada, sem prejuízo da licitude do tratamento anterior
-- **X — Revisão de decisões automatizadas:** solicitar revisão humana de decisões tomadas exclusivamente por meios automatizados (Art. 20)
+- **I, Confirmação:** saber se tratamos seus dados pessoais
+- **II, Acesso:** obter cópia dos seus dados
+- **III, Correção:** corrigir dados incompletos, inexatos ou desatualizados
+- **IV, Anonimização, bloqueio ou eliminação:** de dados desnecessários ou tratados em desconformidade com a LGPD
+- **V, Portabilidade:** receber seus dados em formato estruturado para transferência a outro serviço
+- **VI, Eliminação:** exclusão dos dados tratados com base no consentimento, mediante revogação (também em Perfil > Excluir conta)
+- **VII, Informação sobre compartilhamento:** saber com quais entidades compartilhamos seus dados
+- **VIII, Informação sobre não consentimento:** ser informado sobre as consequências de não fornecer consentimento
+- **IX, Revogação do consentimento:** revogar a qualquer momento, de forma gratuita e simplificada, sem prejuízo da licitude do tratamento anterior
+- **X, Revisão de decisões automatizadas:** solicitar revisão humana de decisões tomadas exclusivamente por meios automatizados (Art. 20)
 
 Responderemos em até **15 dias úteis**.
 

@@ -16,7 +16,7 @@ interface Props {
 }
 
 /**
- * Renders nothing — fires a GTM view_item event once on mount.
+ * Renders nothing, fires a GTM view_item event once on mount.
  * Use this inside server-component detail pages to add GTM tracking
  * without converting the entire page to a client component.
  */

@@ -16,7 +16,7 @@ const asap = Asap({
 });
 
 export const metadata: Metadata = {
-  title: "NordestAI — Sua viagem no Nordeste",
+  title: "NordestAI - By Huan Falcão ",
   description:
     "Passeios, restaurantes e dicas exclusivas em João Pessoa, escolhidos a dedo para a sua viagem.",
   manifest: "/manifest.json",
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)",  color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#ffffff" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -52,14 +52,14 @@ export default function RootLayout({
       <head>
         {GTM_ID && (
           <>
-            {/* Consent Mode v2 — deny everything before user decides */}
+            {/* Consent Mode v2, deny everything before user decides */}
             <Script id="gtm-consent-defaults" strategy="beforeInteractive">
               {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
 gtag('consent','default',{analytics_storage:'denied',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',wait_for_update:2000});
 dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});`}
             </Script>
 
-            {/* GTM loader — fires immediately, tags wait for consent update */}
+            {/* GTM loader, fires immediately, tags wait for consent update */}
             <Script
               id="gtm-loader"
               strategy="afterInteractive"

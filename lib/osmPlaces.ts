@@ -1,5 +1,5 @@
 /**
- * OpenStreetMap (Overpass API) helpers — shared between server (Convex
+ * OpenStreetMap (Overpass API) helpers, shared between server (Convex
  * action) and client (planning UI).
  *
  * Why OSM: 100% free, no API key, no signup, public data. Coverage
@@ -119,7 +119,7 @@ ${lines.join("\n")}
 out tags center 60;`;
 }
 
-/** Parsed OSM place — what we store in cache and pass to the AI. */
+/** Parsed OSM place, what we store in cache and pass to the AI. */
 export type OsmPlace = {
   osmId: string;
   name: string;
@@ -227,7 +227,7 @@ export function parseOverpassResponse(
   return out;
 }
 
-/** Cache key for a search — `kinds:lat:lng:radius`. */
+/** Cache key for a search, `kinds:lat:lng:radius`. */
 export function osmCacheKey(
   kinds: OsmKind[],
   lat: number,

@@ -27,7 +27,7 @@ export const listByRestaurant = query({
             (u as { email?: string } | null)?.email?.split("@")[0] ||
             "Anônimo";
         } catch {
-          /* user no longer exists — skip */
+          /* user no longer exists, skip */
         }
         return {
           _id: r._id,

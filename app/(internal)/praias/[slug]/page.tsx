@@ -12,7 +12,7 @@ type PageProps = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
   const p = await fetchQuery(api.praias.getBySlug, { slug });
-  return { title: p ? `${p.name} — HUAN` : "Praia — HUAN" };
+  return { title: p ? `${p.name}, HUAN` : "Praia, HUAN" };
 }
 
 export default async function PraiaDetailPage({ params }: PageProps) {

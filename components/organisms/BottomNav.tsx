@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
@@ -22,7 +23,7 @@ const ITEMS: Item[] = [
 ];
 
 /**
- * Floating pill bottom navigation — Voyage style.
+ * Floating pill bottom navigation, Voyage style.
  * White pill with shadow, 4 items. Active item has a black circle
  * background. NordestAI is one of the items and opens the chat panel,
  * showing a tooltip periodically.
@@ -170,7 +171,7 @@ export function BottomNav() {
   );
 }
 
-/** Animated NordestAI button — sparkle icon with ping ring + tooltip */
+/** Animated NordestAI button, sparkle icon with ping ring + tooltip */
 function NordestAIButton({
   tooltipOpen,
   onClick,
@@ -180,7 +181,7 @@ function NordestAIButton({
 }) {
   return (
     <div className="relative">
-      {/* Tooltip — rendered ABOVE the pill, with high z-index and pointer-
+      {/* Tooltip, rendered ABOVE the pill, with high z-index and pointer-
           events-none so it doesn't block clicks on the nav. */}
       <AnimatePresence>
         {tooltipOpen && (
@@ -194,7 +195,7 @@ function NordestAIButton({
             style={{ bottom: "calc(100% + 14px)" }}
           >
             <div className="relative bg-[var(--color-neutral-800)] text-white rounded-2xl px-4 py-2.5 text-[12px] leading-[1.25] whitespace-nowrap font-medium shadow-[0_8px_24px_rgba(0,0,0,0.18)]">
-              Sou o NordestAI, seu agente de viagem!
+              Sou o Huan, seu agente de viagem!
               {/* Pointing arrow */}
               <span
                 aria-hidden
@@ -216,7 +217,7 @@ function NordestAIButton({
         whileTap={{ scale: 0.9 }}
         animate={{ scale: tooltipOpen ? 1.08 : 1 }}
         transition={{ type: "spring", stiffness: 400, damping: 22 }}
-        className="relative grid place-items-center size-12 rounded-full bg-[var(--color-brand-yellow)]"
+        className="relative grid place-items-center size-12 rounded-full bg-[var(--color-brand-yellow)] overflow-hidden"
         aria-label="NordestAI"
       >
         <span
@@ -227,9 +228,16 @@ function NordestAIButton({
         <motion.span
           animate={{ rotate: tooltipOpen ? [0, -10, 12, -6, 0] : 0 }}
           transition={{ duration: 0.8, ease: "easeInOut" }}
-          className="relative"
+          className="relative size-12"
         >
-          <Icon name="sparkles" size={20} className="text-[var(--color-neutral-800)]" />
+          <Image
+            src="/images/avatar.png"
+            alt="NordestAI"
+            fill
+            sizes="48px"
+            className="object-cover"
+            priority
+          />
         </motion.span>
       </motion.button>
     </div>

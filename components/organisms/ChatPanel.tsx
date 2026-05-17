@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { useChat } from "@/components/providers/ChatProvider";
 import { Icon } from "@/components/atoms/Icon";
@@ -34,7 +35,7 @@ function loadMessages(): ChatMessage[] {
 }
 
 /**
- * Fullscreen chat panel — clean white aesthetic, lucide icons, no bold.
+ * Fullscreen chat panel, clean white aesthetic, lucide icons, no bold.
  * Sliding bottom→top with spring. Matches the rest of the site.
  */
 export function ChatPanel() {
@@ -242,22 +243,24 @@ export function ChatPanel() {
                   repeat: Infinity,
                   ease: "easeInOut",
                 }}
-                className="relative grid size-10 place-items-center rounded-full bg-[var(--color-brand-yellow)] shrink-0"
+                className="relative size-10 rounded-full bg-[var(--color-brand-yellow)] shrink-0 overflow-hidden"
               >
                 <span
                   aria-hidden
                   className="absolute inset-0 rounded-full bg-[var(--color-brand-yellow)] opacity-50 animate-ping"
                   style={{ animationDuration: "2.5s" }}
                 />
-                <Icon
-                  name="sparkles"
-                  size={18}
-                  className="relative text-[var(--color-neutral-800)]"
+                <Image
+                  src="/images/avatar.png"
+                  alt="Huan"
+                  fill
+                  sizes="40px"
+                  className="relative object-cover"
                 />
               </motion.div>
               <div className="flex flex-col leading-tight min-w-0">
                 <span className="font-display font-medium text-[15px] text-[var(--color-neutral-800)]">
-                  NordestAI
+                  Huan
                 </span>
                 <span className="text-[12px] text-[var(--color-neutral-600)] inline-flex items-center gap-1.5">
                   <span className="size-1.5 rounded-full bg-emerald-500" />

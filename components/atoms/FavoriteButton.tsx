@@ -17,14 +17,14 @@ type Props = {
   className?: string;
   /** Size of the heart icon (default 22) */
   size?: number;
-  /** GTM metadata — used for wishlist events */
+  /** GTM metadata, used for wishlist events */
   gtmName?: string;
   gtmCity?: string;
 };
 
 /**
- * Heart toggle. Uses Lucide heart icon — outlined when not favorited,
- * filled red when favorited. Requires auth — opens modal if not signed in.
+ * Heart toggle. Uses Lucide heart icon, outlined when not favorited,
+ * filled red when favorited. Requires auth, opens modal if not signed in.
  */
 export function FavoriteButton({ itemId, kind, className, size = 22, gtmName, gtmCity }: Props) {
   const auth = useAuth();

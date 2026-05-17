@@ -27,7 +27,7 @@ function getReplyTo() {
 
 /**
  * Low-level send. Used internally and from admin broadcast page.
- * Don't call this directly from auth — use the higher-level helpers below.
+ * Don't call this directly from auth, use the higher-level helpers below.
  */
 export const send = internalAction({
   args: {

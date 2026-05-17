@@ -8,10 +8,10 @@ import { ResendOTP } from "./otp";
  * Password auth with email OTP verification on signup.
  *
  * Two providers are registered:
- *   1. `password` — handles signUp + signIn with email/password. On signUp,
+ *   1. `password`, handles signUp + signIn with email/password. On signUp,
  *      it triggers `verify` (= ResendOTP) which emails a 6-digit code and
  *      keeps the account unverified until the code is confirmed.
- *   2. `resend-otp` — registered as a standalone provider so the client can
+ *   2. `resend-otp`, registered as a standalone provider so the client can
  *      call signIn("resend-otp", { email, code }) to verify and log in.
  *
  * The Password `profile` callback captures `name` and `whatsapp` from the

@@ -52,7 +52,7 @@ export default function NotificacoesInboxPage() {
 
   async function handleClickNotification(id: Id<"userNotifications">, url: string | undefined, isRead: boolean) {
     if (!isRead) {
-      // Optimistic — Convex reactivity updates UI in ms. Failures are
+      // Optimistic, Convex reactivity updates UI in ms. Failures are
       // non-blocking but logged.
       markRead({ id }).catch((err) => {
         console.error("[notifications.markRead] failed", err);
@@ -113,7 +113,7 @@ export default function NotificacoesInboxPage() {
               Nenhuma notificação ainda
             </p>
             <p className="text-[13px] text-[var(--color-neutral-600)] max-w-[280px]">
-              Quando algo acontecer — viagem pronta, novo cupom, aviso — vai cair aqui.
+              Quando algo acontecer, viagem pronta, novo cupom, aviso, vai cair aqui.
             </p>
           </div>
         ) : (

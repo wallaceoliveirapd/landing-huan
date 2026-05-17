@@ -17,7 +17,7 @@ function fmtDate(ts: number): string {
 }
 
 /**
- * Star input — 1..5 stars, controlled by a number value.
+ * Star input, 1..5 stars, controlled by a number value.
  */
 function StarPicker({
   value,
@@ -99,7 +99,7 @@ export function RestaurantReviews({ restaurantId }: Props) {
       setRating(myReview.rating);
       setComment(myReview.comment ?? "");
     } else if (myReview === null) {
-      // user has no review yet — keep empty
+      // user has no review yet, keep empty
       setRating(0);
       setComment("");
     }
@@ -191,7 +191,7 @@ export function RestaurantReviews({ restaurantId }: Props) {
               <div className="h-7 w-40 rounded bg-[var(--color-neutral-100)] animate-pulse" />
             </div>
           ) : myReview && !editing ? (
-            // Existing review — read view
+            // Existing review, read view
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <span className="text-[12px] font-medium uppercase tracking-wide text-[var(--color-neutral-600)]">

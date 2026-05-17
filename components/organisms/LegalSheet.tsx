@@ -72,12 +72,12 @@ export function LegalSheet({ open, onClose, title, source }: Props) {
               </button>
             </div>
 
-            {/* Body — scrollable markdown */}
+            {/* Body, scrollable markdown */}
             <div className="overflow-y-auto px-6 py-4 flex-1">
               <SimpleMarkdown source={source} />
             </div>
 
-            {/* Footer — sticky Entendi button */}
+            {/* Footer, sticky Entendi button */}
             <div className="px-6 pt-3 pb-6 shrink-0 border-t border-[var(--color-neutral-100)] bg-white">
               <button
                 type="button"

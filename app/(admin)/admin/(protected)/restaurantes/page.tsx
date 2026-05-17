@@ -42,7 +42,7 @@ function TripAdvisorImporter() {
         body: JSON.stringify({ url }),
       });
       const data: ScrapeResult = await res.json();
-      // Always show result (even if blocked — we show the fallback UX inside result panel)
+      // Always show result (even if blocked, we show the fallback UX inside result panel)
       setResult(data);
       if (data.blocked && !data.name) {
         setError(null); // error is shown inside the result panel
@@ -178,7 +178,7 @@ function TripAdvisorImporter() {
                   </div>
                 )}
 
-                {/* Always show "fill manually" option — even when blocked */}
+                {/* Always show "fill manually" option, even when blocked */}
                 <button
                   onClick={handleUseData}
                   className="flex items-center justify-center gap-2 rounded-xl bg-[var(--color-brand-purple)] py-3 text-sm font-medium text-white hover:opacity-90 transition-opacity"

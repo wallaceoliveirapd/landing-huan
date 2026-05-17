@@ -10,7 +10,7 @@ import type { Restaurant } from "@/lib/mock-data";
 import { toProxyUrl } from "@/lib/imageUpload";
 
 /**
- * Restaurant card — matches Figma node 334:36332.
+ * Restaurant card, matches Figma node 334:36332.
  *
  *   Card: 245px wide, gap-[8px]
  *   Image: w-full × 164px, rounded-[24px], heart pill 48×48 top-right

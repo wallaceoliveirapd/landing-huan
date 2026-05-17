@@ -27,7 +27,7 @@ export const myNotifications = query({
 });
 
 /**
- * Quick count of unread notifications — used by the header bell badge.
+ * Quick count of unread notifications, used by the header bell badge.
  */
 export const unreadCount = query({
   args: {},
@@ -73,7 +73,7 @@ export const markAllRead = mutation({
 });
 
 /**
- * Internal — insert a notification for ONE user.
+ * Internal, insert a notification for ONE user.
  * Used by system events (trip created, welcome, etc.) and by broadcasts.
  */
 export const insert = internalMutation({
@@ -95,7 +95,7 @@ export const insert = internalMutation({
 });
 
 /**
- * Internal — bulk insert for broadcast (one row per user).
+ * Internal, bulk insert for broadcast (one row per user).
  * Receives the audience userIds and the notification fields.
  */
 export const insertBulk = internalMutation({

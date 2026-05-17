@@ -4,7 +4,7 @@ import { Icon } from "@/components/atoms/Icon";
  * Numeric stat with built-in skeleton.
  *
  * Pass `value` as `number` to render normally, or `undefined` while the
- * underlying Convex query is still loading — the component renders a
+ * underlying Convex query is still loading, the component renders a
  * skeleton placeholder instead of "0". This prevents the typical
  * "0 → 3" flash that happens when you use `?? 0` on a useQuery result.
  */

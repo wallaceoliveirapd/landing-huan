@@ -12,7 +12,7 @@ type PageProps = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
   const n = await fetchQuery(api.nightlife.getBySlug, { slug });
-  return { title: n ? `${n.name} — HUAN` : "Vida noturna — HUAN" };
+  return { title: n ? `${n.name}, HUAN` : "Vida noturna, HUAN" };
 }
 
 const DAY_NAMES: Record<string, string> = {

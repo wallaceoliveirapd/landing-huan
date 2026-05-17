@@ -50,7 +50,7 @@ function getCountdown(startDate?: number, duration?: number): string {
   if (diffDays === 1) return "Amanhã!";
   if (diffDays === 0) return "Hoje! 🎉";
 
-  // Past — maybe still in duration
+  // Past, maybe still in duration
   const tripEnd = duration ? startDate + duration * 24 * 60 * 60 * 1000 : startDate;
   if (now <= tripEnd) return "Em andamento";
 

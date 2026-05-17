@@ -5,7 +5,7 @@ import { cn } from "@/lib/cn";
 
 /**
  * Generic search bar + filter chips for listing pages.
- * Pure presentation — all state lives in the parent.
+ * Pure presentation, all state lives in the parent.
  */
 
 export interface FilterChip {
@@ -40,7 +40,7 @@ export function ListingSearch({
 
   return (
     <div className="bg-white sticky top-0 z-10 border-b border-[var(--color-neutral-100)] flex flex-col gap-2 pt-3 pb-2">
-      {/* Search input — constrained with side padding */}
+      {/* Search input, constrained with side padding */}
       <div className="relative px-4">
         <Icon
           name="search"
@@ -65,7 +65,7 @@ export function ListingSearch({
         )}
       </div>
 
-      {/* Filter chips — full-bleed scroll with right fade */}
+      {/* Filter chips, full-bleed scroll with right fade */}
       {chips.length > 0 && (
         <div className="relative">
           {/* fade-out on the right to signal more content */}

@@ -12,7 +12,7 @@ function norm(s: string): string {
     .trim();
 }
 
-/** Stopwords we ignore when tokenizing — they pollute the match. */
+/** Stopwords we ignore when tokenizing, they pollute the match. */
 const STOPWORDS = new Set([
   "a", "o", "as", "os", "um", "uma", "uns", "umas",
   "de", "do", "da", "dos", "das", "no", "na", "nos", "nas",
@@ -22,7 +22,7 @@ const STOPWORDS = new Set([
 ]);
 
 /**
- * "Generic" category words — they describe the CATEGORY of thing the user
+ * "Generic" category words, they describe the CATEGORY of thing the user
  * wants (already detected via INTENT rules) but are NOT useful for scoring
  * within the category. e.g. "passeio" matches every single tour title;
  * the discriminating word is "barco" / "catamarã" / "buggy" etc.
@@ -39,9 +39,9 @@ const GENERIC_CATEGORY_TOKENS = new Set([
 ]);
 
 /**
- * Synonyms — keys are normalized tokens, values are extra tokens.
+ * Synonyms, keys are normalized tokens, values are extra tokens.
  * IMPORTANT: keep these tight. Don't expand specific things ("barco")
- * to generic categories ("passeio") — that pollutes results.
+ * to generic categories ("passeio"), that pollutes results.
  */
 const SYNONYMS: Record<string, string[]> = {
   barco:      ["catamara", "lancha", "veleiro", "navio"],
@@ -77,7 +77,7 @@ function tokenize(s: string): string[] {
 
 /**
  * Count token matches inside a haystack. Generic category tokens
- * (e.g. "passeio", "restaurante") count 0 — they describe the category
+ * (e.g. "passeio", "restaurante") count 0, they describe the category
  * already and would otherwise match every item in that category.
  */
 function scoreMatch(haystack: string, tokens: string[]): number {
@@ -93,7 +93,7 @@ function scoreMatch(haystack: string, tokens: string[]): number {
 /**
  * Score an item against the query tokens. Title matches weigh more than
  * description, and tags. Returns 0 if no SPECIFIC token (non-generic)
- * matched anywhere — prevents "passeio de barco" from matching every
+ * matched anywhere, prevents "passeio de barco" from matching every
  * tour titled "Passeio de …".
  */
 function scoreItem(
@@ -110,9 +110,9 @@ function scoreItem(
   },
   tokens: string[],
 ): number {
-  if (tokens.length === 0) return 1; // empty query — return everything
+  if (tokens.length === 0) return 1; // empty query, return everything
 
-  // Bail early if there are no SPECIFIC tokens — we can't discriminate.
+  // Bail early if there are no SPECIFIC tokens, we can't discriminate.
   // (Caller falls back to "browse-by-type" in that case.)
   const specific = tokens.filter((t) => !GENERIC_CATEGORY_TOKENS.has(t));
   if (specific.length === 0) return 0;
@@ -152,7 +152,7 @@ export const search = query({
     const tokens = tokenize(q);
     const isEmptyQuery = tokens.length === 0;
     // If ALL tokens are generic category words (e.g. "restaurante", "passeio"),
-    // there are no discriminating terms — fall back to browse mode and return
+    // there are no discriminating terms, fall back to browse mode and return
     // everything in the requested category.
     const specificTokens = tokens.filter((t) => !GENERIC_CATEGORY_TOKENS.has(t));
     const isBrowseQuery = isEmptyQuery || specificTokens.length === 0;
@@ -160,13 +160,13 @@ export const search = query({
     const results: { score: number; item: Record<string, unknown> }[] = [];
 
     function pushScored(item: Record<string, unknown>, raw: object) {
-      // Browse mode — empty query OR only generic tokens → include everything.
+      // Browse mode, empty query OR only generic tokens → include everything.
       if (isBrowseQuery) {
         results.push({ score: 1, item });
         return;
       }
       const score = scoreItem(raw, tokens);
-      // Specific query — require a STRONG match. Score >= 1.5 means we
+      // Specific query, require a STRONG match. Score >= 1.5 means we
       // matched at least once in a description, or at the title level.
       // This drops weak coincidental matches (e.g. tour titled "Passeio
       // ..." that only matches the generic word "passeio").
@@ -366,7 +366,7 @@ export const search = query({
 
 /**
  * Returns all active content (tours, beaches, restaurants, nightlife) without
- * any filter — used by the NordestAI to build itineraries when no pre-made
+ * any filter, used by the NordestAI to build itineraries when no pre-made
  * itinerary is found.
  */
 export const getContentForItinerary = query({

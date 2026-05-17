@@ -1,4 +1,4 @@
-// Placeholders por keyword. Usamos picsum.photos por confiabilidade — sempre
+// Placeholders por keyword. Usamos picsum.photos por confiabilidade, sempre
 // retorna 200. Quando o Cloudflare R2 estiver ligado, este helper é substituído.
 // O `seed` deterministico garante que a mesma keyword renderiza a mesma foto.
 

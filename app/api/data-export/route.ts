@@ -8,7 +8,7 @@ import JSZip from "jszip";
  * GET /api/data-export
  *
  * Returns a ZIP file containing 3 CSVs (profile, trips, favorites)
- * with the authenticated user's data — LGPD compliance.
+ * with the authenticated user's data, LGPD compliance.
  *
  * 401 if the user isn't authenticated.
  */
@@ -30,14 +30,14 @@ export async function GET() {
   zip.file(
     "README.txt",
     [
-      "Exportação de dados — NordestAI / HUAN",
+      "Exportação de dados, NordestAI / HUAN",
       "",
       `Gerado em: ${new Date(data.exportedAt).toISOString()}`,
       "",
       "Arquivos:",
-      "  profile.csv     — seus dados pessoais",
-      "  trips.csv       — todas as viagens criadas",
-      "  favorites.csv   — passeios, restaurantes e praias favoritados",
+      "  profile.csv    , seus dados pessoais",
+      "  trips.csv      , todas as viagens criadas",
+      "  favorites.csv  , passeios, restaurantes e praias favoritados",
       "",
       "Dúvidas: suporte@huanfalcao.com.br",
     ].join("\n"),

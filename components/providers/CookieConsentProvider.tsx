@@ -111,7 +111,7 @@ export function CookieConsentProvider({ children }: { children: ReactNode }) {
     >
       {children}
 
-      {/* ── Meta Pixel — only after explicit marketing consent ── */}
+      {/* ── Meta Pixel, only after explicit marketing consent ── */}
       {consent?.marketing && META_PIXEL_ID && (
         <Script id="meta-pixel" strategy="afterInteractive">
           {`!function(f,b,e,v,n,t,s)

@@ -34,14 +34,14 @@ export const sendBroadcast = action({
   handler: async (ctx, { title, body, url, segment }): Promise<{ delivered: number; failed: number }> => {
     configureVapid();
 
-    // Get the audience userIds — this list is for the IN-APP INBOX (every
+    // Get the audience userIds, this list is for the IN-APP INBOX (every
     // matching user, regardless of push opt-in).
     const userIds: string[] = await ctx.runQuery(
       internal.pushQueries.audienceForSegment,
       { segment },
     );
 
-    // Use relative path — the SW resolves it against its own scope origin.
+    // Use relative path, the SW resolves it against its own scope origin.
     // Absolute URL would fail on local dev (cross-origin fetch of the icon
     // from localhost to production URL is blocked).
     const iconUrl = "https://evokemedia.com.br/landing-huan/icon.png";
@@ -57,7 +57,7 @@ export const sendBroadcast = action({
       kind: "broadcast",
     });
 
-    // Get all push subscriptions for those users — these are the ones who
+    // Get all push subscriptions for those users, these are the ones who
     // also get the real OS-level push.
     const subs: { _id: string; endpoint: string; p256dh: string; auth: string; userId: string }[] =
       await ctx.runQuery(internal.pushQueries.subscriptionsForUsers, { userIds });
@@ -92,7 +92,7 @@ export const sendBroadcast = action({
           const status = (err as any)?.statusCode;
           // 410 Gone   = subscription permanently removed by browser vendor
           // 404 NotFnd  = endpoint no longer exists
-          // 401 Unauth  = VAPID key mismatch — subscription was created with
+          // 401 Unauth  = VAPID key mismatch, subscription was created with
           //               different keys, can never be delivered; remove it.
           if (status === 401 || status === 404 || status === 410) {
             expired.push(s._id);

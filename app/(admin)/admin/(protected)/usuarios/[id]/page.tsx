@@ -41,7 +41,7 @@ export default function AdminUserDetailPage({
   const unmarkVerified = useMutation(api.usersAdmin.unmarkEmailVerified);
   const remove = useMutation(api.usersAdmin.remove);
 
-  // Editable form state — initialized from server doc
+  // Editable form state, initialized from server doc
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
@@ -212,7 +212,7 @@ export default function AdminUserDetailPage({
           </div>
         </section>
 
-        {/* Sidebar — role + verification + danger zone */}
+        {/* Sidebar, role + verification + danger zone */}
         <div className="flex flex-col gap-4">
           {/* Role */}
           <section className="rounded-2xl border border-[var(--color-neutral-200)] bg-white p-5">

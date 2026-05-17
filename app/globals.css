@@ -8,7 +8,7 @@
   --color-success-green: #028574;
   --color-success-500: #028574;
 
-  /* Neutrals from Figma — Airbnb-style clean palette */
+  /* Neutrals from Figma, Airbnb-style clean palette */
   --color-neutral-100: #f2f4f5;
   --color-neutral-200: #e8ebed;
   --color-neutral-300: #dde1e8;
@@ -19,7 +19,7 @@
   --color-neutral-800: #323439;
   --color-ink: #323439;
 
-  /* Surfaces — site is white. Always white. */
+  /* Surfaces, site is white. Always white. */
   --color-surface: #ffffff;
   --color-app-bg: #ffffff;
 

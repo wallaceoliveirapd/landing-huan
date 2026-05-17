@@ -2,7 +2,7 @@ export const TERMS_MD = `## Termos de uso
 
 **Última atualização:** 16 de maio de 2026
 
-Estes Termos de Uso regulam o acesso e o uso da plataforma NordestAI / HUAN, operada por **HUAN GOMES DA SILVA SOUZA FALCAO - ME**, CNPJ 55.181.469/0001-66, João Pessoa — PB, disponível em huanfalcao.com.br ("plataforma", "serviço", "nós"). Leia atentamente antes de criar sua conta.
+Estes Termos de Uso regulam o acesso e o uso da plataforma NordestAI / HUAN, operada por **HUAN GOMES DA SILVA SOUZA FALCAO - ME**, CNPJ 55.181.469/0001-66, João Pessoa, PB, disponível em huanfalcao.com.br ("plataforma", "serviço", "nós"). Leia atentamente antes de criar sua conta.
 
 ---
 
@@ -10,8 +10,8 @@ Estes Termos de Uso regulam o acesso e o uso da plataforma NordestAI / HUAN, ope
 
 **Razão social:** HUAN GOMES DA SILVA SOUZA FALCAO - ME
 **CNPJ:** 55.181.469/0001-66
-**Município:** João Pessoa — PB
-**Serviço:** NordestAI / HUAN — huanfalcao.com.br
+**Município:** João Pessoa, PB
+**Serviço:** NordestAI / HUAN, huanfalcao.com.br
 **Contato:** suporte@huanfalcao.com.br
 
 ---

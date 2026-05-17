@@ -14,13 +14,13 @@ type PageProps = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
   const d = await fetchQuery(api.dicas.getBySlug, { slug });
-  return { title: d ? `${d.title} — HUAN` : "Dica — HUAN" };
+  return { title: d ? `${d.title}, HUAN` : "Dica, HUAN" };
 }
 
 /** Minimal Markdown → HTML (headings, bold, lists, line breaks). */
 function markdownToHtml(md: string): string {
   return md
-    // H1 — skip rendering as heading (it duplicates the page title)
+    // H1, skip rendering as heading (it duplicates the page title)
     .replace(/^# (.+)$/gm, '')
     // H2
     .replace(/^## (.+)$/gm, '<h2 class="font-display font-medium text-[22px] mt-6 mb-2 text-[var(--color-ink)]">$1</h2>')
@@ -120,7 +120,7 @@ export default async function DicaPage({ params }: PageProps) {
             </p>
           )}
 
-          {/* Reactions bar — appears at the end of the article */}
+          {/* Reactions bar, appears at the end of the article */}
           <div className="border-t border-[var(--color-neutral-100)] pt-6 mt-4">
             <p className="text-[12px] font-medium uppercase tracking-wide text-[var(--color-neutral-600)] mb-3">
               O que achou dessa dica?

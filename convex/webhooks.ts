@@ -6,13 +6,13 @@ import { internal } from "./_generated/api";
 import crypto from "node:crypto";
 
 /**
- * Webhook dispatch — POSTs the event payload to the configured n8n webhook
+ * Webhook dispatch, POSTs the event payload to the configured n8n webhook
  * URL. Signs the request with HMAC-SHA256 using N8N_WEBHOOK_SECRET so the
  * receiver can verify authenticity.
  *
  * Required env vars:
- *   - N8N_WEBHOOK_URL    — receiver endpoint (set to "" or unset to disable)
- *   - N8N_WEBHOOK_SECRET — shared secret used for HMAC signature
+ *   - N8N_WEBHOOK_URL   , receiver endpoint (set to "" or unset to disable)
+ *   - N8N_WEBHOOK_SECRET, shared secret used for HMAC signature
  */
 export const dispatch = internalAction({
   args: {
@@ -22,7 +22,7 @@ export const dispatch = internalAction({
   handler: async (ctx, { event, payload }) => {
     const url = process.env.N8N_WEBHOOK_URL;
     if (!url) {
-      console.log(`[webhook] skipped ${event} — N8N_WEBHOOK_URL not set`);
+      console.log(`[webhook] skipped ${event}, N8N_WEBHOOK_URL not set`);
       await ctx.runMutation(internal.webhookLog.markStatus, {
         event, payload, status: "skipped", response: "no url",
       });

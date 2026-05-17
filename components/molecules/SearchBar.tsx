@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 import { Icon } from "@/components/atoms/Icon";
 
 /**
- * Matches Figma node 334:35954 — Outer neutral-100 pill,
+ * Matches Figma node 334:35954, Outer neutral-100 pill,
  * inner white input pill + white circular search/filter button.
  */
 export function SearchBar({

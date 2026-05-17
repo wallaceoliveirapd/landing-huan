@@ -19,7 +19,7 @@ const BRAND = {
 };
 
 /**
- * Base email shell — header with Huan's name/photo placeholder, body slot,
+ * Base email shell, header with Huan's name/photo placeholder, body slot,
  * Huan's signature, footer (legal links).
  */
 function baseLayout(opts: {
@@ -45,7 +45,7 @@ function baseLayout(opts: {
   <tr>
     <td align="center" style="padding:32px 16px;">
       <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="560" style="max-width:560px;width:100%;">
-        <!-- Header — Huan branding -->
+        <!-- Header, Huan branding -->
         <tr>
           <td style="padding-bottom:24px;">
             <table role="presentation" cellspacing="0" cellpadding="0" border="0">
@@ -100,7 +100,7 @@ function baseLayout(opts: {
 }
 
 /**
- * Welcome email — Huan dando as boas-vindas pessoalmente.
+ * Welcome email, Huan dando as boas-vindas pessoalmente.
  */
 export function welcomeEmail({ name }: { name?: string }) {
   const firstName = name?.split(" ")[0];
@@ -115,16 +115,16 @@ export function welcomeEmail({ name }: { name?: string }) {
       body: `
         <p style="font-size:18px;font-weight:600;line-height:1.4;margin:0 0 12px;color:${BRAND.ink};">${greeting}</p>
         <p style="font-size:15px;line-height:1.65;margin:0 0 18px;color:${BRAND.ink};">
-          Aqui é o Huan, criador da plataforma. Que bom que você criou sua conta — é o meu jeito de te ajudar a explorar o Nordeste do mesmo jeito que eu exploro: com calma, indo nos lugares certos e curtindo cada momento.
+          Aqui é o Huan, criador da plataforma. Que bom que você criou sua conta, é o meu jeito de te ajudar a explorar o Nordeste do mesmo jeito que eu exploro: com calma, indo nos lugares certos e curtindo cada momento.
         </p>
         <p style="font-size:15px;line-height:1.65;margin:0 0 18px;color:${BRAND.ink};">
           Aqui você pode:
         </p>
         <ul style="font-size:15px;line-height:1.8;margin:0 0 28px;padding-left:20px;color:${BRAND.ink};">
-          <li>Criar até <strong>3 roteiros</strong> personalizados (eu treinei um assistente, o NordestAI, pra montar com você)</li>
+          <li>Criar até <strong>3 roteiros</strong> personalizados (eu treinei um assistente, o Huan, pra montar com você)</li>
           <li>Salvar passeios, restaurantes e praias que eu testei</li>
           <li>Usar cupons que eu negociei com parceiros</li>
-          <li>Conversar com o NordestAI sobre qualquer dúvida</li>
+          <li>Conversar com o Huan sobre qualquer dúvida</li>
         </ul>
         <p style="margin:0 0 28px;">
           <a href="https://huanfalcao.com.br/minha-viagem/criar"
@@ -133,7 +133,7 @@ export function welcomeEmail({ name }: { name?: string }) {
           </a>
         </p>
         <p style="font-size:14px;line-height:1.6;margin:0 0 0;color:${BRAND.muted};">
-          Se quiser bater um papo direto comigo, é só responder este email — eu leio todos.
+          Se quiser bater um papo direto comigo, é só responder este email, eu leio todos.
         </p>
       `,
     }),
@@ -159,7 +159,7 @@ export function otpEmail({ code, ttlMinutes = 10 }: { code: string; ttlMinutes?:
           <span style="font-family:'SF Mono','Roboto Mono',Menlo,monospace;font-size:36px;font-weight:600;letter-spacing:8px;color:${BRAND.ink};">${code}</span>
         </div>
         <p style="font-size:13px;line-height:1.55;color:${BRAND.muted};margin:0 0 16px;">
-          Se não foi você que pediu este código, pode ignorar — sua conta segue segura.
+          Se não foi você que pediu este código, pode ignorar, sua conta segue segura.
         </p>
       `,
       footerNote: "Você recebeu este email porque alguém tentou criar uma conta com seu email no huanfalcao.com.br.",
@@ -168,7 +168,7 @@ export function otpEmail({ code, ttlMinutes = 10 }: { code: string; ttlMinutes?:
 }
 
 /**
- * Trip-created confirmation — Huan dizendo que o roteiro tá pronto.
+ * Trip-created confirmation, Huan dizendo que o roteiro tá pronto.
  */
 export function tripCreatedEmail({
   name,
@@ -191,7 +191,7 @@ export function tripCreatedEmail({
       body: `
         <p style="font-size:18px;font-weight:600;line-height:1.4;margin:0 0 12px;color:${BRAND.ink};">${greeting}</p>
         <p style="font-size:15px;line-height:1.65;margin:0 0 22px;color:${BRAND.ink};">
-          Acabei de montar pra você um roteiro em <strong>${destination}</strong>. O NordestAI pegou os lugares que eu testei e curei pessoalmente e juntou com pontos que existem na cidade pra montar dias proveitosos. Dá uma olhada e me conta se preciso ajustar:
+          Acabei de montar pra você um roteiro em <strong>${destination}</strong>. O Huan pegou os lugares que eu testei e curei pessoalmente e juntou com pontos que existem na cidade pra montar dias proveitosos. Dá uma olhada e me conta se preciso ajustar:
         </p>
         <div style="background:${BRAND.light};border-radius:16px;padding:20px;margin:0 0 24px;">
           <p style="font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:${BRAND.muted};margin:0 0 4px;">Sua viagem</p>
@@ -204,7 +204,7 @@ export function tripCreatedEmail({
           </a>
         </p>
         <p style="font-size:14px;line-height:1.6;margin:0;color:${BRAND.muted};">
-          Se mudar de ideia sobre o destino, o estilo ou a duração, é só refazer pelo botão no detalhe — o NordestAI monta de novo.
+          Se mudar de ideia sobre o destino, o estilo ou a duração, é só refazer pelo botão no detalhe, o Huan monta de novo.
         </p>
       `,
     }),
@@ -212,7 +212,7 @@ export function tripCreatedEmail({
 }
 
 /**
- * Generic broadcast email (admin tool — phase 5).
+ * Generic broadcast email (admin tool, phase 5).
  */
 export function broadcastEmail({
   headline,

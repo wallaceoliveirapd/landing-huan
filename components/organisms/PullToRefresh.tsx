@@ -1,7 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Icon } from "@/components/atoms/Icon";
+
+const DISABLED_PATHS = ["/minha-viagem/criar", "/admin"];
+
+function isAnyModalOpen(): boolean {
+  // Modals lock body scroll (overflow: hidden), quick signal.
+  if (typeof document !== "undefined" && document.body.style.overflow === "hidden") return true;
+  // Belt and suspenders: any open dialog with aria-modal.
+  return !!document.querySelector('[role="dialog"][aria-modal="true"]');
+}
 
 const THRESHOLD = 80;
 const MAX_PULL = 140;
@@ -14,13 +24,20 @@ const MAX_PULL = 140;
  * does not steal the gesture.
  */
 export function PullToRefresh() {
+  const pathname = usePathname();
   const [pull, setPull] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const startY = useRef<number | null>(null);
   const pullRef = useRef(0);
 
+  const pathDisabled = DISABLED_PATHS.some((p) => pathname.startsWith(p));
+
   useEffect(() => {
+    if (pathDisabled) return;
+
     function onTouchStart(e: TouchEvent) {
+      // Skip when a modal is open so swipes do not dismiss/reload it.
+      if (isAnyModalOpen()) return;
       // Only start tracking when scroll is at the very top.
       if (window.scrollY > 0) return;
       startY.current = e.touches[0].clientY;
@@ -40,7 +57,7 @@ export function PullToRefresh() {
         pullRef.current = 0;
         return;
       }
-      // Dampened pull — 0.55 feels close to native iOS.
+      // Dampened pull, 0.55 feels close to native iOS.
       const damped = Math.min(dy * 0.55, MAX_PULL);
       pullRef.current = damped;
       setPull(damped);
@@ -70,8 +87,9 @@ export function PullToRefresh() {
       document.removeEventListener("touchend", onTouchEnd);
       document.removeEventListener("touchcancel", onTouchEnd);
     };
-  }, []);
+  }, [pathDisabled]);
 
+  if (pathDisabled) return null;
   if (pull === 0 && !refreshing) return null;
 
   const progress = Math.min(pull / THRESHOLD, 1);

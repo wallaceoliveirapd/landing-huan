@@ -6,11 +6,11 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Icon } from "@/components/atoms/Icon";
 
-/** Limit on the badge counter — anything above shows as "9+". */
+/** Limit on the badge counter, anything above shows as "9+". */
 const BADGE_MAX = 9;
 
 /**
- * Top section — greeting line (avatar + "Oi, tudo bem? / Name or 'Entre…'")
+ * Top section, greeting line (avatar + "Oi, tudo bem? / Name or 'Entre…'")
  * + a small bell or login icon on the right.
  *
  * Skeleton-first: while auth state OR viewer query is still loading,
@@ -47,7 +47,7 @@ export function Header() {
   return (
     <header className="w-full bg-white">
       <div className="mx-auto flex w-full max-w-screen-md items-center gap-2 px-6 pt-8">
-        {/* Avatar — skeleton until we know auth state */}
+        {/* Avatar, skeleton until we know auth state */}
         {loading ? (
           <div className="size-[42px] flex-none rounded-full bg-[var(--color-neutral-100)] animate-pulse" />
         ) : auth.isAuthenticated && viewer ? (
@@ -68,7 +68,7 @@ export function Header() {
           </button>
         )}
 
-        {/* Greeting — skeleton until we know auth state */}
+        {/* Greeting, skeleton until we know auth state */}
         <div className="flex flex-1 flex-col gap-[2px] min-w-0">
           <p className="font-display text-[12px] text-[var(--color-neutral-600)]">
             Oi, tudo bem?
@@ -90,7 +90,7 @@ export function Header() {
           )}
         </div>
 
-        {/* Right action — bell (logged) — skeleton while loading */}
+        {/* Right action, bell (logged), skeleton while loading */}
         {loading ? (
           <div className="size-10 rounded-full bg-[var(--color-neutral-100)] animate-pulse" />
         ) : auth.isAuthenticated ? (

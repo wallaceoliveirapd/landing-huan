@@ -10,7 +10,7 @@ type PageProps = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
   const it = await fetchQuery(api.itineraries.getBySlug, { slug });
-  return { title: it ? `${it.title} — HUAN` : "Roteiro — HUAN" };
+  return { title: it ? `${it.title}, HUAN` : "Roteiro, HUAN" };
 }
 
 export default async function RoteiroDetailPage({ params }: PageProps) {

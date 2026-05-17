@@ -277,13 +277,13 @@ export default function CriarViagemPage() {
       });
       // Wait for the itinerary to be generated so the detail page already
       // has the days ready when the user lands. The fullscreen AiLoader
-      // covers the whole wait — typically 5-15s for Gemini + OSM.
+      // covers the whole wait, typically 5-15s for Gemini + OSM.
       try {
         await generateItinerary({ tripId });
       } catch (e) {
         console.warn("Itinerary generation failed:", e);
         toast.warning("Sua viagem foi criada, mas o roteiro automático falhou. Você pode regenerar na tela da viagem.");
-        // Even on failure we still navigate — detail page will show
+        // Even on failure we still navigate, detail page will show
         // a fallback or empty state.
       }
       if (city && tripType) {
@@ -325,7 +325,7 @@ export default function CriarViagemPage() {
           with the wizard mid-save. */}
       <AiLoader show={saving} />
 
-      {/* ── Header — close icon + title ─────────────────────────── */}
+      {/* ── Header, close icon + title ─────────────────────────── */}
       <div className="flex items-center gap-3 px-6 pt-4 pb-2 shrink-0">
         <button
           type="button"
@@ -369,7 +369,7 @@ export default function CriarViagemPage() {
                 </p>
               </div>
 
-              {/* Trip limit indicator — skeleton-first to avoid 0/3 → N/3 flash */}
+              {/* Trip limit indicator, skeleton-first to avoid 0/3 → N/3 flash */}
               {tripsLoading ? (
                 <div className="mt-5 flex items-center gap-3 px-4 py-3 rounded-[16px] border border-[var(--color-neutral-300)] bg-white">
                   <div className="size-[18px] rounded-full bg-[var(--color-neutral-100)] animate-pulse" />
@@ -462,7 +462,7 @@ export default function CriarViagemPage() {
             </motion.div>
           )}
 
-          {/* Step 2: Destination — FULLSCREEN MAP ───────────── */}
+          {/* Step 2: Destination, FULLSCREEN MAP ───────────── */}
           {step === 2 && (
             <motion.div
               key="step-dest"
@@ -729,8 +729,8 @@ export default function CriarViagemPage() {
               )}
 
               <div className="flex flex-col gap-2">
-                <ConfigRow icon="map-pin" label="Destino" value={city ? `${city.name}, ${city.state}` : "—"} />
-                <ConfigRow icon="compass" label="Tipo" value={TRIP_TYPES.find((t) => t.key === tripType)?.label ?? "—"} />
+                <ConfigRow icon="map-pin" label="Destino" value={city ? `${city.name}, ${city.state}` : ","} />
+                <ConfigRow icon="compass" label="Tipo" value={TRIP_TYPES.find((t) => t.key === tripType)?.label ?? ","} />
                 <ConfigRow icon="calendar-days" label="Duração" value={durationLabel} />
                 <ConfigRow icon="users" label="Grupo" value={`${groupSize} ${groupSize === 1 ? "pessoa" : "pessoas"}`} />
                 <ConfigRow icon="wallet" label="Orçamento" value={budgetLabel} />

@@ -11,7 +11,7 @@ type PageProps = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
   const t = await fetchQuery(api.tours.getBySlug, { slug });
-  return { title: t ? `${t.title} — HUAN` : "Passeio — HUAN" };
+  return { title: t ? `${t.title}, HUAN` : "Passeio, HUAN" };
 }
 
 export default async function TourDetailPage({ params }: PageProps) {

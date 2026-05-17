@@ -4,7 +4,7 @@ import { type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 /**
- * Plain horizontal scroller — no title, no nav buttons.
+ * Plain horizontal scroller, no title, no nav buttons.
  * Matches the Figma sections which use a section heading container
  * + the list container separately. Bleed-right on mobile so the next
  * card peeks past the right edge.

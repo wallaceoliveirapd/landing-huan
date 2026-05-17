@@ -43,7 +43,7 @@ export function InternalPageHero({
 
   return (
     <section className="relative w-full h-[220px] min-h-[220px] overflow-hidden">
-      {/* Camada de slides — TODAS sempre montadas, só opacity muda para evitar fundo vazio */}
+      {/* Camada de slides, TODAS sempre montadas, só opacity muda para evitar fundo vazio */}
       {list.map((s, i) => (
         <motion.div
           key={s.src}

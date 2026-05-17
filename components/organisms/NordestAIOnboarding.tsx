@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { Icon } from "@/components/atoms/Icon";
 
@@ -12,7 +13,7 @@ const FEATURES = [
   {
     icon: "map-pin",
     title: "Conheça lugares incríveis",
-    desc: "Praias, restaurantes, atrações culturais e dicas locais — tudo selecionado pra você.",
+    desc: "Praias, restaurantes, atrações culturais e dicas locais, tudo selecionado pra você.",
   },
   {
     icon: "ticket-percent",
@@ -22,7 +23,7 @@ const FEATURES = [
   {
     icon: "messages-square",
     title: "Tire qualquer dúvida",
-    desc: "Sobre o que comer, onde ficar, como chegar — é só perguntar.",
+    desc: "Sobre o que comer, onde ficar, como chegar, é só perguntar.",
   },
 ];
 
@@ -83,19 +84,26 @@ export function NordestAIOnboarding({
                   repeat: Infinity,
                   ease: "easeInOut",
                 }}
-                className="relative grid size-20 place-items-center rounded-full bg-[var(--color-brand-yellow)]"
+                className="relative size-24 rounded-full bg-[var(--color-brand-yellow)] overflow-hidden"
               >
                 <span
                   aria-hidden
                   className="absolute inset-0 rounded-full bg-[var(--color-brand-yellow)] opacity-40 animate-ping"
                   style={{ animationDuration: "2.5s" }}
                 />
-                <Icon name="sparkles" size={32} className="relative text-[var(--color-neutral-800)]" />
+                <Image
+                  src="/images/avatar.png"
+                  alt="NordestAI"
+                  fill
+                  sizes="96px"
+                  className="relative object-cover"
+                  priority
+                />
               </motion.div>
 
               <div className="flex flex-col gap-2 mt-2">
                 <h1 className="font-display font-medium text-[28px] leading-[1.15] text-[var(--color-neutral-800)]">
-                  Oi! Eu sou o NordestAI
+                  Oi! Eu sou o Huan
                 </h1>
                 <p className="font-display text-[14px] leading-[1.5] text-[var(--color-neutral-600)] max-w-[32ch] mx-auto">
                   Seu agente de viagem pelo Nordeste. Me conta o que você procura e eu te ajudo do roteiro até a reserva.
@@ -111,11 +119,10 @@ export function NordestAIOnboarding({
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 + i * 0.06, duration: 0.4 }}
-                  className={`flex items-start gap-4 py-5 ${
-                    i !== FEATURES.length - 1
+                  className={`flex items-start gap-4 py-5 ${i !== FEATURES.length - 1
                       ? "border-b border-[var(--color-neutral-100)]"
                       : ""
-                  }`}
+                    }`}
                 >
                   <div className="grid size-11 place-items-center rounded-full bg-[var(--color-neutral-100)] shrink-0">
                     <Icon name={f.icon} size={20} className="text-[var(--color-neutral-800)]" />

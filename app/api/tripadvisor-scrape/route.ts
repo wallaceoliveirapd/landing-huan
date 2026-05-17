@@ -136,7 +136,7 @@ function toMobileUrl(url: string): string {
     .replace(/https:\/\/tripadvisor\.com\//, "https://m.tripadvisor.com/");
 }
 
-/** Mobile browser headers — less strict bot detection on mobile subdomain */
+/** Mobile browser headers, less strict bot detection on mobile subdomain */
 const MOBILE_HEADERS = {
   "User-Agent":
     "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.6367.82 Mobile Safari/537.36",

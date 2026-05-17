@@ -64,7 +64,7 @@ export const create = mutation({
   },
 });
 
-// Called by cowork script (no auth — uses internal action wrapper)
+// Called by cowork script (no auth, uses internal action wrapper)
 export const createFromCowork = mutation({
   args: {
     title: v.string(),

@@ -5,14 +5,14 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 const VALID_ROLES = ["admin", "customer"] as const;
 
 /**
- * Helper — assert that the calling user is an admin. Throws otherwise.
+ * Helper, assert that the calling user is an admin. Throws otherwise.
  */
 async function requireAdmin(ctx: QueryCtx | MutationCtx) {
   const userId = await getAuthUserId(ctx);
   if (!userId) throw new Error("Not authenticated");
   const u = await ctx.db.get(userId);
   const role = (u as { role?: string } | null)?.role ?? "customer";
-  if (role !== "admin") throw new Error("Forbidden — admin only");
+  if (role !== "admin") throw new Error("Forbidden, admin only");
   return userId;
 }
 
@@ -84,7 +84,7 @@ export const list = query({
   },
 });
 
-/** Admin-only — get a single user by id with full details. */
+/** Admin-only, get a single user by id with full details. */
 export const get = query({
   args: { id: v.id("users") },
   handler: async (ctx, { id }) => {
@@ -128,7 +128,7 @@ export const get = query({
   },
 });
 
-/** Admin-only — update profile fields (name, whatsapp, email). */
+/** Admin-only, update profile fields (name, whatsapp, email). */
 export const updateProfile = mutation({
   args: {
     id: v.id("users"),
@@ -150,7 +150,7 @@ export const updateProfile = mutation({
   },
 });
 
-/** Admin-only — change a user's role. Can't demote your last admin. */
+/** Admin-only, change a user's role. Can't demote your last admin. */
 export const setRole = mutation({
   args: { id: v.id("users"), role: v.string() },
   handler: async (ctx, { id, role }) => {
@@ -177,7 +177,7 @@ export const setRole = mutation({
   },
 });
 
-/** Admin-only — manually mark the user's email as verified. */
+/** Admin-only, manually mark the user's email as verified. */
 export const markEmailVerified = mutation({
   args: { id: v.id("users") },
   handler: async (ctx, { id }) => {
@@ -187,7 +187,7 @@ export const markEmailVerified = mutation({
   },
 });
 
-/** Admin-only — unverify the email (sets emailVerificationTime back to undefined). */
+/** Admin-only, unverify the email (sets emailVerificationTime back to undefined). */
 export const unmarkEmailVerified = mutation({
   args: { id: v.id("users") },
   handler: async (ctx, { id }) => {
@@ -198,11 +198,11 @@ export const unmarkEmailVerified = mutation({
 });
 
 /**
- * Admin-only — create a new user (admin or customer) WITHOUT a password.
+ * Admin-only, create a new user (admin or customer) WITHOUT a password.
  * They'll need to use "forgot password" / reset flow to set one, OR you
  * can communicate the email separately.
  *
- * For simplicity, this just creates the user row directly — no Auth
+ * For simplicity, this just creates the user row directly, no Auth
  * Account is created (so they can't sign in until you also create an
  * auth account via the normal signUp flow on their behalf).
  */
@@ -236,7 +236,7 @@ export const create = mutation({
 });
 
 /**
- * Admin-only — delete a user account + all their data (trips, favorites,
+ * Admin-only, delete a user account + all their data (trips, favorites,
  * reviews, etc.). Caller can't delete themselves.
  */
 export const remove = mutation({

@@ -9,7 +9,7 @@ import { fadeUp, staggerChildren } from "@/lib/motion-presets";
 
 /**
  * Renderiza um roteiro em formato de timeline:
- * "Dia 1: título — descrição" → carrossel de cards do que fazer no dia.
+ * "Dia 1: título, descrição" → carrossel de cards do que fazer no dia.
  * Cards podem ser passeios cadastrados ou paradas livres sem imagem.
  */
 export function RoteiroTimeline({ itinerary }: { itinerary: Itinerary }) {

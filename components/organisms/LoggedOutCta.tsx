@@ -7,7 +7,7 @@ import { SectionSpacer } from "@/components/organisms/SectionSpacer";
 import { fadeUp, staggerChildren } from "@/lib/motion-presets";
 
 /**
- * Logged-out CTA — Figma node 334:36793.
+ * Logged-out CTA, Figma node 334:36793.
  * Hidden if the user is authenticated.
  *
  * Title: "Entre ou cria sua conta para aproveitar mais" (24px medium)

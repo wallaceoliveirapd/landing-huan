@@ -84,7 +84,7 @@ export function ImageUploadField({ value, onChange, uploadCategory = "geral" }: 
             <>
               <Icon name="lucide:image-plus" size={28} />
               <span className="text-sm font-medium">Clique para fazer upload</span>
-              <span className="text-xs opacity-70">JPG, PNG, WEBP — comprime automaticamente</span>
+              <span className="text-xs opacity-70">JPG, PNG, WEBP, comprime automaticamente</span>
             </>
           )}
         </button>

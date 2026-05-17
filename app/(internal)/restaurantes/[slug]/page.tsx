@@ -14,7 +14,7 @@ type PageProps = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
   const r = await fetchQuery(api.restaurants.getBySlug, { slug });
-  return { title: r ? `${r.name} — HUAN` : "Restaurante — HUAN" };
+  return { title: r ? `${r.name}, HUAN` : "Restaurante, HUAN" };
 }
 
 export default async function RestaurantDetailPage({ params }: PageProps) {

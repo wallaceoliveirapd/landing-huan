@@ -44,7 +44,7 @@ async function requireAdmin(): Promise<NextResponse | null> {
 }
 
 /**
- * POST /api/upload — receive the file as FormData, upload to R2 server-side.
+ * POST /api/upload, receive the file as FormData, upload to R2 server-side.
  * Admin-only. Validates mime + size.
  */
 export async function POST(req: NextRequest) {
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-/** DELETE /api/upload — admin-only object delete from R2 by key. */
+/** DELETE /api/upload, admin-only object delete from R2 by key. */
 export async function DELETE(req: NextRequest) {
   const deny = await requireAdmin();
   if (deny) return deny;

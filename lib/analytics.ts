@@ -1,5 +1,5 @@
 /**
- * Analytics helpers — GTM dataLayer + Meta Pixel
+ * Analytics helpers, GTM dataLayer + Meta Pixel
  *
  * All calls are safe to use in SSR/server components: they check for
  * window before doing anything so they never crash on the server.

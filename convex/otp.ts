@@ -12,7 +12,7 @@ import { otpEmail } from "../lib/emailTemplates";
  *      `Password({ verify: ResendOTP })`.
  *   2. We email a 6-digit code to the user.
  *   3. Frontend collects the code and calls
- *      signIn("resend-otp", { email, code }) — this provider verifies the
+ *      signIn("resend-otp", { email, code }), this provider verifies the
  *      code and Convex Auth marks the account as verified + signs them in.
  *
  * Token expires in 10 minutes.

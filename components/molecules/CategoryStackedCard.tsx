@@ -14,7 +14,7 @@ type Props = {
 };
 
 /**
- * Stacked polaroid category card — Figma node 334:35991.
+ * Stacked polaroid category card, Figma node 334:35991.
  *
  *   Outer container: 124 × 133.242px
  *
@@ -49,7 +49,7 @@ export function CategoryStackedCard({
       className="flex flex-col items-center gap-2 cursor-pointer select-none"
     >
       <div className="relative" style={{ width: 124, height: 133.242 }}>
-        {/* Back card #1 — rotated +16.24° (right) */}
+        {/* Back card #1, rotated +16.24° (right) */}
         <div
           className="absolute flex items-center justify-center"
           style={{ left: 30.77, top: 22.1, width: 91.106, height: 103.683 }}
@@ -70,7 +70,7 @@ export function CategoryStackedCard({
           </div>
         </div>
 
-        {/* Back card #2 — rotated -9.86° (left) */}
+        {/* Back card #2, rotated -9.86° (left) */}
         <div
           className="absolute flex items-center justify-center"
           style={{ left: 1.54, top: 7.7, width: 84.362, height: 104.285 }}

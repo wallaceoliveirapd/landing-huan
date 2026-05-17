@@ -5,7 +5,7 @@ import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server";
 import { api } from "@/convex/_generated/api";
 import { AdminSidebar } from "@/components/organisms/admin/AdminSidebar";
 
-// Protected admin pages — always dynamic (auth + real-time data)
+// Protected admin pages, always dynamic (auth + real-time data)
 export const dynamic = "force-dynamic";
 
 /**
@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
  *   2. If authenticated but role !== "admin" → redirect to home
  *
  * This runs on every request, so customers never get to see the admin UI
- * shell — they're bounced before any data is fetched.
+ * shell, they're bounced before any data is fetched.
  */
 export default async function ProtectedAdminLayout({
   children,

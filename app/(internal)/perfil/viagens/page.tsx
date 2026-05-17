@@ -49,7 +49,7 @@ export default function MinhasViagensPage() {
       subtitle={subtitle}
     >
       <div className="flex flex-col gap-3 max-w-2xl">
-        {/* Create new — only show when we know the count */}
+        {/* Create new, only show when we know the count */}
         {!loading && remaining > 0 && (
           <Link
             href="/minha-viagem/criar"

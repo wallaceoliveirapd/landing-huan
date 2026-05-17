@@ -5,7 +5,7 @@ import { cn } from "@/lib/cn";
 import { Icon } from "@/components/atoms/Icon";
 
 /**
- * Card de "parada" num roteiro sem imagem — só nome, endereço e descrição.
+ * Card de "parada" num roteiro sem imagem, só nome, endereço e descrição.
  * Útil pra cadastrar paradas livres no admin (almoço, pôr do sol, atividade).
  */
 export function PlaceCard({

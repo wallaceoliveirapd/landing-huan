@@ -56,7 +56,7 @@ export const generate = action({
       budget: trip.budget,
     });
 
-    // 2. Real-world places from OpenStreetMap (medium priority — exists in
+    // 2. Real-world places from OpenStreetMap (medium priority, exists in
     // reality, but no rating/photo). We fetch a relevant set for the trip
     // type around the destination coordinates.
     let osmPlaces: OsmPlace[] = [];
@@ -180,7 +180,7 @@ async function planWithAI(
   const days = trip.duration ?? 3;
   const groupSize = trip.groupSize ?? 2;
 
-  const prompt = `Você é o NordestAI, planejador de viagens pelo Nordeste do Brasil.
+  const prompt = `Você é o Huan, agente de viagem do app NordestAI, planejador de viagens pelo Nordeste do Brasil.
 
 DADOS DA VIAGEM:
 - Destino: ${trip.destination}
@@ -189,16 +189,16 @@ DADOS DA VIAGEM:
 - Grupo: ${groupSize} pessoa(s)
 - Orçamento: ${trip.budget ?? "medio"}
 
-FONTE 1 — CONTEÚDO CURADO NO SISTEMA (source: "db" — use o _id como itemId):
+FONTE 1, CONTEÚDO CURADO NO SISTEMA (source: "db", use o _id como itemId):
 ${JSON.stringify(dbItems.slice(0, 30), null, 2)}
 
-FONTE 2 — LUGARES REAIS DA CIDADE (OpenStreetMap; source: "osm" — use osmId como itemId):
+FONTE 2, LUGARES REAIS DA CIDADE (OpenStreetMap; source: "osm", use osmId como itemId):
 ${JSON.stringify(osmCompact, null, 2)}
 
 REGRAS DE PRIORIDADE:
 1. PRIMEIRO use itens da FONTE 1 (db) que combinem com o estilo "${trip.type}".
-2. DEPOIS complete com lugares reais da FONTE 2 (osm) — esses existem na cidade, são SEMPRE preferíveis a inventar.
-3. SOMENTE em último caso use source "suggestion" (sua invenção) — e só quando ambas fontes não cobrirem alguma necessidade.
+2. DEPOIS complete com lugares reais da FONTE 2 (osm), esses existem na cidade, são SEMPRE preferíveis a inventar.
+3. SOMENTE em último caso use source "suggestion" (sua invenção), e só quando ambas fontes não cobrirem alguma necessidade.
 
 REGRAS DE COMPOSIÇÃO:
 - Monte ${days} dia(s), cada um com tema curto (3-5 palavras) e 3 a 5 atividades.
@@ -210,7 +210,7 @@ REGRAS DE COMPOSIÇÃO:
   - note: 1 linha breve sobre o porquê (opcional)
   - itemId: SE source = "db" → use o _id do sistema. SE source = "osm" → use o osmId.
   - icon: SÓ se source = "suggestion" (nome de ícone Lucide: ex "utensils", "music", "waves", "compass")
-- timeOfDay "fullday" substitui manhã+tarde — NÃO inclua almoço no mesmo dia.
+- timeOfDay "fullday" substitui manhã+tarde, NÃO inclua almoço no mesmo dia.
 - Sempre inclua um jantar todos os dias.
 - Equilibre relax (praia/contemplação) e movimento (passeios/atrações).
 - Orçamento "baixo" → prefira atividades gratuitas e restaurantes econômicos.
@@ -322,7 +322,7 @@ function deterministicPlan(
     const activities: Activity[] = [];
     const theme = themes[(d - 1) % themes.length];
 
-    // Morning — alternate between tour and praia
+    // Morning, alternate between tour and praia
     if (d % 2 === 1) {
       activities.push({
         ...pickActivity(dbTours, tDb, osmTours, tOsm, FB.tour, "tour"),

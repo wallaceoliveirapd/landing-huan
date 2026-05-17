@@ -25,7 +25,7 @@ function VerTudoCard() {
       >
         {/* Same outer container as CategoryStackedCard */}
         <div className="relative" style={{ width: 124, height: 133.242 }}>
-          {/* Back card #1 — rotated +16.24° (right) */}
+          {/* Back card #1, rotated +16.24° (right) */}
           <div
             className="absolute flex items-center justify-center"
             style={{ left: 30.77, top: 22.1, width: 91.106, height: 103.683 }}
@@ -38,7 +38,7 @@ function VerTudoCard() {
             </div>
           </div>
 
-          {/* Back card #2 — rotated -9.86° (left) */}
+          {/* Back card #2, rotated -9.86° (left) */}
           <div
             className="absolute flex items-center justify-center"
             style={{ left: 1.54, top: 7.7, width: 84.362, height: 104.285 }}
@@ -60,7 +60,7 @@ function VerTudoCard() {
               width: 77.019,
               height: 104.745,
               borderRadius: 18.484,
-              borderWidth: 2.311,
+              borderWidth: 3,
               boxShadow: "0 9.242px 15.404px 0 rgba(84, 89, 98, 0.10)",
             }}
           >
@@ -85,7 +85,7 @@ function VerTudoCard() {
 }
 
 /**
- * Home category strip — driven by the DB (primary: true, active: true),
+ * Home category strip, driven by the DB (primary: true, active: true),
  * sorted by `order`. Falls back to the hardcoded CATEGORIES list for
  * metadata (label, href) when a DB key matches.
  *
@@ -95,7 +95,7 @@ function VerTudoCard() {
 export function CategoryGrid() {
   const dbCategories = useQuery(api.categories.list, { activeOnly: true });
 
-  // Loading state — show skeleton placeholders
+  // Loading state, show skeleton placeholders
   if (dbCategories === undefined) {
     return (
       <div className="no-scrollbar -mx-6 flex w-[calc(100%+3rem)] items-start gap-4 overflow-x-auto px-6">
@@ -122,19 +122,19 @@ export function CategoryGrid() {
   const items =
     primary.length > 0
       ? primary.map((d) => ({
-          key: d.key,
-          label: d.label,
-          href: d.href,
-          mainImage: d.mainImage,
-          backImages: d.backImages,
-        }))
+        key: d.key,
+        label: d.label,
+        href: d.href,
+        mainImage: d.mainImage,
+        backImages: d.backImages,
+      }))
       : staticFallback.map((c) => ({
-          key: c.key,
-          label: c.label,
-          href: c.href,
-          mainImage: c.image ?? "",
-          backImages: [],
-        }));
+        key: c.key,
+        label: c.label,
+        href: c.href,
+        mainImage: c.image ?? "",
+        backImages: [],
+      }));
 
   return (
     <motion.div

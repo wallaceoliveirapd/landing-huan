@@ -249,7 +249,7 @@ export const ITINERARIES: Itinerary[] = [
     id: "i2",
     slug: "3-dias-litoral",
     title: "3 dias de litoral em João Pessoa",
-    subtitle: "Litoral norte, litoral sul e o melhor da cidade — sem pressa, com tempo de curtir.",
+    subtitle: "Litoral norte, litoral sul e o melhor da cidade, sem pressa, com tempo de curtir.",
     durationDays: 3,
     cover: "https://images.unsplash.com/photo-1733057424920-7cf49b177b79?auto=format&fit=crop&q=80&w=1200",
     days: [
@@ -301,7 +301,7 @@ export const ITINERARIES: Itinerary[] = [
             type: "place",
             time: "19h",
             name: "Jantar de despedida",
-            address: "Casa do Francês — Cabo Branco",
+            address: "Casa do Francês, Cabo Branco",
             description: "Cozinha autoral com sotaque paraibano.",
           },
         ],
@@ -312,7 +312,7 @@ export const ITINERARIES: Itinerary[] = [
     id: "i3",
     slug: "7-dias-pe-na-areia",
     title: "7 dias de pé na areia",
-    subtitle: "Uma semana inteira pra mergulhar na Paraíba — praia, cultura, gastronomia e descanso.",
+    subtitle: "Uma semana inteira pra mergulhar na Paraíba, praia, cultura, gastronomia e descanso.",
     durationDays: 7,
     cover: "https://images.unsplash.com/photo-1733057586164-6f9ab1062e7a?auto=format&fit=crop&q=80&w=1200",
     days: [
@@ -385,7 +385,7 @@ export const DICAS: Dica[] = [
     title: "5 erros comuns em viagens de praia (e como evitar)",
     cover: unsplash("dica-mapa", 800, 500),
     excerpt:
-      "Da escolha do hotel ao protetor solar errado — pequenos detalhes que arruinam uma viagem inteira.",
+      "Da escolha do hotel ao protetor solar errado, pequenos detalhes que arruinam uma viagem inteira.",
     tipo: "Geral",
     publishedAt: "2026-05-10",
   },

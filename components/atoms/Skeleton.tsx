@@ -1,7 +1,7 @@
 import { cn } from "@/lib/cn";
 
 /**
- * Clean skeleton block — uses `neutral-100` (warmer than neutral-300)
+ * Clean skeleton block, uses `neutral-100` (warmer than neutral-300)
  * so it matches the new white aesthetic. Default radius is 12px;
  * pass a different `rounded-*` class to override.
  */
@@ -23,7 +23,7 @@ export function Skeleton({
   );
 }
 
-/** Inline circle skeleton — convenience for avatars and icon placeholders. */
+/** Inline circle skeleton, convenience for avatars and icon placeholders. */
 export function SkeletonCircle({
   size = 40,
   className,

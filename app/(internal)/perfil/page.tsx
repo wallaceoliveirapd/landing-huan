@@ -111,7 +111,7 @@ export default function PerfilPage() {
         </div>
       </motion.div>
 
-      {/* ── Trips carousel — skeleton-first ──────────────────────── */}
+      {/* ── Trips carousel, skeleton-first ──────────────────────── */}
       <motion.div variants={fadeUp} className="pb-6">
         <div className="px-6 mb-3 flex items-center justify-between">
           <h2 className="font-display font-medium text-[16px] text-[var(--color-neutral-800)]">
@@ -156,7 +156,7 @@ export default function PerfilPage() {
             </HorizontalCarousel>
           </div>
         ) : (
-          // No trips — single create CTA
+          // No trips, single create CTA
           <div className="px-6">
             <Link
               href="/minha-viagem/criar"
@@ -179,7 +179,7 @@ export default function PerfilPage() {
         )}
       </motion.div>
 
-      {/* ── Settings list — separated from trips section ──────── */}
+      {/* ── Settings list, separated from trips section ──────── */}
       <motion.div variants={fadeUp} className="px-6 pt-8 border-t border-[var(--color-neutral-100)] mt-2">
         <h2 className="font-display font-medium text-[18px] text-[var(--color-neutral-800)] mb-4">
           Configurações da conta

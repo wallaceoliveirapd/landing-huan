@@ -1,10 +1,10 @@
 /**
- * Cookie consent helpers — LGPD-compliant.
+ * Cookie consent helpers, LGPD-compliant.
  *
  * Categories:
- *   essential  — always on, cannot be disabled
- *   analytics  — GTM / Google Analytics
- *   marketing  — Meta Pixel / remarketing
+ *   essential , always on, cannot be disabled
+ *   analytics , GTM / Google Analytics
+ *   marketing , Meta Pixel / remarketing
  */
 
 export interface CookieConsent {
@@ -36,7 +36,7 @@ export function writeConsent(consent: Omit<CookieConsent, "v" | "decidedAt">): C
   return full;
 }
 
-/** Preset: analytics yes, marketing no — "recommended" for LGPD */
+/** Preset: analytics yes, marketing no, "recommended" for LGPD */
 export const RECOMMENDED_CONSENT: Omit<CookieConsent, "v" | "decidedAt"> = {
   analytics: true,
   marketing: false,

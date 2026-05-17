@@ -18,7 +18,7 @@ export default defineSchema({
     isAnonymous: v.optional(v.boolean()),
     // Set once after the welcome email is sent (post-OTP verification).
     welcomedAt: v.optional(v.number()),
-    // RBAC role — "admin" can access /admin pages. Defaults to "customer".
+    // RBAC role, "admin" can access /admin pages. Defaults to "customer".
     role: v.optional(v.string()),
   }).index("email", ["email"]),
 

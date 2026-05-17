@@ -12,7 +12,7 @@ export default function CuponsPage() {
       items={items as never}
       basePath="/admin/cupons"
       deleteMutation={api.coupons.remove}
-      rowLabel={(item) => `${String(item.code ?? "")} — ${String(item.title ?? item._id)}`}
+      rowLabel={(item) => `${String(item.code ?? "")}, ${String(item.title ?? item._id)}`}
       rowImage={(item) => String(item.image ?? "")}
       subtitle="Cupons de desconto exibidos no carrossel da home"
     />

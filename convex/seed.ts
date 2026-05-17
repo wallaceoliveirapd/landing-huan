@@ -85,7 +85,7 @@ export const run = internalMutation({
       title: "Trilha das Falésias de Cabo Branco",
       slug: "trilha-falesias-cabo-branco",
       description:
-        "Caminhada guiada pelo Parque Natural Municipal das Timbaúbas, passando pelas falésias do Cabo Branco — o ponto mais oriental das Américas.",
+        "Caminhada guiada pelo Parque Natural Municipal das Timbaúbas, passando pelas falésias do Cabo Branco, o ponto mais oriental das Américas.",
       shortDesc: "Caminhada nas falésias do ponto mais a leste das Américas.",
       price: 75,
       image:

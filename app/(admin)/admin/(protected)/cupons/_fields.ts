@@ -11,8 +11,8 @@ export const FIELDS: Field[] = [
     type: "select",
     required: true,
     options: [
-      { value: "percent", label: "% — Percentual" },
-      { value: "fixed",   label: "R$ — Valor fixo"  },
+      { value: "percent", label: "%, Percentual" },
+      { value: "fixed",   label: "R$, Valor fixo"  },
     ],
   },
   { key: "discountValue", label: "Valor do desconto (número)", type: "number", required: true, placeholder: "8" },

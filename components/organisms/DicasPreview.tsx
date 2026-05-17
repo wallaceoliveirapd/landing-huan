@@ -12,7 +12,7 @@ import { staggerChildren, fadeUp } from "@/lib/motion-presets";
 import { gtmSelectItem } from "@/lib/gtm";
 
 /**
- * Dica card — matches Figma node 334:36422.
+ * Dica card, matches Figma node 334:36422.
  *
  *   245 wide, 164px image, yellow Categoria pill top-left, heart top-right
  *   Below image: title (medium 14) + descrição (regular 12 neutral-600)
@@ -50,13 +50,13 @@ function DicaCard({
             sizes="245px"
             className="object-cover"
           />
-          {/* Yellow Categoria badge — top-left */}
+          {/* Yellow Categoria badge, top-left */}
           <div className="absolute left-2.5 top-2.5 bg-[#FFFC4E] rounded-full px-2 py-[0.5px]">
             <span className="font-display font-medium text-[12px] leading-[1.2] text-[var(--color-neutral-800)] uppercase">
               {category}
             </span>
           </div>
-          {/* Heart pill — top-right */}
+          {/* Heart pill, top-right */}
           <div className="absolute right-2 top-2 bg-white rounded-full size-12 grid place-items-center">
             <FavoriteButton itemId={id} kind="dica" size={24} />
           </div>

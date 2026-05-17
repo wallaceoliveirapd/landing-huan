@@ -574,7 +574,7 @@ export function AdminCrudPage({
                     </div>
                   );
                 }
-                // Skip standalone label for photos/hours/days — they have internal labels
+                // Skip standalone label for photos/hours/days, they have internal labels
                 const noLabel = ["photos", "hours", "days"].includes(field.type);
                 return (
                   <div key={field.key} className="flex flex-col gap-1.5">

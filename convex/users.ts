@@ -32,7 +32,7 @@ export const myRole = query({
 });
 
 /**
- * One-off migration — promotes the user with the email defined in the
+ * One-off migration, promotes the user with the email defined in the
  * ADMIN_EMAIL Convex env var to "admin", and makes sure every other user
  * has role="customer" and emailVerificationTime set (so they can sign
  * in normally despite the new OTP requirement).
@@ -70,7 +70,7 @@ export const bootstrapRoles = internalMutation({
 /**
  * Permanently delete the authenticated user's account. We:
  *   1. Persist the reason + optional feedback to `accountDeletions`
- *      (so we learn why people churn) — using a SNAPSHOT of email/name
+ *      (so we learn why people churn), using a SNAPSHOT of email/name
  *      since we're about to delete the user row.
  *   2. Cascade-delete user-owned data: trips, favorites.
  *      Auth subsystem (authAccounts, authSessions, authRefreshTokens,
@@ -105,7 +105,7 @@ export const requestDeletion = mutation({
       deletedAt: Date.now(),
     });
 
-    // 2. Cascade — delete data owned by this user
+    // 2. Cascade, delete data owned by this user
     const trips = await ctx.db
       .query("trips")
       .withIndex("by_user", (q) => q.eq("userId", userId))
@@ -118,7 +118,7 @@ export const requestDeletion = mutation({
       .collect();
     for (const f of favorites) await ctx.db.delete(f._id);
 
-    // 3. Clean up Convex Auth tables (kept here for completeness — if
+    // 3. Clean up Convex Auth tables (kept here for completeness, if
     // your schema doesn't index by userId on these, this is best-effort).
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tables: any[] = [
@@ -138,7 +138,7 @@ export const requestDeletion = mutation({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         for (const r of rows) await ctx.db.delete(r._id);
       } catch {
-        /* table doesn't exist or no userId field — skip */
+        /* table doesn't exist or no userId field, skip */
       }
     }
 

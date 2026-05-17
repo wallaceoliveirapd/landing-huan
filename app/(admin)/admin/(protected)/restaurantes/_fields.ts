@@ -12,9 +12,9 @@ export const FIELDS: Field[] = [
     type: "select",
     required: true,
     options: [
-      { value: "$", label: "$ — Econômico" },
-      { value: "$$", label: "$$ — Moderado" },
-      { value: "$$$", label: "$$$ — Premium" },
+      { value: "$", label: "$, Econômico" },
+      { value: "$$", label: "$$, Moderado" },
+      { value: "$$$", label: "$$$, Premium" },
     ],
   },
   { key: "image", label: "Imagem principal", type: "image", required: true, uploadCategory: "restaurantes" },

@@ -33,7 +33,7 @@ export const CATEGORIES: Category[] = [
     description: "Guia por praia: Cabo Branco, Tambaú, Jacaré, Coqueirinho e mais.",
     heroImage: heroes.praiaArenosa,
     heroSubtitle:
-      "Cabo Branco, Tambaú, Manaíra, Bessa, Jacaré, Tabatinga, Coqueirinho e Tambaba — cada uma com sua vibe.",
+      "Cabo Branco, Tambaú, Manaíra, Bessa, Jacaré, Tabatinga, Coqueirinho e Tambaba, cada uma com sua vibe.",
     primary: true,
   },
   {
@@ -45,7 +45,7 @@ export const CATEGORIES: Category[] = [
     description: "Os principais lugares para comer em João Pessoa.",
     heroImage: heroes.edificioTorre,
     heroSubtitle:
-      "Os lugares onde a gente come — frutos do mar, comida regional, cuscuz autêntico e algumas surpresas.",
+      "Os lugares onde a gente come, frutos do mar, comida regional, cuscuz autêntico e algumas surpresas.",
     primary: true,
   },
   {
@@ -68,7 +68,7 @@ export const CATEGORIES: Category[] = [
     description: "Tours, passeios de barco, buggy e roteiros guiados.",
     heroImage: heroes.praiaAerea,
     heroSubtitle:
-      "Tours, buggy, catamarã e roteiros guiados — selecionados a dedo.",
+      "Tours, buggy, catamarã e roteiros guiados, selecionados a dedo.",
     primary: false,
   },
   {
@@ -80,7 +80,7 @@ export const CATEGORIES: Category[] = [
     description: "Conteúdo curado por IA todos os dias.",
     heroImage: heroes.cidadeLitoral,
     heroSubtitle:
-      "Conteúdo curado todos os dias — viagem em geral, novidades em João Pessoa e o que está rolando agora.",
+      "Conteúdo curado todos os dias, viagem em geral, novidades em João Pessoa e o que está rolando agora.",
     primary: false,
   },
   {

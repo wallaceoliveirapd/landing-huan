@@ -81,7 +81,7 @@ export const myStatus = query({
   },
 });
 
-// ─── Internal — used by convex/push.ts action ─────────────────────────────
+// ─── Internal, used by convex/push.ts action ─────────────────────────────
 
 /**
  * Resolve a broadcast segment into the list of userIds to target.

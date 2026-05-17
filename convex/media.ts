@@ -37,14 +37,14 @@ export const remove = mutation({
   },
 });
 
-// R2 presign — called from Next.js API route, not directly from Convex
+// R2 presign, called from Next.js API route, not directly from Convex
 export const generateR2PresignUrl = action({
   args: {
     filename: v.string(),
     mimeType: v.string(),
   },
   handler: async (_ctx, { filename, mimeType }) => {
-    // This action is intentionally thin — the heavy lifting (S3 presign) happens
+    // This action is intentionally thin, the heavy lifting (S3 presign) happens
     // in the Next.js API route /api/upload which has access to R2 env vars.
     // We return a token so the API route knows the request is from an authenticated user.
     return { filename, mimeType, token: "presign-via-api-route" };

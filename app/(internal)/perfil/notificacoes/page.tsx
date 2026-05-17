@@ -81,7 +81,7 @@ export default function NotificacoesPage() {
       subtitle="Receba avisos importantes no seu navegador ou celular."
     >
       <div className="flex flex-col gap-3 max-w-2xl">
-        {/* Push toggle — main toggle */}
+        {/* Push toggle, main toggle */}
         <div
           className={`flex items-start gap-4 p-4 rounded-[16px] border bg-white ${
             isOn ? "border-[var(--color-neutral-800)]" : "border-[var(--color-neutral-200)]"

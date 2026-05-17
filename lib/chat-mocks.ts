@@ -37,7 +37,7 @@ export const INITIAL_MESSAGES: ChatMessage[] = [
     role: "assistant",
     kind: "text",
     content:
-      "Oi! Sou o **NordestAI**, seu agente de viagem do Nordeste. Posso indicar passeios, restaurantes, praias e cupons — e também montar uma viagem completa pra você. Por onde a gente começa?",
+      "Oi! Sou o **Huan**, seu agente de viagem do Nordeste. Posso indicar passeios, restaurantes, praias e cupons, e também montar uma viagem completa pra você. Por onde a gente começa?",
   },
 ];
 
@@ -49,7 +49,7 @@ export const SUGGESTED_PROMPTS = [
 ];
 
 /**
- * Mock simples — substituído pela rota /api/chat com Groq na Fase 11.
+ * Mock simples, substituído pela rota /api/chat com Groq na Fase 11.
  * Faz match por palavras-chave em roteiros, passeios e restaurantes.
  */
 export function mockReply(userInput: string): ChatMessage[] {

@@ -14,6 +14,27 @@ import { fadeUp, staggerChildren } from "@/lib/motion-presets";
 import { logAndGetMessage } from "@/lib/errors";
 import dynamic from "next/dynamic";
 import { gtmTripViewed } from "@/lib/gtm";
+import { NORDESTE_CITIES } from "@/lib/nordeste-cities";
+
+/**
+ * Some legacy trips were created before lat/lng were captured (or got
+ * persisted as 0). Falling back to (0, 0) drops the pin in the Atlantic
+ * Ocean. Look up coords from the destination string when needed.
+ */
+function resolveCoords(
+  destination: string,
+  lat: number | undefined,
+  lng: number | undefined,
+): { lat: number; lng: number } {
+  if (typeof lat === "number" && typeof lng === "number" && (lat !== 0 || lng !== 0)) {
+    return { lat, lng };
+  }
+  const cityName = (destination ?? "").split(",")[0].trim().toLowerCase();
+  const match = NORDESTE_CITIES.find((c) => c.name.toLowerCase() === cityName);
+  if (match) return { lat: match.lat, lng: match.lng };
+  // Final fallback: João Pessoa (project's default content city)
+  return { lat: -7.1195, lng: -34.845 };
+}
 
 const MapView = dynamic(
   () => import("@/components/molecules/MapView").then((m) => m.MapView),
@@ -331,14 +352,19 @@ export default function TripDetailPage({
       {/* ── Map preview ────────────────────────────────────── */}
       <motion.div variants={fadeUp} className="px-5 pt-2">
         <div className="rounded-[20px] overflow-hidden bg-[var(--color-neutral-100)]">
-          <MapView
-            lat={trip.lat}
-            lng={trip.lng}
-            zoom={11}
-            label={trip.destination.split(",")[0]}
-            staticView
-            className="h-[200px] !rounded-none"
-          />
+          {(() => {
+            const coords = resolveCoords(trip.destination, trip.lat, trip.lng);
+            return (
+              <MapView
+                lat={coords.lat}
+                lng={coords.lng}
+                zoom={11}
+                label={trip.destination.split(",")[0]}
+                staticView
+                className="h-[200px] !rounded-none"
+              />
+            );
+          })()}
         </div>
       </motion.div>
 

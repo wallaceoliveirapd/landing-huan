@@ -215,7 +215,7 @@ export function CategoriaFormPage({ title, createMutation, updateMutation, initi
             </div>
           </div>
 
-          {/* Images — upload direto pro R2 */}
+          {/* Images, upload direto pro R2 */}
           <div className="rounded-2xl bg-white p-5 shadow-sm flex flex-col gap-4">
             <div className="flex items-center justify-between border-b border-[var(--color-neutral-100)] pb-3">
               <p className="text-sm font-medium text-[var(--color-neutral-800)]">

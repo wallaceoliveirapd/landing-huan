@@ -2,7 +2,7 @@ import { InternalPageHero } from "@/components/organisms/InternalPageHero";
 import { EmptyState } from "@/components/organisms/EmptyState";
 import { CATEGORIES } from "@/lib/categories";
 
-export const metadata = { title: "Hospedagem em João Pessoa — HUAN" };
+export const metadata = { title: "Hospedagem em João Pessoa, HUAN" };
 
 export default function HospedagemPage() {
   const cat = CATEGORIES.find((c) => c.key === "hospedagem")!;

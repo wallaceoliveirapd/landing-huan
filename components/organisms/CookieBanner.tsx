@@ -118,7 +118,7 @@ function CookieConfigSheet() {
                 Analíticos
               </p>
               <p className="text-[12px] text-[var(--color-neutral-500)] mt-0.5 leading-relaxed">
-                Google Analytics / GTM — nos ajudam a entender como o site é usado e melhorar a experiência.
+                Google Analytics / GTM, nos ajudam a entender como o site é usado e melhorar a experiência.
               </p>
             </div>
             <Toggle checked={analytics} onChange={setAnalytics} />
@@ -131,7 +131,7 @@ function CookieConfigSheet() {
                 Marketing
               </p>
               <p className="text-[12px] text-[var(--color-neutral-500)] mt-0.5 leading-relaxed">
-                Meta Pixel — usados para anúncios personalizados e remarketing em redes sociais.
+                Meta Pixel, usados para anúncios personalizados e remarketing em redes sociais.
               </p>
             </div>
             <Toggle checked={marketing} onChange={setMarketing} />
@@ -176,7 +176,7 @@ export function CookieBanner() {
       {/* Config sheet (can open independently from footer link) */}
       {configOpen && <CookieConfigSheet key="config" />}
 
-      {/* Banner — only when user hasn't decided yet */}
+      {/* Banner, only when user hasn't decided yet */}
       {!decided && !configOpen && (
         <motion.div
           key="banner"

@@ -18,7 +18,7 @@ export default function HomePage() {
       />
       <OffersSection />
       {/*
-        LoggedOutCta returns null when logged in — avoid double spacer by
+        LoggedOutCta returns null when logged in, avoid double spacer by
         rendering a single SectionSpacer INSIDE the component when visible.
         The spacer before CouponsSection always renders.
       */}

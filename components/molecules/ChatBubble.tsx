@@ -83,13 +83,13 @@ export function ChatMarkdown({ text, isUser }: { text: string; isUser: boolean }
           <p key={bi} className="leading-[1.5]">
             {lines.map((line, li) => {
               // Heading-like line: starts with **Text** standalone (entire line is bold)
-              const headingMatch = line.match(/^\*\*(.+?)\*\*\s*—?\s*(.*)$/);
+              const headingMatch = line.match(/^\*\*(.+?)\*\*\s*,?\s*(.*)$/);
               if (headingMatch && line.startsWith("**")) {
                 return (
                   <span key={li} className="block">
                     <span className="font-medium text-[16px] leading-[1.35]">
                       {headingMatch[1]}
-                      {headingMatch[2] ? ` — ${headingMatch[2]}` : ""}
+                      {headingMatch[2] ? `, ${headingMatch[2]}` : ""}
                     </span>
                   </span>
                 );

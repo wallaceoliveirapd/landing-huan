@@ -20,17 +20,17 @@ const TEXT_KEYS = [
 const IMAGE_KEYS = [
   {
     key: "featured_hero_image_1",
-    label: "FeaturedHero — Slide 1",
+    label: "FeaturedHero, Slide 1",
     placeholder: "https://images.unsplash.com/...",
   },
   {
     key: "featured_hero_image_2",
-    label: "FeaturedHero — Slide 2",
+    label: "FeaturedHero, Slide 2",
     placeholder: "https://images.unsplash.com/...",
   },
   {
     key: "featured_hero_image_3",
-    label: "FeaturedHero — Slide 3",
+    label: "FeaturedHero, Slide 3",
     placeholder: "https://images.unsplash.com/...",
   },
 ];

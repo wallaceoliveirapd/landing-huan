@@ -10,7 +10,7 @@ import type { RawCardItem } from "@/lib/chat-mocks";
 
 /**
  * Per-kind metadata. Each category gets a subtle accent color (used as a
- * small left accent stripe + label tone). NOT loud borders — just an
+ * small left accent stripe + label tone). NOT loud borders, just an
  * understated visual cue so the user can scan categories quickly.
  */
 const KIND_META: Record<

@@ -177,11 +177,11 @@ function CouponSheet({ coupon, onClose }: { coupon: CouponData; onClose: () => v
 }
 
 /**
- * Ticket-style coupon card — matches Figma node 334:36200.
+ * Ticket-style coupon card, matches Figma node 334:36200.
  *
  *   Card: 347 wide
  *   Header: white, border (l/r/t), rounded-t-[16px], pt-4 pb-1 px-4
- *     - Title: medium 20 — discount headline
+ *     - Title: medium 20, discount headline
  *     - Subtitle: regular 12 neutral-600
  *   Separator: scalloped white piece, 30px tall
  *   Footer: white, border (l/r/b), rounded-b-[16px], pb-4 px-4 gap-2

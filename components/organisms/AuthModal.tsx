@@ -126,7 +126,7 @@ export function AuthModal() {
 
       // Convex Auth returns `{ signingIn: boolean }`. When `verify` is set
       // on Password, `signingIn === false` means an OTP was sent and we
-      // need a verification step — regardless of signUp or signIn flow.
+      // need a verification step, regardless of signUp or signIn flow.
       const result = await signIn("password", params);
 
       if (result && result.signingIn === false) {
@@ -262,7 +262,7 @@ export function AuthModal() {
               </button>
             </div>
 
-            {/* Tabs — only on form step */}
+            {/* Tabs, only on form step */}
             {step === "form" && (
               <div className="flex gap-1 mx-6 p-1 rounded-full bg-[var(--color-neutral-100)] shrink-0">
                 {(["signIn", "signUp"] as const).map((t) => (
@@ -513,7 +513,7 @@ function PasswordField({
               strength === "média" ? "text-yellow-600" : "text-red-600"
             }`}>
             Senha {strength}
-            {strength === "fraca" && " — adicione maiúsculas, números ou símbolos"}
+            {strength === "fraca" && ", adicione maiúsculas, números ou símbolos"}
           </p>
         </div>
       )}
