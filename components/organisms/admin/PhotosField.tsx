@@ -70,19 +70,13 @@ export function PhotosField({ value, onChange, uploadCategory = "geral" }: Props
     e.preventDefault();
     e.stopPropagation();
     setDragOver(false);
-    if (busyRef.current) return;
-    busyRef.current = true;
-    try {
-      const files = Array.from(e.dataTransfer.files ?? []);
-      if (files.length > 0) {
-        await processFiles(files);
-        return;
-      }
-      const urls = pickImageUrls(e.dataTransfer);
-      if (urls.length > 0) await processUrls(urls);
-    } finally {
-      busyRef.current = false;
+    const files = Array.from(e.dataTransfer.files ?? []);
+    if (files.length > 0) {
+      await processFiles(files);
+      return;
     }
+    const urls = pickImageUrls(e.dataTransfer);
+    if (urls.length > 0) await processUrls(urls);
   }
 
   async function processUrls(urls: string[]) {
