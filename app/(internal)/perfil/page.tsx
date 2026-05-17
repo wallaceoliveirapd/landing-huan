@@ -73,7 +73,10 @@ export default function PerfilPage() {
       className="min-h-screen bg-white pb-32"
     >
       {/* ── Header: title + sign out ─────────────────────────────── */}
-      <div className="px-6 pt-8 pb-4 flex items-center justify-between">
+      <div
+        className="px-6 pb-4 flex items-center justify-between"
+        style={{ paddingTop: "max(env(safe-area-inset-top), 2rem)" }}
+      >
         <h1 className="font-display font-medium text-[24px] text-[var(--color-neutral-800)]">
           Perfil
         </h1>

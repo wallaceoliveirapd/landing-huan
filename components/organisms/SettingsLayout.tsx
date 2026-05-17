@@ -27,7 +27,10 @@ export function SettingsLayout({
       variants={staggerChildren(0.06, 0.04)}
       className="min-h-screen bg-white pb-32"
     >
-      <div className="flex items-center gap-3 px-5 pt-4 pb-2">
+      <div
+        className="flex items-center gap-3 px-5 pb-2"
+        style={{ paddingTop: "max(env(safe-area-inset-top), 1rem)" }}
+      >
         <button
           type="button"
           onClick={() => router.back()}

@@ -42,7 +42,13 @@ export function InternalPageHero({
   }, [list.length, intervalMs]);
 
   return (
-    <section className="relative w-full h-[220px] min-h-[220px] overflow-hidden">
+    <section
+      className="relative w-full overflow-hidden"
+      style={{
+        height: "calc(220px + max(env(safe-area-inset-top), 0px))",
+        minHeight: "calc(220px + max(env(safe-area-inset-top), 0px))",
+      }}
+    >
       {/* Camada de slides, TODAS sempre montadas, só opacity muda para evitar fundo vazio */}
       {list.map((s, i) => (
         <motion.div
@@ -92,7 +98,8 @@ export function InternalPageHero({
         initial="hidden"
         animate="visible"
         variants={staggerChildren(0.08, 0.05)}
-        className="relative z-10 mx-auto flex h-full w-full max-w-screen-md flex-col justify-between p-4"
+        className="relative z-10 mx-auto flex h-full w-full max-w-screen-md flex-col justify-between px-4 pb-4"
+        style={{ paddingTop: "max(env(safe-area-inset-top), 1rem)" }}
       >
         <motion.div variants={fadeUp}>
           <Link

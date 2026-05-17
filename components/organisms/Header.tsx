@@ -46,7 +46,10 @@ export function Header() {
 
   return (
     <header className="w-full bg-white">
-      <div className="mx-auto flex w-full max-w-screen-md items-center gap-2 px-6 pt-8">
+      <div
+        className="mx-auto flex w-full max-w-screen-md items-center gap-2 px-6"
+        style={{ paddingTop: "max(env(safe-area-inset-top), 2rem)" }}
+      >
         {/* Avatar, skeleton until we know auth state */}
         {loading ? (
           <div className="size-[42px] flex-none rounded-full bg-[var(--color-neutral-100)] animate-pulse" />

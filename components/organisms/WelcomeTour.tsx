@@ -98,7 +98,7 @@ export function WelcomeTour() {
       run
       continuous
       showSkipButton
-      showProgress
+      showProgress={false}
       disableScrolling
       callback={handleCallback}
       locale={{
@@ -107,7 +107,7 @@ export function WelcomeTour() {
         last: "Finalizar",
         next: "Próximo",
         open: "Abrir",
-        skip: "Pular",
+        skip: "Pular tour",
       }}
       styles={{
         options: {

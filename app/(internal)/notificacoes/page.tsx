@@ -69,7 +69,10 @@ export default function NotificacoesInboxPage() {
       className="min-h-screen bg-white pb-32"
     >
       {/* Header */}
-      <div className="flex items-center gap-3 px-5 pt-4 pb-2 shrink-0">
+      <div
+        className="flex items-center gap-3 px-5 pb-2 shrink-0"
+        style={{ paddingTop: "max(env(safe-area-inset-top), 1rem)" }}
+      >
         <button
           type="button"
           onClick={() => router.back()}

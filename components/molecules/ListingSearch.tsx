@@ -39,7 +39,10 @@ export function ListingSearch({
     resultCount !== undefined && totalCount !== undefined && resultCount !== totalCount;
 
   return (
-    <div className="bg-white sticky top-0 z-10 border-b border-[var(--color-neutral-100)] flex flex-col gap-2 pt-3 pb-2">
+    <div
+      className="bg-white sticky top-0 z-10 border-b border-[var(--color-neutral-100)] flex flex-col gap-2 pb-2"
+      style={{ paddingTop: "calc(max(env(safe-area-inset-top), 0px) + 12px)" }}
+    >
       {/* Search input, constrained with side padding */}
       <div className="relative px-4">
         <Icon
