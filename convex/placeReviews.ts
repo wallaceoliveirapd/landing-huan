@@ -19,10 +19,17 @@ function assertKind(kind: string) {
 
 // ── Profanity filter (PT-BR) ────────────────────────────────────────────────
 const BLOCKLIST_PT = [
-  "puta", "viado", "buceta", "merda", "fdp", "foder", "porra", "caralho",
-  "cuzao", "vadia", "safada", "safado", "idiota", "imbecil", "retardado",
-  "otario", "babaca", "corno", "vagabunda", "vagabundo", "desgraçado",
-  "desgraçada", "maldito", "maldita",
+  // anatomia / ato sexual
+  "cu", "cuzao", "buceta", "puta", "viado", "foder", "foda", "fodase",
+  "foda-se", "porra", "caralho", "piroca", "rola", "xota", "xoxota",
+  // xingamentos
+  "merda", "fdp", "filha da puta", "filho da puta", "vadia", "vagabunda",
+  "vagabundo", "safada", "safado", "idiota", "imbecil", "retardado",
+  "retardada", "otario", "otaria", "babaca", "corno", "corna",
+  // desgraça e variantes
+  "desgraça", "desgraçado", "desgraçada", "maldito", "maldita",
+  // insultos leves mas claramente ofensivos
+  "lixo", "inutil", "arrombado", "arrombada", "broxa",
 ];
 
 function passesLocalFilter(text: string): boolean {
