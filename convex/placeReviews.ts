@@ -36,32 +36,28 @@ function passesLocalFilter(text: string): boolean {
   });
 }
 
-// ── Perspective API ─────────────────────────────────────────────────────────
-async function perspectiveScore(text: string): Promise<number | null> {
-  const apiKey = process.env.PERSPECTIVE_API_KEY;
+// ── OpenAI Moderation API ───────────────────────────────────────────────────
+async function openaiModeration(
+  text: string,
+): Promise<{ flagged: boolean; score: number } | null> {
+  const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return null;
   try {
-    const res = await fetch(
-      `https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          comment: { text },
-          languages: ["pt"],
-          requestedAttributes: { TOXICITY: {}, INSULT: {}, PROFANITY: {} },
-        }),
+    const res = await fetch("https://api.openai.com/v1/moderations", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
       },
-    );
+      body: JSON.stringify({ model: "omni-moderation-latest", input: text }),
+    });
     if (!res.ok) return null;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data: any = await res.json();
-    const scores = data?.attributeScores;
-    return Math.max(
-      scores?.TOXICITY?.summaryScore?.value ?? 0,
-      scores?.INSULT?.summaryScore?.value ?? 0,
-      scores?.PROFANITY?.summaryScore?.value ?? 0,
-    );
+    const result = data?.results?.[0];
+    if (!result) return null;
+    const score = Math.max(...Object.values<number>(result.category_scores ?? {}));
+    return { flagged: result.flagged === true, score };
   } catch {
     return null;
   }
@@ -298,10 +294,10 @@ export const submitReview = action({
       if (!passesLocalFilter(comment)) {
         status = "pending";
       } else {
-        const score = await perspectiveScore(comment.trim());
-        if (score !== null) {
-          moderationScore = score;
-          if (score > 0.7) status = "pending";
+        const result = await openaiModeration(comment.trim());
+        if (result !== null) {
+          moderationScore = result.score;
+          if (result.flagged) status = "pending";
         }
       }
     }
