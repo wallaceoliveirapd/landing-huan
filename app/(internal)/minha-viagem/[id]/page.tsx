@@ -777,6 +777,7 @@ export default function TripDetailPage({
         initialDuration={trip.duration ?? 3}
         initialGroupSize={trip.groupSize ?? 2}
         initialBudget={trip.budget ?? "medio"}
+        initialStartDate={trip.startDate}
         onClose={() => setEditSheetOpen(false)}
       />
 

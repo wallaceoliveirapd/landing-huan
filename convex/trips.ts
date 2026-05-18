@@ -182,8 +182,9 @@ export const updateBasics = mutation({
     duration: v.optional(v.number()),
     groupSize: v.optional(v.number()),
     budget: v.optional(v.string()),
+    startDate: v.optional(v.number()),
   },
-  handler: async (ctx, { id, duration, groupSize, budget }) => {
+  handler: async (ctx, { id, duration, groupSize, budget, startDate }) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) throw new Error("Unauthorized");
     const trip = await ctx.db.get(id);
@@ -193,6 +194,7 @@ export const updateBasics = mutation({
     if (duration !== undefined) patch.duration = duration;
     if (groupSize !== undefined) patch.groupSize = groupSize;
     if (budget !== undefined) patch.budget = budget;
+    if (startDate !== undefined) patch.startDate = startDate;
 
     // Append blank days if new duration exceeds existing itinerary depth.
     // Existing days are never deleted — hidden by the client via display filter.

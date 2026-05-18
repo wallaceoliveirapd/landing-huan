@@ -29,7 +29,14 @@ interface Props {
   initialDuration: number;
   initialGroupSize: number;
   initialBudget: string;
+  /** Timestamp (ms). Undefined if trip has no start date set. */
+  initialStartDate?: number;
   onClose: () => void;
+}
+
+function tsToIsoDate(ts: number | undefined): string {
+  if (!ts) return "";
+  return new Date(ts).toISOString().slice(0, 10);
 }
 
 export function EditTripSheet({
@@ -38,11 +45,18 @@ export function EditTripSheet({
   initialDuration,
   initialGroupSize,
   initialBudget,
+  initialStartDate,
   onClose,
 }: Props) {
   const [duration, setDuration] = useState(initialDuration);
   const [groupSize, setGroupSize] = useState(initialGroupSize);
   const [budget, setBudget] = useState(initialBudget);
+  const [startDate, setStartDate] = useState(tsToIsoDate(initialStartDate));
+  const [endDate, setEndDate] = useState(() => {
+    if (!initialStartDate) return "";
+    const end = new Date(initialStartDate + initialDuration * 86400000);
+    return end.toISOString().slice(0, 10);
+  });
   const [durationOpen, setDurationOpen] = useState(false);
   const [budgetOpen, setBudgetOpen] = useState(false);
   const [customMode, setCustomMode] = useState(false);
@@ -58,10 +72,28 @@ export function EditTripSheet({
     setDuration(initialDuration);
     setGroupSize(initialGroupSize);
     setBudget(initialBudget);
+    setStartDate(tsToIsoDate(initialStartDate));
+    setEndDate(
+      initialStartDate
+        ? new Date(initialStartDate + initialDuration * 86400000)
+            .toISOString()
+            .slice(0, 10)
+        : "",
+    );
     setDurationOpen(false);
     setBudgetOpen(false);
     setCustomMode(false);
-  }, [open, initialDuration, initialGroupSize, initialBudget]);
+  }, [open, initialDuration, initialGroupSize, initialBudget, initialStartDate]);
+
+  // When duration changes, keep endDate in sync if start is set
+  function applyDuration(days: number) {
+    setDuration(days);
+    if (startDate) {
+      const s = new Date(startDate).getTime();
+      const end = new Date(s + days * 86400000);
+      setEndDate(end.toISOString().slice(0, 10));
+    }
+  }
 
   function unitToDays(amount: number, unit: "dias" | "semanas" | "meses") {
     const factor = unit === "dias" ? 1 : unit === "semanas" ? 7 : 30;
@@ -79,12 +111,20 @@ export function EditTripSheet({
     if (saving) return;
     setSaving(true);
     try {
-      await updateBasics({ id: tripId, duration, groupSize, budget });
+      const startTs = startDate ? new Date(startDate).getTime() : undefined;
+      await updateBasics({
+        id: tripId,
+        duration,
+        groupSize,
+        budget,
+        startDate: startTs,
+      });
       toast.success("Viagem atualizada!");
       resetAndClose();
     } catch (err) {
       console.error(err);
-      toast.error("Não consegui salvar. Tente de novo.");
+      const msg = err instanceof Error ? err.message : "Não consegui salvar. Tente de novo.";
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -123,7 +163,7 @@ export function EditTripSheet({
                   Editar viagem
                 </h3>
                 <p className="text-[12px] text-[var(--color-neutral-600)] mt-0.5">
-                  Ajuste duração, grupo e orçamento.
+                  Ajuste duração, datas, grupo e orçamento.
                 </p>
               </div>
               <button
@@ -163,7 +203,7 @@ export function EditTripSheet({
                               type="button"
                               onClick={() => {
                                 setCustomMode(false);
-                                setDuration(d.value);
+                                applyDuration(d.value);
                                 setDurationOpen(false);
                               }}
                               className={`rounded-full px-4 py-2 text-[13px] font-medium bg-white border transition-colors ${
@@ -181,7 +221,7 @@ export function EditTripSheet({
                           onClick={() => {
                             setCustomMode(true);
                             const n = Math.max(1, Number(customAmount) || 1);
-                            setDuration(unitToDays(n, customUnit));
+                            applyDuration(unitToDays(n, customUnit));
                           }}
                           className={`rounded-full px-4 py-2 text-[13px] font-medium bg-white border transition-colors ${
                             customMode
@@ -204,7 +244,7 @@ export function EditTripSheet({
                               setCustomAmount(raw);
                               const n = Number(raw);
                               if (Number.isFinite(n) && n >= 1) {
-                                setDuration(unitToDays(n, customUnit));
+                                applyDuration(unitToDays(n, customUnit));
                               }
                             }}
                             className="w-20 h-11 rounded-[12px] border border-[var(--color-neutral-300)] px-3 text-[14px] outline-none focus:border-[var(--color-neutral-800)]"
@@ -215,7 +255,7 @@ export function EditTripSheet({
                               const u = e.target.value as "dias" | "semanas" | "meses";
                               setCustomUnit(u);
                               const n = Math.max(1, Number(customAmount) || 1);
-                              setDuration(unitToDays(n, u));
+                              applyDuration(unitToDays(n, u));
                             }}
                             className="flex-1 h-11 rounded-[12px] border border-[var(--color-neutral-300)] px-3 text-[14px] outline-none focus:border-[var(--color-neutral-800)] bg-white"
                           >
@@ -228,6 +268,52 @@ export function EditTripSheet({
                     </motion.div>
                   )}
                 </AnimatePresence>
+              </div>
+
+              {/* Dates */}
+              <div className="flex gap-2">
+                <label className="flex-1 flex flex-col gap-1.5 p-3 rounded-[16px] border border-[var(--color-neutral-300)] bg-white">
+                  <span className="text-[11px] font-medium text-[var(--color-neutral-600)] uppercase tracking-wide">
+                    Ida
+                  </span>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setStartDate(v);
+                      if (!v) {
+                        setEndDate("");
+                        return;
+                      }
+                      const s = new Date(v).getTime();
+                      const end = new Date(s + duration * 86400000);
+                      setEndDate(end.toISOString().slice(0, 10));
+                    }}
+                    className="text-[14px] text-[var(--color-neutral-800)] outline-none bg-transparent"
+                  />
+                </label>
+                <label className="flex-1 flex flex-col gap-1.5 p-3 rounded-[16px] border border-[var(--color-neutral-300)] bg-white">
+                  <span className="text-[11px] font-medium text-[var(--color-neutral-600)] uppercase tracking-wide">
+                    Volta
+                  </span>
+                  <input
+                    type="date"
+                    value={endDate}
+                    min={startDate || undefined}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setEndDate(v);
+                      if (v && startDate) {
+                        const s = new Date(startDate).getTime();
+                        const en = new Date(v).getTime();
+                        const days = Math.max(1, Math.round((en - s) / 86400000));
+                        if (Number.isFinite(days)) setDuration(days);
+                      }
+                    }}
+                    className="text-[14px] text-[var(--color-neutral-800)] outline-none bg-transparent"
+                  />
+                </label>
               </div>
 
               {/* Group size */}
