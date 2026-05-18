@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { SkeletonImage } from "@/components/atoms/SkeletonImage";
 import { motion } from "motion/react";
 import { cn } from "@/lib/cn";
 
@@ -22,7 +22,7 @@ export function PhotoTile({
         className,
       )}
     >
-      <Image
+      <SkeletonImage
         src={src}
         alt={alt}
         fill

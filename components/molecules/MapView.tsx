@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { motion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 const MAPBOX_STYLE = "mapbox://styles/uolaci/cmgxmdq9a004v01s536k6ah2b";
@@ -73,6 +72,7 @@ export function MapView({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mglRef = useRef<any>(null);
   const loadedRef = useRef(false);
+  const [mapLoaded, setMapLoaded] = useState(false);
 
   // ── Init map (once) ─────────────────────────────────────────────────
   useEffect(() => {
@@ -102,6 +102,7 @@ export function MapView({
       mapRef.current = map;
       map.on("load", () => {
         loadedRef.current = true;
+        setMapLoaded(true);
         syncMarker();
       });
     }
@@ -161,13 +162,17 @@ export function MapView({
   }, [lat, lng, zoom, animate]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
+    <div
       ref={containerRef}
       className={`w-full rounded-2xl overflow-hidden ${className}`}
-      style={{ minHeight: 240 }}
-    />
+      style={{ minHeight: 240, position: "relative" }}
+    >
+      {!mapLoaded && (
+        <span
+          aria-hidden
+          className="absolute inset-0 z-10 bg-[var(--color-neutral-200)] animate-pulse"
+        />
+      )}
+    </div>
   );
 }

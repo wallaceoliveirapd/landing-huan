@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { SkeletonImage } from "@/components/atoms/SkeletonImage";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { Icon } from "@/components/atoms/Icon";
@@ -32,7 +32,7 @@ export function TourDetailHero({
   return (
     <section className="relative w-full h-[453px] overflow-hidden">
       <div className="absolute inset-0">
-        <Image
+        <SkeletonImage
           src={toProxyUrl(image)}
           alt={title}
           fill

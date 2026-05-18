@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { SkeletonImage } from "@/components/atoms/SkeletonImage";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { cn } from "@/lib/cn";
@@ -41,7 +41,7 @@ export function RestaurantCard({
         onClick={onSelect}
       >
         <div className="relative aspect-[245/164] w-full overflow-hidden rounded-[24px]">
-          <Image
+          <SkeletonImage
             src={toProxyUrl(restaurant.image)}
             alt={restaurant.name}
             fill

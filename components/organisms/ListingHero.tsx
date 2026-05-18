@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { SkeletonImage } from "@/components/atoms/SkeletonImage";
 import { motion } from "motion/react";
 import { Icon, type IconName } from "@/components/atoms/Icon";
 import { fadeUp, staggerChildren } from "@/lib/motion-presets";
@@ -19,7 +19,7 @@ export function ListingHero({
   return (
     <section className="relative w-full min-h-[320px] overflow-hidden">
       <div className="absolute inset-0">
-        <Image
+        <SkeletonImage
           src={image}
           alt=""
           fill

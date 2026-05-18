@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { SkeletonImage } from "@/components/atoms/SkeletonImage";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { Badge } from "@/components/atoms/Badge";
@@ -28,7 +28,7 @@ export function OfferCardLarge({ tour }: { tour: Tour }) {
       className="flex w-full flex-col gap-4 group"
     >
       <div className="relative h-[200px] w-full overflow-hidden rounded-card ">
-        <Image
+        <SkeletonImage
           src={toProxyUrl(tour.image)}
           alt={tour.title}
           fill
