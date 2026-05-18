@@ -344,11 +344,14 @@ export default defineSchema({
     itemId: v.string(), // Convex id da entidade (tours/_id, etc.)
     rating: v.number(), // 1..5
     comment: v.optional(v.string()),
+    status: v.optional(v.union(v.literal("published"), v.literal("pending"), v.literal("rejected"))),
+    moderationScore: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index("by_kind_item", ["kind", "itemId"])
-    .index("by_user_kind_item", ["userId", "kind", "itemId"]),
+    .index("by_user_kind_item", ["userId", "kind", "itemId"])
+    .index("by_status", ["status"]),
 
   // ── Reações genéricas (mesmo modelo) ─────────────────────────
   placeReactions: defineTable({

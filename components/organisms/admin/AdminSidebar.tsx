@@ -23,6 +23,7 @@ const NAV = [
   { href: "/admin/cupons", label: "Cupons", icon: "lucide:ticket-percent" },
   { href: "/admin/site", label: "Conteúdo do Site", icon: "lucide:pencil" },
   { href: "/admin/midia", label: "Mídia / R2", icon: "lucide:image" },
+  { href: "/admin/avaliacoes", label: "Avaliações", icon: "lucide:star" },
   { href: "/admin/analytics", label: "Analytics / UTM", icon: "lucide:bar-chart-2" },
   { href: "/admin/push", label: "Push notifications", icon: "lucide:bell-ring" },
   { href: "/admin/webhooks", label: "Webhooks (n8n)", icon: "lucide:webhook" },

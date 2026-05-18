@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { useMutation, useQuery } from "convex/react";
+import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Icon } from "@/components/atoms/Icon";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -92,7 +92,7 @@ export function PlaceReviewsSection({ kind, itemId, noun = "este lugar" }: Props
   const myReview = useQuery(api.placeReviews.myReview, { kind, itemId });
   const aggregate = useQuery(api.placeReviews.aggregateForItem, { kind, itemId });
   const reactions = useQuery(api.placeReactions.forItem, { kind, itemId });
-  const upsertReview = useMutation(api.placeReviews.upsert);
+  const submitReview = useAction(api.placeReviews.submitReview);
   const removeReview = useMutation(api.placeReviews.remove);
   const toggleReaction = useMutation(api.placeReactions.toggle);
 
@@ -125,13 +125,16 @@ export function PlaceReviewsSection({ kind, itemId, noun = "este lugar" }: Props
     setError("");
     setSubmitting(true);
     try {
-      await upsertReview({
+      const result = await submitReview({
         kind,
         itemId,
         rating,
         comment: comment.trim() || undefined,
       });
       setEditing(false);
+      if (result?.status === "pending") {
+        setError("Avaliação enviada! Ela aparecerá após análise da moderação.");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao salvar.");
     } finally {
@@ -248,9 +251,17 @@ export function PlaceReviewsSection({ kind, itemId, noun = "este lugar" }: Props
           ) : myReview && !editing ? (
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <span className="text-[12px] font-medium uppercase tracking-wide text-[var(--color-neutral-600)]">
-                  Sua avaliação
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[12px] font-medium uppercase tracking-wide text-[var(--color-neutral-600)]">
+                    Sua avaliação
+                  </span>
+                  {myReview.status === "pending" && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700">
+                      <Icon name="clock" size={10} />
+                      Aguardando análise
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center gap-1">
                   <button
                     type="button"
