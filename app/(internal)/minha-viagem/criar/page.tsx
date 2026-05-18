@@ -219,11 +219,13 @@ export default function CriarViagemPage() {
   const createTrip = useMutation(api.trips.create);
   const generateItinerary = useAction(api.itineraryGen.generate);
   const myTrips = useQuery(api.trips.myTrips);
+  const viewer = useQuery(api.users.viewer);
 
   // Skeleton-first: don't display fake counts while loading.
   const tripsLoading = myTrips === undefined;
   const tripsCount = myTrips?.length;
-  const reachedLimit = tripsCount !== undefined && tripsCount >= TRIP_LIMIT;
+  const effectiveLimit = TRIP_LIMIT + ((viewer as { tripLimitBonus?: number } | null)?.tripLimitBonus ?? 0);
+  const reachedLimit = tripsCount !== undefined && tripsCount >= effectiveLimit;
 
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState(1);
@@ -434,12 +436,12 @@ export default function CriarViagemPage() {
                     <p className="font-display font-medium text-[13px] leading-[1.3] text-[var(--color-neutral-800)]">
                       {reachedLimit
                         ? "Você atingiu o limite de viagens"
-                        : `${tripsCount} de ${TRIP_LIMIT} viagens criadas`}
+                        : `${tripsCount} de ${effectiveLimit} viagens criadas`}
                     </p>
                     <p className="text-[12px] text-[var(--color-neutral-600)]">
                       {reachedLimit
-                        ? `Cada conta pode ter até ${TRIP_LIMIT} viagens. Exclua uma para criar outra.`
-                        : `Cada conta pode ter até ${TRIP_LIMIT} viagens.`}
+                        ? `Cada conta pode ter até ${effectiveLimit} viagens. Exclua uma para criar outra.`
+                        : `Cada conta pode ter até ${effectiveLimit} viagens.`}
                     </p>
                   </div>
                 </div>
@@ -880,7 +882,7 @@ export default function CriarViagemPage() {
       <div className="fixed bottom-0 inset-x-0 z-30 p-5 bg-white border-t border-[var(--color-neutral-200)] flex flex-col gap-2">
         {limitError && (
           <p className="text-[12px] text-red-600 text-center">
-            Limite de {TRIP_LIMIT} viagens atingido. Exclua uma no seu perfil para criar outra.
+            Limite de {effectiveLimit} viagens atingido. Exclua uma no seu perfil para criar outra.
           </p>
         )}
 

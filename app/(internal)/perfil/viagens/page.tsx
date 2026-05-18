@@ -31,6 +31,7 @@ const TRIP_TYPE_LABEL: Record<string, string> = {
 export default function MinhasViagensPage() {
   const auth = useAuth();
   const trips = useQuery(api.trips.myTrips);
+  const viewer = useQuery(api.users.viewer);
 
   useEffect(() => {
     if (!auth.isLoading && !auth.isAuthenticated) auth.openAuthModal();
@@ -38,10 +39,11 @@ export default function MinhasViagensPage() {
 
   const loading = trips === undefined;
   const used = trips?.length;
-  const remaining = used === undefined ? TRIP_LIMIT : Math.max(TRIP_LIMIT - used, 0);
+  const effectiveLimit = TRIP_LIMIT + ((viewer as { tripLimitBonus?: number } | null)?.tripLimitBonus ?? 0);
+  const remaining = used === undefined ? effectiveLimit : Math.max(effectiveLimit - used, 0);
   const subtitle = loading
     ? "Carregando suas viagens…"
-    : `${used} de ${TRIP_LIMIT} viagens criadas.`;
+    : `${used} de ${effectiveLimit} viagens criadas.`;
 
   return (
     <SettingsLayout
