@@ -1,4 +1,13 @@
+import type { Metadata } from "next";
 import { HeroPromo } from "@/components/organisms/HeroPromo";
+
+export const metadata: Metadata = {
+  title: "Guia de viagem para o Nordeste",
+  description:
+    "Passeios, praias, restaurantes e dicas exclusivas do Nordeste, curados por Huan Falcão. Planeje sua viagem com IA e descubra João Pessoa como um local.",
+  alternates: { canonical: "https://huanfalcao.com.br" },
+  openGraph: { url: "https://huanfalcao.com.br", type: "website" },
+};
 import { FeaturedHeroSection } from "@/components/organisms/FeaturedHeroSection";
 import { OffersSection } from "@/components/organisms/OffersSection";
 import { CouponsSection } from "@/components/organisms/CouponsSection";

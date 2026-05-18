@@ -16,9 +16,13 @@ const asap = Asap({
 });
 
 export const metadata: Metadata = {
-  title: "NordestAI - By Huan Falcão ",
+  metadataBase: new URL("https://huanfalcao.com.br"),
+  title: {
+    template: "%s | NordestAI - By Huan Falcão",
+    default: "NordestAI - By Huan Falcão | Guia de viagem para o Nordeste",
+  },
   description:
-    "Passeios, restaurantes e dicas exclusivas em João Pessoa, escolhidos a dedo para a sua viagem.",
+    "Passeios, praias, restaurantes e dicas exclusivas do Nordeste, curados por Huan Falcão. Planeje sua viagem com IA.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -28,6 +32,16 @@ export const metadata: Metadata = {
   icons: {
     icon: "/images/icon-pwa.png",
     apple: "/images/icon-pwa.png",
+  },
+  openGraph: {
+    siteName: "NordestAI - By Huan Falcão",
+    locale: "pt_BR",
+    type: "website",
+    images: [{ url: "/images/meta/img-meta.png", width: 1200, height: 630, alt: "NordestAI - By Huan Falcão" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: "@huanfalcao",
   },
 };
 

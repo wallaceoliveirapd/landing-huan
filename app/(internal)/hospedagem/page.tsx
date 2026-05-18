@@ -1,8 +1,15 @@
+import type { Metadata } from "next";
 import { InternalPageHero } from "@/components/organisms/InternalPageHero";
 import { EmptyState } from "@/components/organisms/EmptyState";
 import { CATEGORIES } from "@/lib/categories";
 
-export const metadata = { title: "Hospedagem em João Pessoa, HUAN" };
+export const metadata: Metadata = {
+  title: "Hospedagem em João Pessoa",
+  description:
+    "Onde se hospedar em João Pessoa: pousadas, hotéis e apartamentos indicados por Huan Falcão, do centro histórico à orla de Tambaú.",
+  alternates: { canonical: "https://huanfalcao.com.br/hospedagem" },
+  openGraph: { url: "https://huanfalcao.com.br/hospedagem", type: "website" },
+};
 
 export default function HospedagemPage() {
   const cat = CATEGORIES.find((c) => c.key === "hospedagem")!;

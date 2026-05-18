@@ -1,8 +1,15 @@
+import type { Metadata } from "next";
 import { InternalPageHero } from "@/components/organisms/InternalPageHero";
 import { RestaurantesContent } from "@/components/organisms/RestaurantesContent";
 import { CATEGORIES } from "@/lib/categories";
 
-export const metadata = { title: "Restaurantes em João Pessoa, HUAN" };
+export const metadata: Metadata = {
+  title: "Restaurantes em João Pessoa",
+  description:
+    "Restaurantes testados e aprovados em João Pessoa: frutos do mar, comida nordestina, cafés e muito mais. Indicações de Huan Falcão.",
+  alternates: { canonical: "https://huanfalcao.com.br/restaurantes" },
+  openGraph: { url: "https://huanfalcao.com.br/restaurantes", type: "website" },
+};
 
 export default function RestaurantesPage() {
   const cat = CATEGORIES.find((c) => c.key === "restaurantes")!;

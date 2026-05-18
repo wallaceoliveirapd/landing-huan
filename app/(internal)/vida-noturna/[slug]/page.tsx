@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -10,12 +11,35 @@ import { BackButton } from "@/components/atoms/BackButton";
 import { PlaceReviewsSection } from "@/components/organisms/PlaceReviewsSection";
 import { RichContent } from "@/components/atoms/RichContent";
 
+const BASE = "https://huanfalcao.com.br";
+
 type PageProps = { params: Promise<{ slug: string }> };
 
-export async function generateMetadata({ params }: PageProps) {
+export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  const items = await fetchQuery(api.nightlife.list, {});
+  return items.map((n) => ({ slug: n.slug }));
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const n = await fetchQuery(api.nightlife.getBySlug, { slug });
-  return { title: n ? `${n.name}, HUAN` : "Vida noturna, HUAN" };
+  if (!n) return { title: "Local não encontrado" };
+  const desc = n.shortDesc?.slice(0, 160) ?? "";
+  const url = `${BASE}/vida-noturna/${slug}`;
+  return {
+    title: n.name,
+    description: desc,
+    alternates: { canonical: url },
+    openGraph: {
+      title: n.name,
+      description: desc,
+      url,
+      type: "website",
+      images: n.image ? [{ url: n.image, width: 1200, height: 630 }] : undefined,
+    },
+  };
 }
 
 const DAY_NAMES: Record<string, string> = {
@@ -31,8 +55,22 @@ export default async function NightlifeDetailPage({ params }: PageProps) {
   const place = await fetchQuery(api.nightlife.getBySlug, { slug });
   if (!place) return notFound();
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BarOrPub",
+    name: place.name,
+    description: place.shortDesc ?? undefined,
+    image: place.image ?? undefined,
+    url: `${BASE}/vida-noturna/${place.slug}`,
+    ...(place.address ? { address: { "@type": "PostalAddress", streetAddress: place.address, addressLocality: "João Pessoa", addressRegion: "PB", addressCountry: "BR" } } : {}),
+  };
+
   return (
     <main className="min-h-screen bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <GtmViewItem
         item_type="nightlife"
         item_id={place._id}

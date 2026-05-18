@@ -1,8 +1,15 @@
+import type { Metadata } from "next";
 import { InternalPageHero } from "@/components/organisms/InternalPageHero";
 import { DicasContent } from "@/components/organisms/DicasContent";
 import { CATEGORIES } from "@/lib/categories";
 
-export const metadata = { title: "Dicas de viagem, HUAN" };
+export const metadata: Metadata = {
+  title: "Dicas de viagem para o Nordeste",
+  description:
+    "Dicas de viagem, curiosidades e guias sobre o Nordeste brasileiro, escritos por Huan Falcão. Tudo que você precisa saber antes de ir a João Pessoa.",
+  alternates: { canonical: "https://huanfalcao.com.br/dicas" },
+  openGraph: { url: "https://huanfalcao.com.br/dicas", type: "website" },
+};
 
 export default function DicasPage() {
   const cat = CATEGORIES.find((c) => c.key === "dicas")!;

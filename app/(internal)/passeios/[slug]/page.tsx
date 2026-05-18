@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { fetchQuery } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
@@ -7,12 +8,35 @@ import { TourCtaFooter } from "@/components/organisms/TourCtaFooter";
 import { GtmViewItem } from "@/components/atoms/GtmViewItem";
 import { PlaceReviewsSection } from "@/components/organisms/PlaceReviewsSection";
 
+const BASE = "https://huanfalcao.com.br";
+
 type PageProps = { params: Promise<{ slug: string }> };
 
-export async function generateMetadata({ params }: PageProps) {
+export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  const items = await fetchQuery(api.tours.list, {});
+  return items.map((t) => ({ slug: t.slug }));
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const t = await fetchQuery(api.tours.getBySlug, { slug });
-  return { title: t ? `${t.title}, HUAN` : "Passeio, HUAN" };
+  if (!t) return { title: "Passeio não encontrado" };
+  const desc = t.shortDesc?.slice(0, 160) ?? "";
+  const url = `${BASE}/passeios/${slug}`;
+  return {
+    title: t.title,
+    description: desc,
+    alternates: { canonical: url },
+    openGraph: {
+      title: t.title,
+      description: desc,
+      url,
+      type: "website",
+      images: t.image ? [{ url: t.image, width: 1200, height: 630 }] : undefined,
+    },
+  };
 }
 
 export default async function TourDetailPage({ params }: PageProps) {
@@ -27,8 +51,24 @@ export default async function TourDetailPage({ params }: PageProps) {
       ? "Muito bom"
       : "Bom";
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "TouristAttraction",
+    name: tour.title,
+    description: tour.shortDesc ?? undefined,
+    image: tour.image ?? undefined,
+    url: `${BASE}/passeios/${tour.slug}`,
+    ...(tour.rating && tour.reviewCount > 0
+      ? { aggregateRating: { "@type": "AggregateRating", ratingValue: String(tour.rating), reviewCount: tour.reviewCount } }
+      : {}),
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <GtmViewItem
         item_type="passeio"
         item_id={tour._id}

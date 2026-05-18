@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { fetchQuery } from "convex/nextjs";
@@ -10,17 +11,40 @@ import { BackButton } from "@/components/atoms/BackButton";
 import { PlaceReviewsSection } from "@/components/organisms/PlaceReviewsSection";
 import { RichContent } from "@/components/atoms/RichContent";
 
+const BASE = "https://huanfalcao.com.br";
+
 type PageProps = { params: Promise<{ slug: string }> };
+
+export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  const items = await fetchQuery(api.praias.list, {});
+  return items.map((p) => ({ slug: p.slug }));
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const p = await fetchQuery(api.praias.getBySlug, { slug });
+  if (!p) return { title: "Praia não encontrada" };
+  const desc = p.shortDesc?.slice(0, 160) ?? "";
+  const url = `${BASE}/praias/${slug}`;
+  return {
+    title: p.name,
+    description: desc,
+    alternates: { canonical: url },
+    openGraph: {
+      title: p.name,
+      description: desc,
+      url,
+      type: "website",
+      images: p.image ? [{ url: p.image, width: 1200, height: 630 }] : undefined,
+    },
+  };
+}
 
 function isMapsUrl(value: string): boolean {
   const v = value.trim().toLowerCase();
   return v.startsWith("http://") || v.startsWith("https://");
-}
-
-export async function generateMetadata({ params }: PageProps) {
-  const { slug } = await params;
-  const p = await fetchQuery(api.praias.getBySlug, { slug });
-  return { title: p ? `${p.name}, HUAN` : "Praia, HUAN" };
 }
 
 export default async function PraiaDetailPage({ params }: PageProps) {
@@ -28,8 +52,22 @@ export default async function PraiaDetailPage({ params }: PageProps) {
   const praia = await fetchQuery(api.praias.getBySlug, { slug });
   if (!praia) return notFound();
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "TouristAttraction",
+    name: praia.name,
+    description: praia.shortDesc ?? undefined,
+    image: praia.image ?? undefined,
+    url: `${BASE}/praias/${praia.slug}`,
+    ...(praia.city ? { touristType: praia.city } : {}),
+  };
+
   return (
     <main className="min-h-screen bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <GtmViewItem
         item_type="praia"
         item_id={praia._id}

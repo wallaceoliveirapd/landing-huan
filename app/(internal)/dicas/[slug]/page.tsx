@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -10,12 +11,35 @@ import { DicaReactions } from "@/components/organisms/DicaReactions";
 import { GtmViewItem } from "@/components/atoms/GtmViewItem";
 import { RichContent } from "@/components/atoms/RichContent";
 
+const BASE = "https://huanfalcao.com.br";
+
 type PageProps = { params: Promise<{ slug: string }> };
 
-export async function generateMetadata({ params }: PageProps) {
+export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  const items = await fetchQuery(api.dicas.list, {});
+  return items.map((d) => ({ slug: d.slug }));
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const d = await fetchQuery(api.dicas.getBySlug, { slug });
-  return { title: d ? `${d.title}, HUAN` : "Dica, HUAN" };
+  if (!d) return { title: "Dica não encontrada" };
+  const desc = d.excerpt?.slice(0, 160) ?? "";
+  const url = `${BASE}/dicas/${slug}`;
+  return {
+    title: d.title,
+    description: desc,
+    alternates: { canonical: url },
+    openGraph: {
+      title: d.title,
+      description: desc,
+      url,
+      type: "article",
+      images: d.cover ? [{ url: d.cover, width: 1200, height: 630 }] : undefined,
+    },
+  };
 }
 
 export default async function DicaPage({ params }: PageProps) {
@@ -33,8 +57,23 @@ export default async function DicaPage({ params }: PageProps) {
         dica.category === "dica" ? "Dica" :
           dica.category;
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: dica.title,
+    description: dica.excerpt?.slice(0, 160) ?? undefined,
+    image: dica.cover ?? undefined,
+    url: `${BASE}/dicas/${dica.slug}`,
+    datePublished: new Date(dica.publishedAt).toISOString(),
+    author: { "@type": "Person", name: "Huan Falcão" },
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <GtmViewItem
         item_type="dica"
         item_id={dica._id}

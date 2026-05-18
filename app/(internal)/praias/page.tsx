@@ -1,8 +1,15 @@
+import type { Metadata } from "next";
 import { InternalPageHero } from "@/components/organisms/InternalPageHero";
 import { PraiasContent } from "@/components/organisms/PraiasContent";
 import { CATEGORIES } from "@/lib/categories";
 
-export const metadata = { title: "Praias de João Pessoa, HUAN" };
+export const metadata: Metadata = {
+  title: "Praias de João Pessoa",
+  description:
+    "As melhores praias de João Pessoa e arredores: Cabo Branco, Tambaú, Coqueirinho e outras joias do litoral paraibano.",
+  alternates: { canonical: "https://huanfalcao.com.br/praias" },
+  openGraph: { url: "https://huanfalcao.com.br/praias", type: "website" },
+};
 
 export default function PraiasPage() {
   const cat = CATEGORIES.find((c) => c.key === "praias")!;
