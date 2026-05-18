@@ -81,7 +81,7 @@ export default async function HospedagemPage() {
                               size={13}
                               className={
                                 i < place.stars!
-                                  ? "text-[var(--color-brand-yellow)] fill-[var(--color-brand-yellow)]"
+                                  ? "text-[var(--color-ink)] fill-[var(--color-ink)]"
                                   : "text-[var(--color-neutral-300)]"
                               }
                             />
@@ -96,7 +96,7 @@ export default async function HospedagemPage() {
 
                     <p className="text-[13px] font-medium text-[var(--color-neutral-800)] mt-0.5">
                       A partir de{" "}
-                      <span className="text-[var(--color-brand-yellow)]">
+                      <span className="text-[var(--color-neutral-800)]">
                         R$ {place.priceFrom.toFixed(0)}
                       </span>
                     </p>

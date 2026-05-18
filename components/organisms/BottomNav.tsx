@@ -89,6 +89,7 @@ export function BottomNav() {
     "dicas",
     "vida-noturna",
     "roteiros",
+    "hospedagem",
   ];
   const segments = pathname.split("/").filter(Boolean);
   if (segments.length === 2 && DETAIL_SECTIONS.includes(segments[0])) {

@@ -121,7 +121,7 @@ export default async function HospedagemDetailPage({ params }: PageProps) {
                 key={i}
                 name="star"
                 size={13}
-                className="text-[var(--color-brand-yellow)] fill-[var(--color-brand-yellow)]"
+                className="text-[var(--color-ink)] fill-[var(--color-ink)]"
               />
             ))}
           </div>
