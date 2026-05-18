@@ -177,7 +177,9 @@ function ActivityCard({
       if (kind === "nightlife" && dbItem.slug) return `/vida-noturna/${dbItem.slug}`;
       if (kind === "dica" && dbItem.slug) return `/dicas/${dbItem.slug}`;
     }
-    if (source === "custom" && customUrl) return customUrl;
+    if (source === "custom" && customUrl) {
+      return /^https?:\/\//i.test(customUrl) ? customUrl : `https://${customUrl}`;
+    }
     if (isOsm && typeof osmLat === "number" && typeof osmLng === "number") {
       const q = encodeURIComponent(`${displayTitle}@${osmLat},${osmLng}`);
       return `https://www.google.com/maps/search/?api=1&query=${q}`;
@@ -251,7 +253,7 @@ function ActivityCard({
               </span>
             )}
           </div>
-          <p className="font-display font-medium text-[14px] leading-[1.3] text-[var(--color-neutral-800)] mt-0.5 line-clamp-2">
+          <p className="font-display font-medium text-[14px] leading-[1.3] text-[var(--color-neutral-800)] mt-0.5">
             {displayTitle}
           </p>
           {displayNote && (
