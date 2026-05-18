@@ -15,7 +15,7 @@ export const log = mutation({
     return ctx.db.insert("affiliateClicks", {
       ...args,
       userId: identity?.subject ?? undefined,
-      isLoggedIn: identity !== null,
+      isLoggedIn: identity !== null ? true : false,
       timestamp: Date.now(),
     });
   },
@@ -82,7 +82,7 @@ export const stats = query({
       if (c.channel) {
         byChannel[c.channel] = (byChannel[c.channel] ?? 0) + 1;
       }
-      if (c.isLoggedIn) loggedIn++; else anonymous++;
+      if (c.isLoggedIn === true) loggedIn++; else if (c.isLoggedIn === false) anonymous++;
     }
 
     const topItems = Object.entries(byItem)

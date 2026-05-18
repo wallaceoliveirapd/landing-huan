@@ -274,14 +274,16 @@ export default function RelatoriosPage() {
                             </span>
                           </td>
                           <td className="px-4 py-3">
-                            {click.isLoggedIn ? (
+                            {click.isLoggedIn === true ? (
                               <span className="inline-flex items-center gap-1 rounded-full bg-green-100 text-green-700 px-2 py-0.5 text-[10px] font-medium">
                                 Logado
                               </span>
-                            ) : (
+                            ) : click.isLoggedIn === false ? (
                               <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-neutral-100)] text-[var(--color-neutral-500)] px-2 py-0.5 text-[10px] font-medium">
                                 Anônimo
                               </span>
+                            ) : (
+                              <span className="text-[10px] text-[var(--color-neutral-400)]">—</span>
                             )}
                           </td>
                           <td className="px-4 py-3 text-[var(--color-neutral-500)] text-xs font-mono">
