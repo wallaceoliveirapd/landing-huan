@@ -46,6 +46,7 @@ export function AddActivitySheet({ open, tripId, day, city, onClose }: Props) {
   const [customTitle, setCustomTitle] = useState("");
   const [customUrl, setCustomUrl] = useState("");
   const [customNote, setCustomNote] = useState("");
+  const [customKind, setCustomKind] = useState<"tour" | "restaurant" | "praia" | "nightlife" | "activity">("activity");
   const [saving, setSaving] = useState(false);
 
   const addActivity = useMutation(api.trips.addActivity);
@@ -93,6 +94,7 @@ export function AddActivitySheet({ open, tripId, day, city, onClose }: Props) {
     setCustomTitle("");
     setCustomUrl("");
     setCustomNote("");
+    setCustomKind("activity");
     onClose();
   }
 
@@ -141,7 +143,7 @@ export function AddActivitySheet({ open, tripId, day, city, onClose }: Props) {
         day,
         activity: {
           source: "custom",
-          kind: "custom",
+          kind: customKind,
           timeOfDay: timeToTimeOfDay(time),
           title,
           note: customNote.trim() || undefined,
@@ -236,8 +238,8 @@ export function AddActivitySheet({ open, tripId, day, city, onClose }: Props) {
             </div>
 
             {/* Tabs */}
-            <div className="px-5 pb-3 overflow-x-auto no-scrollbar shrink-0">
-              <div className="flex gap-2">
+            <div className="pl-5 pb-3 overflow-x-auto no-scrollbar shrink-0">
+              <div className="flex gap-2 pr-5">
                 {TABS.map((t) => (
                   <button
                     key={t.key}
@@ -285,9 +287,11 @@ export function AddActivitySheet({ open, tripId, day, city, onClose }: Props) {
                   title={customTitle}
                   url={customUrl}
                   note={customNote}
+                  kind={customKind}
                   onTitle={setCustomTitle}
                   onUrl={setCustomUrl}
                   onNote={setCustomNote}
+                  onKind={setCustomKind}
                   onSave={handleSaveCustom}
                   saving={saving}
                 />
@@ -345,27 +349,59 @@ export function AddActivitySheet({ open, tripId, day, city, onClose }: Props) {
   );
 }
 
+const CUSTOM_KINDS: { value: "tour" | "restaurant" | "praia" | "nightlife" | "activity"; label: string; icon: string }[] = [
+  { value: "activity",   label: "Atividade",    icon: "calendar"  },
+  { value: "tour",       label: "Passeio",      icon: "compass"   },
+  { value: "restaurant", label: "Restaurante",  icon: "utensils"  },
+  { value: "praia",      label: "Praia",        icon: "waves"     },
+  { value: "nightlife",  label: "Vida noturna", icon: "moon-star" },
+];
+
 function CustomForm({
   title,
   url,
   note,
+  kind,
   onTitle,
   onUrl,
   onNote,
+  onKind,
   onSave,
   saving,
 }: {
   title: string;
   url: string;
   note: string;
+  kind: "tour" | "restaurant" | "praia" | "nightlife" | "activity";
   onTitle: (v: string) => void;
   onUrl: (v: string) => void;
   onNote: (v: string) => void;
+  onKind: (v: "tour" | "restaurant" | "praia" | "nightlife" | "activity") => void;
   onSave: () => void;
   saving: boolean;
 }) {
   return (
     <div className="flex flex-col gap-3 pt-1">
+      <div className="flex flex-col gap-1.5">
+        <span className="text-[12px] font-medium text-[var(--color-neutral-700)]">Categoria</span>
+        <div className="flex flex-wrap gap-2">
+          {CUSTOM_KINDS.map((k) => (
+            <button
+              key={k.value}
+              type="button"
+              onClick={() => onKind(k.value)}
+              className={`inline-flex items-center gap-1.5 px-3 h-8 rounded-full text-[12px] font-medium border transition-colors ${
+                kind === k.value
+                  ? "bg-[var(--color-neutral-800)] text-white border-[var(--color-neutral-800)]"
+                  : "bg-white text-[var(--color-neutral-700)] border-[var(--color-neutral-300)]"
+              }`}
+            >
+              <Icon name={k.icon} size={12} />
+              {k.label}
+            </button>
+          ))}
+        </div>
+      </div>
       <label className="flex flex-col gap-1.5">
         <span className="text-[12px] font-medium text-[var(--color-neutral-700)]">Título</span>
         <input

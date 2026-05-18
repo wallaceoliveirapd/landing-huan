@@ -82,6 +82,15 @@ const TIME_ICON: Record<string, string> = {
   fullday: "compass",
 };
 
+const KIND_ICON: Record<string, string> = {
+  tour: "compass",
+  restaurant: "utensils",
+  praia: "waves",
+  nightlife: "moon-star",
+  activity: "calendar",
+  dica: "lightbulb",
+};
+
 const KIND_COLOR: Record<string, string> = {
   tour: "#2563EB",
   restaurant: "#EA580C",
@@ -234,7 +243,7 @@ function ActivityCard({
                     ? icon ?? "compass"
                     : isOsm
                       ? "map-pin"
-                      : TIME_ICON[timeOfDay] ?? "compass"
+                      : KIND_ICON[kind] ?? "compass"
                 }
                 size={20}
                 className="text-[var(--color-neutral-800)]"
