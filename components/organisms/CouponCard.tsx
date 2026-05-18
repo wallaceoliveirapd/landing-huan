@@ -9,6 +9,7 @@ import { Icon } from "@/components/atoms/Icon";
 import { bottomSheetSpring } from "@/lib/motion-presets";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { trackCouponCopy, trackCouponUse } from "@/lib/analytics";
+import { RichContent } from "@/components/atoms/RichContent";
 
 export interface CouponData {
   _id: string;
@@ -155,20 +156,14 @@ function CouponSheet({ coupon, onClose }: { coupon: CouponData; onClose: () => v
             {coupon.conditions && (
               <div className="flex flex-col gap-1.5">
                 <p className="text-[12px] font-medium uppercase tracking-wide text-[var(--color-neutral-600)]">Condições</p>
-                <div
-                  className="text-[14px] leading-[1.55] text-[var(--color-neutral-700)] [&_p]:my-1 [&_ul]:pl-4 [&_ul]:list-disc [&_ol]:pl-4 [&_ol]:list-decimal [&_strong]:font-semibold [&_em]:italic [&_h1]:text-[18px] [&_h1]:font-bold [&_h2]:text-[16px] [&_h2]:font-bold [&_h3]:text-[15px] [&_h3]:font-semibold [&_h4]:text-[14px] [&_h4]:font-semibold [&_h5]:text-[13px] [&_h5]:font-semibold [&_h6]:text-[10px] [&_h6]:font-semibold [&_h6]:uppercase [&_h6]:tracking-[0.08em] [&_h6]:text-[var(--color-neutral-500)]"
-                  dangerouslySetInnerHTML={{ __html: coupon.conditions }}
-                />
+                <RichContent content={coupon.conditions} className="text-[14px]" />
               </div>
             )}
 
             {coupon.rules && (
               <div className="flex flex-col gap-1.5">
                 <p className="text-[12px] font-medium uppercase tracking-wide text-[var(--color-neutral-600)]">Regras de uso</p>
-                <div
-                  className="text-[14px] leading-[1.55] text-[var(--color-neutral-700)] [&_p]:my-1 [&_ul]:pl-4 [&_ul]:list-disc [&_ol]:pl-4 [&_ol]:list-decimal [&_strong]:font-semibold [&_em]:italic [&_h1]:text-[18px] [&_h1]:font-bold [&_h2]:text-[16px] [&_h2]:font-bold [&_h3]:text-[15px] [&_h3]:font-semibold [&_h4]:text-[14px] [&_h4]:font-semibold [&_h5]:text-[13px] [&_h5]:font-semibold [&_h6]:text-[10px] [&_h6]:font-semibold [&_h6]:uppercase [&_h6]:tracking-[0.08em] [&_h6]:text-[var(--color-neutral-500)]"
-                  dangerouslySetInnerHTML={{ __html: coupon.rules }}
-                />
+                <RichContent content={coupon.rules} className="text-[14px]" />
               </div>
             )}
 
