@@ -15,9 +15,8 @@ type Props = {
 /**
  * Rich text editor for admin description fields. HTML in/out.
  *
- * Heading levels are disabled in StarterKit so users can't create H1/H2/…
- * Supports: bold, italic, strike, code, bullet list, ordered list,
- * blockquote, horizontal rule, hard break.
+ * Supports: H1–H6 (via dropdown), bold, italic, strike, code, bullet list,
+ * ordered list, blockquote, horizontal rule, hard break.
  *
  * Backward-compat: plain-text values without HTML tags are accepted by
  * TipTap and wrapped in <p>.
@@ -26,7 +25,7 @@ export function RichTextEditor({ value, onChange, placeholder }: Props) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        heading: false, // disable H1-H6
+        heading: { levels: [1, 2, 3, 4, 5, 6] },
       }),
     ],
     content: value || "",
@@ -44,6 +43,12 @@ export function RichTextEditor({ value, onChange, placeholder }: Props) {
           "[&_em]:italic " +
           "[&_code]:rounded [&_code]:bg-[var(--color-neutral-100)] [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-[0.9em] [&_code]:font-mono " +
           "[&_hr]:my-4 [&_hr]:border-[var(--color-neutral-200)] " +
+          "[&_h1]:text-[20px] [&_h1]:font-bold [&_h1]:leading-[1.3] [&_h1]:my-3 [&_h1]:text-[var(--color-neutral-800)] " +
+          "[&_h2]:text-[18px] [&_h2]:font-bold [&_h2]:leading-[1.35] [&_h2]:my-3 [&_h2]:text-[var(--color-neutral-800)] " +
+          "[&_h3]:text-[16px] [&_h3]:font-semibold [&_h3]:leading-[1.4] [&_h3]:my-2.5 [&_h3]:text-[var(--color-neutral-800)] " +
+          "[&_h4]:text-[15px] [&_h4]:font-semibold [&_h4]:leading-[1.4] [&_h4]:my-2 [&_h4]:text-[var(--color-neutral-800)] " +
+          "[&_h5]:text-[13px] [&_h5]:font-semibold [&_h5]:leading-[1.4] [&_h5]:my-2 [&_h5]:text-[var(--color-neutral-700)] " +
+          "[&_h6]:text-[10px] [&_h6]:font-semibold [&_h6]:uppercase [&_h6]:tracking-[0.08em] [&_h6]:my-2 [&_h6]:text-[var(--color-neutral-500)] " +
           "[&_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)] [&_p.is-editor-empty:first-child::before]:text-[var(--color-neutral-400)] [&_p.is-editor-empty:first-child::before]:float-left [&_p.is-editor-empty:first-child::before]:pointer-events-none [&_p.is-editor-empty:first-child::before]:h-0",
       },
     },
@@ -82,9 +87,44 @@ export function RichTextEditor({ value, onChange, placeholder }: Props) {
   );
 }
 
+function HeadingSelect({ editor }: { editor: Editor }) {
+  const activeLevel = ([1, 2, 3, 4, 5, 6] as const).find((l) =>
+    editor.isActive("heading", { level: l })
+  );
+  const value = activeLevel ? String(activeLevel) : "0";
+
+  function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const level = parseInt(e.target.value);
+    if (level === 0) {
+      editor.chain().focus().setParagraph().run();
+    } else {
+      editor.chain().focus().setHeading({ level: level as 1|2|3|4|5|6 }).run();
+    }
+  }
+
+  return (
+    <select
+      value={value}
+      onChange={handleChange}
+      title="Estilo de texto"
+      className="h-7 rounded-md border-0 bg-transparent text-[12px] text-[var(--color-neutral-700)] pr-1 pl-1 cursor-pointer hover:bg-[var(--color-neutral-200)] focus:outline-none"
+    >
+      <option value="0">Parágrafo</option>
+      <option value="1">H1 — Título</option>
+      <option value="2">H2 — Subtítulo</option>
+      <option value="3">H3</option>
+      <option value="4">H4</option>
+      <option value="5">H5</option>
+      <option value="6">H6 — Caption</option>
+    </select>
+  );
+}
+
 function Toolbar({ editor }: { editor: Editor }) {
   return (
     <div className="flex items-center flex-wrap gap-1 px-2 py-1.5 border-b border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)]">
+      <HeadingSelect editor={editor} />
+      <Divider />
       <ToolbarBtn
         active={editor.isActive("bold")}
         onClick={() => editor.chain().focus().toggleBold().run()}

@@ -31,6 +31,11 @@ function formatDiscount(type: string, value: number) {
   return `R$ ${value.toFixed(2).replace(".", ",")} OFF`;
 }
 
+function ensureAbsoluteUrl(url: string): string {
+  if (/^https?:\/\//i.test(url)) return url;
+  return `https://${url}`;
+}
+
 function formatDate(ts: number) {
   return new Date(ts).toLocaleDateString("pt-BR", {
     day: "2-digit", month: "2-digit", year: "numeric",
@@ -150,19 +155,25 @@ function CouponSheet({ coupon, onClose }: { coupon: CouponData; onClose: () => v
             {coupon.conditions && (
               <div className="flex flex-col gap-1.5">
                 <p className="text-[12px] font-medium uppercase tracking-wide text-[var(--color-neutral-600)]">Condições</p>
-                <p className="text-[14px] leading-[1.55] text-[var(--color-neutral-700)]">{coupon.conditions}</p>
+                <div
+                  className="text-[14px] leading-[1.55] text-[var(--color-neutral-700)] [&_p]:my-1 [&_ul]:pl-4 [&_ul]:list-disc [&_ol]:pl-4 [&_ol]:list-decimal [&_strong]:font-semibold [&_em]:italic [&_h1]:text-[18px] [&_h1]:font-bold [&_h2]:text-[16px] [&_h2]:font-bold [&_h3]:text-[15px] [&_h3]:font-semibold [&_h4]:text-[14px] [&_h4]:font-semibold [&_h5]:text-[13px] [&_h5]:font-semibold [&_h6]:text-[10px] [&_h6]:font-semibold [&_h6]:uppercase [&_h6]:tracking-[0.08em] [&_h6]:text-[var(--color-neutral-500)]"
+                  dangerouslySetInnerHTML={{ __html: coupon.conditions }}
+                />
               </div>
             )}
 
             {coupon.rules && (
               <div className="flex flex-col gap-1.5">
                 <p className="text-[12px] font-medium uppercase tracking-wide text-[var(--color-neutral-600)]">Regras de uso</p>
-                <p className="text-[14px] leading-[1.55] text-[var(--color-neutral-700)]">{coupon.rules}</p>
+                <div
+                  className="text-[14px] leading-[1.55] text-[var(--color-neutral-700)] [&_p]:my-1 [&_ul]:pl-4 [&_ul]:list-disc [&_ol]:pl-4 [&_ol]:list-decimal [&_strong]:font-semibold [&_em]:italic [&_h1]:text-[18px] [&_h1]:font-bold [&_h2]:text-[16px] [&_h2]:font-bold [&_h3]:text-[15px] [&_h3]:font-semibold [&_h4]:text-[14px] [&_h4]:font-semibold [&_h5]:text-[13px] [&_h5]:font-semibold [&_h6]:text-[10px] [&_h6]:font-semibold [&_h6]:uppercase [&_h6]:tracking-[0.08em] [&_h6]:text-[var(--color-neutral-500)]"
+                  dangerouslySetInnerHTML={{ __html: coupon.rules }}
+                />
               </div>
             )}
 
             {coupon.partnerUrl && (
-              <a href={coupon.partnerUrl} target="_blank" rel="noopener noreferrer"
+              <a href={ensureAbsoluteUrl(coupon.partnerUrl)} target="_blank" rel="noopener noreferrer"
                 onClick={() => trackCouponUse(coupon.title)}
                 className="flex items-center justify-center gap-2 rounded-pill bg-[var(--color-neutral-800)] py-3.5 text-[15px] font-medium text-white">
                 <Icon name="external-link" size={16} />
