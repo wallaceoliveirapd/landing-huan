@@ -78,11 +78,12 @@ export function RichTextEditor({ value, onChange, placeholder }: Props) {
   return (
     <div className="rounded-[12px] border border-[var(--color-neutral-300)] bg-white focus-within:border-[var(--color-neutral-800)] overflow-hidden">
       <Toolbar editor={editor} />
-      <EditorContent
-        editor={editor}
-        // Use a hidden placeholder via CSS when empty
-        data-placeholder={placeholder}
-      />
+      <div className="max-h-[260px] sm:max-h-[480px] overflow-y-auto">
+        <EditorContent
+          editor={editor}
+          data-placeholder={placeholder}
+        />
+      </div>
     </div>
   );
 }
