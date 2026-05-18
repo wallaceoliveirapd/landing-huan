@@ -146,8 +146,8 @@ function baseLayout(opts: {
                   <img src="${IMG_AVATAR}" alt="Huan" width="90" height="90" style="display:block;width:90px;height:90px;border-radius:50%;object-fit:cover;">
                 </td>
                 <td style="vertical-align:middle;">
-                  <p class="et" style="font-size:32px;font-weight:700;color:${C.ink};margin:0 0 11px;line-height:1.1;">${greeting}</p>
-                  <p class="et" style="font-size:18px;font-weight:400;color:${C.ink};margin:0;line-height:1.2;">Sou o Huan, tudo bem?</p>
+                  <p class="et" style="font-size:32px;font-weight:700;color:${C.ink} !important;margin:0 0 11px;line-height:1.1;"><font color="${C.ink}">${greeting}</font></p>
+                  <p class="et" style="font-size:18px;font-weight:400;color:${C.ink} !important;margin:0;line-height:1.2;"><font color="${C.ink}">Sou o Huan, tudo bem?</font></p>
                 </td>
               </tr>
             </table>
@@ -175,9 +175,9 @@ function baseLayout(opts: {
             <p class="em" style="font-size:12px;color:${C.muted};margin:0 0 16px;line-height:1.5;">${footerNote}</p>
             ${dividerHtml("16px")}
             <p class="em" style="font-size:12px;font-weight:700;color:${C.muted};margin:0 0 8px;">Precisa de ajuda?</p>
-            <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
               <tr>
-                <td style="padding-right:16px;">
+                <td style="padding-bottom:8px;">
                   <table role="presentation" cellspacing="0" cellpadding="0" border="0">
                     <tr>
                       <td style="padding-right:8px;vertical-align:middle;">
@@ -185,10 +185,12 @@ function baseLayout(opts: {
                           <tr><td bgcolor="${C.border}" align="center" style="background-color:${C.border};border-radius:50%;width:20px;height:20px;font-size:10px;text-align:center;line-height:20px;">📞</td></tr>
                         </table>
                       </td>
-                      <td style="font-size:14px;font-weight:600;color:${C.ink};vertical-align:middle;white-space:nowrap;">(83) 99122-5756</td>
+                      <td style="font-size:14px;font-weight:600;color:${C.ink} !important;vertical-align:middle;">(83) 99122-5756</td>
                     </tr>
                   </table>
                 </td>
+              </tr>
+              <tr>
                 <td>
                   <table role="presentation" cellspacing="0" cellpadding="0" border="0">
                     <tr>
@@ -197,7 +199,7 @@ function baseLayout(opts: {
                           <tr><td bgcolor="${C.border}" align="center" style="background-color:${C.border};border-radius:50%;width:20px;height:20px;font-size:10px;text-align:center;line-height:20px;">✉️</td></tr>
                         </table>
                       </td>
-                      <td style="font-size:14px;font-weight:600;color:${C.ink};vertical-align:middle;white-space:nowrap;">suporte@huanfalcao.com.br</td>
+                      <td style="font-size:14px;font-weight:600;color:${C.ink} !important;vertical-align:middle;">suporte@huanfalcao.com.br</td>
                     </tr>
                   </table>
                 </td>
