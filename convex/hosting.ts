@@ -1,17 +1,22 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { requireAdmin } from "./helpers";
+import { matchesCity } from "./cityFilter";
 
 export const list = query({
-  args: { activeOnly: v.optional(v.boolean()) },
-  handler: async (ctx, { activeOnly = true }) => {
+  args: {
+    activeOnly: v.optional(v.boolean()),
+    city: v.optional(v.string()),
+  },
+  handler: async (ctx, { activeOnly = true, city }) => {
     const items = await (activeOnly
       ? ctx.db
           .query("hosting")
           .withIndex("by_active", (q) => q.eq("active", true))
       : ctx.db.query("hosting")
     ).collect();
-    return items.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+    const filtered = city ? items.filter((i) => matchesCity(i.city, city)) : items;
+    return filtered.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
   },
 });
 
@@ -48,11 +53,11 @@ export const create = mutation({
     type: v.string(),
     stars: v.optional(v.number()),
     image: v.string(),
-    photos: v.array(v.string()),
+    photos: v.optional(v.array(v.string())),
     address: v.string(),
     priceFrom: v.number(),
     affiliateUrl: v.string(),
-    amenities: v.array(v.string()),
+    amenities: v.optional(v.array(v.string())),
     city: v.optional(v.string()),
     featured: v.boolean(),
     active: v.boolean(),

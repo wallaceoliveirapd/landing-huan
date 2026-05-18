@@ -10,6 +10,7 @@ import { bottomSheetSpring } from "@/lib/motion-presets";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { trackCouponCopy, trackCouponUse } from "@/lib/analytics";
 import { RichContent } from "@/components/atoms/RichContent";
+import { affiliateUrl } from "@/lib/affiliateUrl";
 
 export interface CouponData {
   _id: string;
@@ -168,9 +169,13 @@ function CouponSheet({ coupon, onClose }: { coupon: CouponData; onClose: () => v
             )}
 
             {coupon.partnerUrl && (
-              <a href={ensureAbsoluteUrl(coupon.partnerUrl)} target="_blank" rel="noopener noreferrer"
+              <a
+                href={affiliateUrl(coupon._id, "coupon", coupon.title, ensureAbsoluteUrl(coupon.partnerUrl))}
+                target="_blank"
+                rel="noopener noreferrer"
                 onClick={() => trackCouponUse(coupon.title)}
-                className="flex items-center justify-center gap-2 rounded-pill bg-[var(--color-neutral-800)] py-3.5 text-[15px] font-medium text-white">
+                className="flex items-center justify-center gap-2 rounded-pill bg-[var(--color-neutral-800)] py-3.5 text-[15px] font-medium text-white"
+              >
                 <Icon name="external-link" size={16} />
                 Usar cupom
               </a>

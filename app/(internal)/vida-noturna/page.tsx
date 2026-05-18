@@ -6,7 +6,7 @@ import { CATEGORIES } from "@/lib/categories";
 export const metadata: Metadata = {
   title: "Vida noturna em João Pessoa",
   description:
-    "Os melhores bares, clubs e opções de vida noturna em João Pessoa, curados por Huan Falcão. Do forró ao cocktail bar.",
+    "Os melhores bares, clubs e opções de vida noturna no Nordeste, curados por Huan Falcão. Do forró ao cocktail bar.",
   alternates: { canonical: "https://huanfalcao.com.br/vida-noturna" },
   openGraph: { url: "https://huanfalcao.com.br/vida-noturna", type: "website" },
 };

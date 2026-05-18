@@ -190,11 +190,11 @@ export default defineSchema({
     type: v.string(), // "Hotel", "Pousada", "Airbnb"
     stars: v.optional(v.number()),
     image: v.string(),
-    photos: v.array(v.string()),
+    photos: v.optional(v.array(v.string())),
     address: v.string(),
     priceFrom: v.number(),
     affiliateUrl: v.string(),
-    amenities: v.array(v.string()),
+    amenities: v.optional(v.array(v.string())),
     city: v.optional(v.string()),
     featured: v.boolean(),
     active: v.boolean(),
@@ -522,4 +522,18 @@ export default defineSchema({
   })
     .index("by_active", ["active"])
     .index("by_key", ["key"]),
+
+  // ── Rastreamento de cliques em links afiliados ────────────────
+  affiliateClicks: defineTable({
+    ref: v.string(),           // item _id (string)
+    itemType: v.string(),      // "tour" | "coupon" | "hosting"
+    itemName: v.string(),      // nome para exibição nos relatórios
+    targetUrl: v.string(),     // URL de destino
+    channel: v.optional(v.string()), // parâmetro &channel= opcional
+    timestamp: v.number(),
+  })
+    .index("by_ref", ["ref"])
+    .index("by_timestamp", ["timestamp"])
+    .index("by_itemType", ["itemType"])
+    .index("by_itemType_timestamp", ["itemType", "timestamp"]),
 });

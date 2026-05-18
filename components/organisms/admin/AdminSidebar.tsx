@@ -25,6 +25,7 @@ const NAV = [
   { href: "/admin/midia", label: "Mídia / R2", icon: "lucide:image" },
   { href: "/admin/avaliacoes", label: "Avaliações", icon: "lucide:star" },
   { href: "/admin/analytics", label: "Analytics / UTM", icon: "lucide:bar-chart-2" },
+  { href: "/admin/relatorios", label: "Relatórios", icon: "lucide:bar-chart-2" },
   { href: "/admin/push", label: "Push notifications", icon: "lucide:bell-ring" },
   { href: "/admin/webhooks", label: "Webhooks (n8n)", icon: "lucide:webhook" },
   { href: "/admin/tour", label: "Tour guide", icon: "lucide:map" },

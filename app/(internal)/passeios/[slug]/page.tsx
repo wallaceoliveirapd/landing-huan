@@ -93,7 +93,7 @@ export default async function TourDetailPage({ params }: PageProps) {
       />
       <PlaceReviewsSection kind="tour" itemId={tour._id} noun="este passeio" />
       <div className="h-32" />
-      <TourCtaFooter url={tour.url} title={tour.title} />
+      <TourCtaFooter url={tour.url} title={tour.title} itemId={tour._id} itemType="tour" />
     </>
   );
 }
