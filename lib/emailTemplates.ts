@@ -1,101 +1,211 @@
 /**
- * HTML email templates for transactional emails. Kept inline (no JSX,
- * no MJML) so they work in Node + email clients without build steps.
- *
- * Brand voice: Huan Falcão (criador da plataforma) escrevendo direto pra
- * pessoa. Tom pessoal, em primeira pessoa, com assinatura no final.
- * NordestAI aparece como "meu agente" / "meu assistente".
- *
- * Brand colors: bg #ffffff, accent #F9FD17 (yellow), ink #323439,
- * subtle gray #72777f.
+ * HTML email templates. Table-based layout for maximum email client compat.
+ * All colors forced via inline styles + bgcolor attributes to resist dark mode.
+ * Structure matches Figma: yellow header + white body + #f2f4f5 footer.
  */
 
-const BRAND = {
-  primary: "#F9FD17",
+const SITE_URL = "https://huanfalcao.com.br";
+const IMG_AVATAR = `${SITE_URL}/images/email/avatar-email.png`;
+const IMG_BG_HEADER = `${SITE_URL}/images/email/background-header.png`;
+
+// No CSS vars — email clients don't support custom properties
+const C = {
+  brand: "#F9FD17",
   ink: "#323439",
-  muted: "#72777f",
+  muted: "#565a60",
   light: "#f2f4f5",
   border: "#dde1e8",
+  white: "#ffffff",
 };
 
-// Escape & in URLs for HTML attribute context (Outlook/Word renderer is strict)
+// Escape & in href attributes (Outlook Word renderer treats bare & as entity)
 function hrefAttr(url: string): string {
   return url.replace(/&/g, "&amp;");
 }
 
-/**
- * Base email shell, header with Huan's name/photo placeholder, body slot,
- * Huan's signature, footer (legal links).
- */
+function firstNameOf(name?: string): string {
+  return name?.split(" ")[0] ?? "";
+}
+
+// ── Content block helpers ───────────────────────────────────────────────────
+
+function titleHtml(text: string): string {
+  return `<p style="font-size:24px;font-weight:600;line-height:1.2;color:${C.ink};margin:0 0 20px;">${text}</p>`;
+}
+
+function paraHtml(text: string, extraStyle = ""): string {
+  return `<p style="font-size:16px;line-height:1.5;color:${C.ink};margin:0 0 20px;${extraStyle}">${text}</p>`;
+}
+
+function btnHtml(label: string, url: string): string {
+  return `
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:0 0 20px;">
+  <tr>
+    <td>
+      <a href="${hrefAttr(url)}" style="display:block;background-color:${C.ink};color:${C.white};text-decoration:none;font-size:16px;font-weight:600;padding:16px 24px;border-radius:99px;text-align:center;line-height:1.2;">${label}</a>
+    </td>
+  </tr>
+</table>`;
+}
+
+function codeBoxHtml(code: string): string {
+  return `
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:0 0 20px;">
+  <tr>
+    <td bgcolor="${C.light}" align="center" style="background-color:${C.light};border-radius:24px;padding:32px;">
+      <span style="font-family:'Courier New',Courier,monospace;font-size:40px;font-weight:600;letter-spacing:20px;color:${C.ink};">${code}</span>
+    </td>
+  </tr>
+</table>`;
+}
+
+function dividerHtml(marginBottom = "16px"): string {
+  return `
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:0 0 ${marginBottom};">
+  <tr><td style="border-top:1px solid ${C.border};height:1px;font-size:1px;line-height:1px;">&nbsp;</td></tr>
+</table>`;
+}
+
+function benefitHtml(emoji: string, title: string, desc: string): string {
+  return `
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:0 0 16px;">
+  <tr>
+    <td style="padding-right:12px;vertical-align:top;width:50px;">
+      <table cellspacing="0" cellpadding="0" border="0">
+        <tr><td bgcolor="${C.light}" align="center" style="background-color:${C.light};border-radius:50%;width:50px;height:50px;font-size:20px;text-align:center;line-height:50px;">${emoji}</td></tr>
+      </table>
+    </td>
+    <td style="vertical-align:top;">
+      <p style="font-size:16px;font-weight:600;color:${C.ink};margin:0 0 4px;">${title}</p>
+      <p style="font-size:16px;color:${C.ink};margin:0;">${desc}</p>
+    </td>
+  </tr>
+</table>`;
+}
+
+function infoBoxHtml(label: string, value: string): string {
+  return `
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:0 0 20px;">
+  <tr>
+    <td bgcolor="${C.light}" style="background-color:${C.light};border-radius:16px;padding:20px;">
+      <p style="font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:${C.muted};margin:0 0 4px;">${label}</p>
+      <p style="font-size:18px;font-weight:600;color:${C.ink};margin:0;">${value}</p>
+    </td>
+  </tr>
+</table>`;
+}
+
+// ── Base layout ─────────────────────────────────────────────────────────────
+
 function baseLayout(opts: {
   title: string;
   preview: string;
+  name?: string;
   body: string;
-  signOff?: string; // defaults to "Um abraço,"
+  signOff?: string;
   footerNote?: string;
 }): string {
-  const signOff = opts.signOff ?? "Um abraço,";
+  const signOff = opts.signOff ?? "Abraço,";
+  const footerNote = opts.footerNote ?? "Você recebeu este email porque criou uma conta no huanfalcao.com.br.";
+  const f = firstNameOf(opts.name);
+  const greeting = f ? `Oi, ${f}` : "Oi";
+
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<title>${opts.title}</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<title>${opts.title}</title>
+<style>
+  :root { color-scheme: light; }
+  @media (prefers-color-scheme: dark) {
+    .ew  { background-color: ${C.white} !important; }
+    .eb  { background-color: ${C.white} !important; color: ${C.ink} !important; }
+    .ef  { background-color: ${C.light} !important; }
+    .et  { color: ${C.ink} !important; }
+    .em  { color: ${C.muted} !important; }
+  }
+</style>
 </head>
-<body style="margin:0;padding:0;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:${BRAND.ink};">
-<!-- preview text (hidden) -->
-<div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">${opts.preview}</div>
+<body class="ew" style="margin:0;padding:0;background-color:${C.white};color-scheme:light;-webkit-text-size-adjust:100%;">
+<div style="display:none;font-size:1px;color:${C.white};line-height:1px;max-height:0;overflow:hidden;">${opts.preview}</div>
 
-<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background:#ffffff;">
+<table role="presentation" class="ew" cellspacing="0" cellpadding="0" border="0" width="100%" bgcolor="${C.white}" style="background-color:${C.white};">
   <tr>
-    <td align="center" style="padding:32px 16px;">
-      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="560" style="max-width:560px;width:100%;">
-        <!-- Header, Huan branding -->
+    <td align="center">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width:600px;width:100%;">
+
+        <!-- ── Header: yellow bg + avatar + greeting ── -->
         <tr>
-          <td style="padding-bottom:24px;">
+          <td bgcolor="${C.brand}" style="background-color:${C.brand};background-image:url(${IMG_BG_HEADER});background-size:cover;background-position:center top;padding:32px;">
             <table role="presentation" cellspacing="0" cellpadding="0" border="0">
               <tr>
-                <td>
-                  <div style="display:inline-block;width:44px;height:44px;border-radius:999px;background:${BRAND.primary};vertical-align:middle;text-align:center;line-height:44px;">
-                    <span style="color:${BRAND.ink};font-weight:600;font-size:18px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">H</span>
-                  </div>
+                <td style="padding-right:16px;vertical-align:middle;">
+                  <img src="${IMG_AVATAR}" alt="Huan" width="90" height="90" style="display:block;width:90px;height:90px;border-radius:50%;object-fit:cover;">
                 </td>
-                <td style="padding-left:12px;vertical-align:middle;">
-                  <span style="font-size:16px;font-weight:600;color:${BRAND.ink};">Huan Falcão</span>
-                  <br>
-                  <span style="font-size:12px;color:${BRAND.muted};">Viajando o Nordeste com você</span>
+                <td style="vertical-align:middle;">
+                  <p class="et" style="font-size:32px;font-weight:700;color:${C.ink};margin:0 0 11px;line-height:1.1;">${greeting}</p>
+                  <p class="et" style="font-size:18px;font-weight:400;color:${C.ink};margin:0;line-height:1.2;">Sou o Huan, tudo bem?</p>
                 </td>
               </tr>
             </table>
           </td>
         </tr>
 
-        <!-- Body -->
+        <!-- ── Body: white ── -->
         <tr>
-          <td>${opts.body}</td>
-        </tr>
-
-        <!-- Sign-off -->
-        <tr>
-          <td style="padding-top:28px;">
-            <p style="font-size:15px;line-height:1.6;margin:0 0 4px;color:${BRAND.ink};">${signOff}</p>
-            <p style="font-size:15px;line-height:1.6;margin:0;color:${BRAND.ink};font-weight:600;">Huan</p>
+          <td class="eb" bgcolor="${C.white}" style="background-color:${C.white};padding:32px;color:${C.ink};">
+            ${opts.body}
           </td>
         </tr>
 
-        <!-- Footer -->
+        <!-- ── Sign-off ── -->
         <tr>
-          <td style="padding-top:40px;border-top:1px solid ${BRAND.border};margin-top:32px;">
-            <p style="font-size:12px;color:${BRAND.muted};line-height:1.55;margin:24px 0 0;">
-              ${opts.footerNote ?? "Você recebeu este email porque criou uma conta no huanfalcao.com.br."}<br>
-              <a href="https://huanfalcao.com.br" style="color:${BRAND.muted};text-decoration:underline;">huanfalcao.com.br</a>
-              ·
-              <a href="https://instagram.com/huanfalcao" style="color:${BRAND.muted};text-decoration:underline;">@huanfalcao</a>
-              ·
-              <a href="mailto:oi@huanfalcao.com.br" style="color:${BRAND.muted};text-decoration:underline;">oi@huanfalcao.com.br</a>
-            </p>
+          <td class="eb" bgcolor="${C.white}" style="background-color:${C.white};padding:0 32px 32px;">
+            <p class="et" style="font-size:16px;color:${C.ink};margin:0 0 4px;">${signOff}</p>
+            <p class="et" style="font-size:16px;font-weight:700;color:${C.ink};margin:0;">Huan</p>
           </td>
         </tr>
+
+        <!-- ── Footer: neutral-100 ── -->
+        <tr>
+          <td class="ef" bgcolor="${C.light}" style="background-color:${C.light};padding:32px;">
+            <p class="em" style="font-size:12px;color:${C.muted};margin:0 0 16px;line-height:1.5;">${footerNote}</p>
+            ${dividerHtml("16px")}
+            <p class="em" style="font-size:12px;font-weight:700;color:${C.muted};margin:0 0 8px;">Precisa de ajuda?</p>
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+              <tr>
+                <td style="padding-right:16px;">
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                    <tr>
+                      <td style="padding-right:8px;vertical-align:middle;">
+                        <table cellspacing="0" cellpadding="0" border="0">
+                          <tr><td bgcolor="${C.border}" align="center" style="background-color:${C.border};border-radius:50%;width:20px;height:20px;font-size:10px;text-align:center;line-height:20px;">📞</td></tr>
+                        </table>
+                      </td>
+                      <td style="font-size:14px;font-weight:600;color:${C.ink};vertical-align:middle;white-space:nowrap;">(83) 99122-5756</td>
+                    </tr>
+                  </table>
+                </td>
+                <td>
+                  <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                    <tr>
+                      <td style="padding-right:8px;vertical-align:middle;">
+                        <table cellspacing="0" cellpadding="0" border="0">
+                          <tr><td bgcolor="${C.border}" align="center" style="background-color:${C.border};border-radius:50%;width:20px;height:20px;font-size:10px;text-align:center;line-height:20px;">✉️</td></tr>
+                        </table>
+                      </td>
+                      <td style="font-size:14px;font-weight:600;color:${C.ink};vertical-align:middle;white-space:nowrap;">suporte@huanfalcao.com.br</td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
       </table>
     </td>
   </tr>
@@ -104,50 +214,34 @@ function baseLayout(opts: {
 </html>`;
 }
 
-/**
- * Welcome email, Huan dando as boas-vindas pessoalmente.
- */
+// ── Individual email templates ──────────────────────────────────────────────
+
 export function welcomeEmail({ name }: { name?: string }) {
-  const firstName = name?.split(" ")[0];
-  const greeting = firstName ? `Oi ${firstName}!` : "Oi! Tudo bem?";
+  const f = firstNameOf(name);
   return {
-    subject: firstName
-      ? `${firstName}, bem-vindo ao meu cantinho do Nordeste`
+    subject: f
+      ? `${f}, bem-vindo ao meu cantinho do Nordeste`
       : "Bem-vindo ao meu cantinho do Nordeste",
     html: baseLayout({
       title: "Bem-vindo",
       preview: "Que bom ter você por aqui. Bora planejar sua viagem?",
+      name,
       body: `
-        <p style="font-size:18px;font-weight:600;line-height:1.4;margin:0 0 12px;color:${BRAND.ink};">${greeting}</p>
-        <p style="font-size:15px;line-height:1.65;margin:0 0 18px;color:${BRAND.ink};">
-          Aqui é o Huan, criador da plataforma. Que bom que você criou sua conta, é o meu jeito de te ajudar a explorar o Nordeste do mesmo jeito que eu exploro: com calma, indo nos lugares certos e curtindo cada momento.
-        </p>
-        <p style="font-size:15px;line-height:1.65;margin:0 0 18px;color:${BRAND.ink};">
-          Aqui você pode:
-        </p>
-        <ul style="font-size:15px;line-height:1.8;margin:0 0 28px;padding-left:20px;color:${BRAND.ink};">
-          <li>Criar até <strong>3 roteiros</strong> personalizados (eu treinei um assistente, o Huan, pra montar com você)</li>
-          <li>Salvar passeios, restaurantes e praias que eu testei</li>
-          <li>Usar cupons que eu negociei com parceiros</li>
-          <li>Conversar com o Huan sobre qualquer dúvida</li>
-        </ul>
-        <p style="margin:0 0 28px;">
-          <a href="https://huanfalcao.com.br/minha-viagem/criar"
-             style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-weight:500;font-size:15px;padding:14px 28px;border-radius:999px;">
-            Bora montar a primeira viagem
-          </a>
-        </p>
-        <p style="font-size:14px;line-height:1.6;margin:0 0 0;color:${BRAND.muted};">
-          Se quiser bater um papo direto comigo, é só responder este email, eu leio todos.
-        </p>
+        ${titleHtml("Que bom ter você aqui!")}
+        ${paraHtml("Aqui é o Huan, criador da plataforma. Que bom que você criou sua conta — é o meu jeito de te ajudar a explorar o Nordeste do mesmo jeito que eu exploro: com calma, indo nos lugares certos e curtindo cada momento.")}
+        ${benefitHtml("🗺️", "Roteiros personalizados", "Crie até 3 roteiros completos. O Huan monta com você.")}
+        ${dividerHtml()}
+        ${benefitHtml("🏖️", "Lugares testados por mim", "Passeios, restaurantes e praias que eu curei pessoalmente.")}
+        ${dividerHtml()}
+        ${benefitHtml("🎫", "Cupons exclusivos", "Descontos que eu negociei com parceiros da região.")}
+        ${dividerHtml("20px")}
+        ${btnHtml("Bora montar a primeira viagem", `${SITE_URL}/minha-viagem/criar`)}
+        ${paraHtml("Se quiser bater um papo direto comigo, é só responder este email — eu leio todos.", `color:${C.muted};font-size:14px;`)}
       `,
     }),
   };
 }
 
-/**
- * OTP code for email verification during signup.
- */
 export function otpEmail({ code, ttlMinutes = 10 }: { code: string; ttlMinutes?: number }) {
   return {
     subject: `${code} é seu código no huanfalcao.com.br`,
@@ -155,27 +249,17 @@ export function otpEmail({ code, ttlMinutes = 10 }: { code: string; ttlMinutes?:
       title: "Seu código de verificação",
       preview: `${code} é o código pra confirmar seu email.`,
       signOff: "Até já,",
-      body: `
-        <p style="font-size:18px;font-weight:600;line-height:1.4;margin:0 0 12px;color:${BRAND.ink};">Confirma seu email aí</p>
-        <p style="font-size:15px;line-height:1.65;margin:0 0 24px;color:${BRAND.ink};">
-          É só usar o código abaixo pra concluir seu cadastro. Ele expira em <strong>${ttlMinutes} minutos</strong>.
-        </p>
-        <div style="background:${BRAND.light};border-radius:16px;padding:24px;text-align:center;margin:0 0 24px;">
-          <span style="font-family:'SF Mono','Roboto Mono',Menlo,monospace;font-size:36px;font-weight:600;letter-spacing:8px;color:${BRAND.ink};">${code}</span>
-        </div>
-        <p style="font-size:13px;line-height:1.55;color:${BRAND.muted};margin:0 0 16px;">
-          Se não foi você que pediu este código, pode ignorar, sua conta segue segura.
-        </p>
-      `,
       footerNote: "Você recebeu este email porque alguém tentou criar uma conta com seu email no huanfalcao.com.br.",
+      body: `
+        ${titleHtml("Confirma seu email")}
+        ${paraHtml(`É só usar o código abaixo pra concluir seu cadastro. Ele expira em <strong>${ttlMinutes} minutos</strong>.`)}
+        ${codeBoxHtml(code)}
+        ${paraHtml("Se não foi você que pediu este código, pode ignorar — sua conta segue segura.", `color:${C.muted};font-size:13px;`)}
+      `,
     }),
   };
 }
 
-/**
- * OTP code for password reset / change-password flow. Distinct copy so the
- * user knows it's about their password, not signup verification.
- */
 export function passwordResetEmail({
   code,
   ttlMinutes = 10,
@@ -189,28 +273,17 @@ export function passwordResetEmail({
       title: "Trocar senha",
       preview: `${code} é o código pra confirmar a troca de senha.`,
       signOff: "Qualquer dúvida tô por aqui,",
-      body: `
-        <p style="font-size:18px;font-weight:600;line-height:1.4;margin:0 0 12px;color:${BRAND.ink};">Troca de senha</p>
-        <p style="font-size:15px;line-height:1.65;margin:0 0 24px;color:${BRAND.ink};">
-          Recebi um pedido pra trocar a senha da sua conta. Use o código abaixo pra confirmar. Ele expira em <strong>${ttlMinutes} minutos</strong>.
-        </p>
-        <div style="background:${BRAND.light};border-radius:16px;padding:24px;text-align:center;margin:0 0 24px;">
-          <span style="font-family:'SF Mono','Roboto Mono',Menlo,monospace;font-size:36px;font-weight:600;letter-spacing:8px;color:${BRAND.ink};">${code}</span>
-        </div>
-        <p style="font-size:13px;line-height:1.55;color:${BRAND.muted};margin:0 0 16px;">
-          Se você não pediu essa troca, ignora esse email, sua senha atual continua valendo.
-        </p>
-      `,
       footerNote: "Você recebeu este email porque alguém pediu pra trocar a senha de uma conta no huanfalcao.com.br associada a este email.",
+      body: `
+        ${titleHtml("Troca de senha")}
+        ${paraHtml(`Recebi um pedido pra trocar a senha da sua conta. Use o código abaixo pra confirmar. Ele expira em <strong>${ttlMinutes} minutos</strong>.`)}
+        ${codeBoxHtml(code)}
+        ${paraHtml("Se você não pediu essa troca, ignora esse email — sua senha atual continua valendo.", `color:${C.muted};font-size:13px;`)}
+      `,
     }),
   };
 }
 
-/**
- * Triggered by admin asking to reset a user's password. Sends a deep link
- * to /esqueci-senha?email=...&autosend=1 so the OTP code flows through
- * Convex Auth's normal reset flow, not through admin.
- */
 export function passwordResetRequestedEmail({
   name,
   resetUrl,
@@ -218,34 +291,24 @@ export function passwordResetRequestedEmail({
   name?: string;
   resetUrl: string;
 }) {
-  const firstName = name?.split(" ")[0];
-  const greeting = firstName ? `Oi ${firstName},` : "Oi,";
   return {
     subject: "Link pra redefinir sua senha",
     html: baseLayout({
       title: "Redefinir senha",
       preview: "Clique pra escolher uma senha nova.",
+      name,
       signOff: "Qualquer dúvida tô por aqui,",
-      body: `
-        <p style="font-size:18px;font-weight:600;line-height:1.4;margin:0 0 12px;color:${BRAND.ink};">${greeting}</p>
-        <p style="font-size:15px;line-height:1.65;margin:0 0 24px;color:${BRAND.ink};">
-          Recebi um pedido pra redefinir a senha da sua conta. Clique no botão abaixo, vou te mandar um código por email pra confirmar a troca.
-        </p>
-        <div style="text-align:center;margin:0 0 24px;">
-          <a href="${hrefAttr(resetUrl)}" style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:14px 28px;border-radius:999px;">Redefinir senha</a>
-        </div>
-        <p style="font-size:13px;line-height:1.55;color:${BRAND.muted};margin:0 0 16px;">
-          Se você não pediu essa redefinição, pode ignorar este email. Sua senha atual continua valendo.
-        </p>
-      `,
       footerNote: "Você recebeu este email porque alguém pediu pra redefinir a senha da sua conta no huanfalcao.com.br.",
+      body: `
+        ${titleHtml("Redefinir senha")}
+        ${paraHtml("Recebi um pedido pra redefinir a senha da sua conta. Clique no botão abaixo — vou te mandar um código por email pra confirmar a troca.")}
+        ${btnHtml("Redefinir senha", resetUrl)}
+        ${paraHtml("Se você não pediu essa redefinição, pode ignorar este email — sua senha atual continua valendo.", `color:${C.muted};font-size:13px;`)}
+      `,
     }),
   };
 }
 
-/**
- * Trip-created confirmation, Huan dizendo que o roteiro tá pronto.
- */
 export function tripCreatedEmail({
   name,
   tripTitle,
@@ -257,39 +320,23 @@ export function tripCreatedEmail({
   destination: string;
   tripUrl: string;
 }) {
-  const firstName = name?.split(" ")[0];
-  const greeting = firstName ? `Ei ${firstName},` : "Ei,";
   return {
     subject: `Teu roteiro de ${destination} tá pronto`,
     html: baseLayout({
       title: "Seu roteiro está pronto",
       preview: `Montei teu roteiro de ${destination}. Vem ver!`,
+      name,
       body: `
-        <p style="font-size:18px;font-weight:600;line-height:1.4;margin:0 0 12px;color:${BRAND.ink};">${greeting}</p>
-        <p style="font-size:15px;line-height:1.65;margin:0 0 22px;color:${BRAND.ink};">
-          Acabei de montar pra você um roteiro em <strong>${destination}</strong>. O Huan pegou os lugares que eu testei e curei pessoalmente e juntou com pontos que existem na cidade pra montar dias proveitosos. Dá uma olhada e me conta se preciso ajustar:
-        </p>
-        <div style="background:${BRAND.light};border-radius:16px;padding:20px;margin:0 0 24px;">
-          <p style="font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:${BRAND.muted};margin:0 0 4px;">Sua viagem</p>
-          <p style="font-size:18px;font-weight:600;color:${BRAND.ink};margin:0;">${tripTitle}</p>
-        </div>
-        <p style="margin:0 0 28px;">
-          <a href="${hrefAttr(tripUrl)}"
-             style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-weight:500;font-size:15px;padding:14px 28px;border-radius:999px;">
-            Ver meu roteiro
-          </a>
-        </p>
-        <p style="font-size:14px;line-height:1.6;margin:0;color:${BRAND.muted};">
-          Se mudar de ideia sobre o destino, o estilo ou a duração, é só refazer pelo botão no detalhe, o Huan monta de novo.
-        </p>
+        ${titleHtml(`Teu roteiro de ${destination} tá pronto`)}
+        ${paraHtml("Acabei de montar pra você um roteiro completo. O Huan pegou os lugares que eu testei e curei pessoalmente e montou dias bem aproveitados. Dá uma olhada e me conta se preciso ajustar:")}
+        ${infoBoxHtml("Sua viagem", tripTitle)}
+        ${btnHtml("Ver meu roteiro", tripUrl)}
+        ${paraHtml("Se mudar de ideia sobre o destino, o estilo ou a duração, é só refazer pelo botão no detalhe — o Huan monta de novo.", `color:${C.muted};font-size:14px;`)}
       `,
     }),
   };
 }
 
-/**
- * Generic broadcast email (admin tool, phase 5).
- */
 export function broadcastEmail({
   headline,
   body,
@@ -307,15 +354,9 @@ export function broadcastEmail({
       title: headline,
       preview: headline,
       body: `
-        <p style="font-size:18px;font-weight:600;line-height:1.4;margin:0 0 12px;color:${BRAND.ink};">${headline}</p>
-        <div style="font-size:15px;line-height:1.7;color:${BRAND.ink};margin:0 0 24px;">${body}</div>
-        ${
-          ctaUrl && ctaLabel
-            ? `<p style="margin:0 0 28px;">
-                 <a href="${hrefAttr(ctaUrl)}" style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-weight:500;font-size:15px;padding:14px 28px;border-radius:999px;">${ctaLabel}</a>
-               </p>`
-            : ""
-        }
+        ${titleHtml(headline)}
+        <div style="font-size:16px;line-height:1.6;color:${C.ink};margin:0 0 20px;">${body}</div>
+        ${ctaUrl && ctaLabel ? btnHtml(ctaLabel, ctaUrl) : ""}
       `,
     }),
   };
@@ -332,27 +373,18 @@ export function tripWeekBeforeEmail({
   destination: string;
   tripUrl: string;
 }) {
-  const first = name?.split(" ")[0];
-  const greeting = first ? `Ei ${first},` : "Ei,";
   return {
     subject: `Falta 1 semana pra sua viagem a ${destination}`,
     html: baseLayout({
       title: "Falta 1 semana",
       preview: `Sua viagem a ${destination} é semana que vem. Bora se organizar?`,
+      name,
       body: `
-        <p style="font-size:18px;font-weight:600;line-height:1.4;margin:0 0 12px;color:${BRAND.ink};">${greeting}</p>
-        <p style="font-size:15px;line-height:1.65;margin:0 0 18px;color:${BRAND.ink};">
-          Sua viagem <strong>${tripTitle}</strong> ta chegando! Faltam só 7 dias pra você embarcar pra <strong>${destination}</strong>. Bora começar a organizar?
-        </p>
-        <p style="font-size:15px;line-height:1.65;margin:0 0 18px;color:${BRAND.ink};">
-          Dá uma olhada no roteiro que montei pra você, ajusta o que quiser, e me chama no chat se quiser dicas extras sobre o destino, eu tô aqui pra ajudar.
-        </p>
-        <p style="margin:0 0 28px;">
-          <a href="${hrefAttr(tripUrl)}" style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-weight:500;font-size:15px;padding:14px 28px;border-radius:999px;">Ver minha viagem</a>
-        </p>
-        <p style="font-size:14px;line-height:1.6;margin:0;color:${BRAND.muted};">
-          Quer falar comigo? Abre o app e clica no botao amarelo do Huan, eu respondo na hora.
-        </p>
+        ${titleHtml(`Falta 1 semana pra ${destination}!`)}
+        ${paraHtml(`Sua viagem <strong>${tripTitle}</strong> pra <strong>${destination}</strong> está chegando! Faltam só 7 dias pra você embarcar. Bora começar a organizar?`)}
+        ${paraHtml("Dá uma olhada no roteiro, ajusta o que quiser, e me chama no chat se quiser dicas extras sobre o destino.")}
+        ${btnHtml("Ver minha viagem", tripUrl)}
+        ${paraHtml("Quer falar comigo? Abre o app e clica no botão amarelo do Huan, eu respondo na hora.", `color:${C.muted};font-size:14px;`)}
       `,
     }),
   };
@@ -373,8 +405,6 @@ export function tripWeatherUpdateEmail({
   tempMax: number | null;
   tempMin: number | null;
 }) {
-  const first = name?.split(" ")[0];
-  const greeting = first ? `Ei ${first},` : "Ei,";
   const tempLine =
     tempMax !== null && tempMin !== null
       ? `A previsão indica entre <strong>${tempMin}°</strong> e <strong>${tempMax}°</strong> nos dias da viagem.`
@@ -384,20 +414,13 @@ export function tripWeatherUpdateEmail({
     html: baseLayout({
       title: "Previsão atualizada",
       preview: `Agora temos a previsão real pra sua viagem a ${destination}.`,
+      name,
       body: `
-        <p style="font-size:18px;font-weight:600;line-height:1.4;margin:0 0 12px;color:${BRAND.ink};">${greeting}</p>
-        <p style="font-size:15px;line-height:1.65;margin:0 0 18px;color:${BRAND.ink};">
-          Sua viagem <strong>${tripTitle}</strong> pra <strong>${destination}</strong> ja entrou na janela de previsão real (até 16 dias). Antes a gente mostrava a média histórica, agora é tempo real.
-        </p>
-        <p style="font-size:15px;line-height:1.65;margin:0 0 18px;color:${BRAND.ink};">
-          ${tempLine}
-        </p>
-        <p style="margin:0 0 28px;">
-          <a href="${hrefAttr(tripUrl)}" style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-weight:500;font-size:15px;padding:14px 28px;border-radius:999px;">Ver previsão atualizada</a>
-        </p>
-        <p style="font-size:14px;line-height:1.6;margin:0;color:${BRAND.muted};">
-          Quer ajustar o roteiro com base no clima? Me chama no chat, eu te ajudo.
-        </p>
+        ${titleHtml(`Previsão de ${destination} atualizada`)}
+        ${paraHtml(`Sua viagem <strong>${tripTitle}</strong> pra <strong>${destination}</strong> entrou na janela de previsão real (até 16 dias). Antes a gente mostrava a média histórica — agora é tempo real.`)}
+        ${paraHtml(tempLine)}
+        ${btnHtml("Ver previsão atualizada", tripUrl)}
+        ${paraHtml("Quer ajustar o roteiro com base no clima? Me chama no chat, eu te ajudo.", `color:${C.muted};font-size:14px;`)}
       `,
     }),
   };
@@ -414,36 +437,27 @@ export function tripChecklistEmail({
   destination: string;
   tripUrl: string;
 }) {
-  const first = name?.split(" ")[0];
-  const greeting = first ? `${first}, ` : "";
+  const f = firstNameOf(name);
   return {
     subject: `Checklist pra sua viagem amanhã, ${destination}`,
     html: baseLayout({
       title: "Checklist da viagem",
       preview: `Amanhã é dia! Checklist rápido pra sua viagem a ${destination}.`,
+      name,
       body: `
-        <p style="font-size:18px;font-weight:600;line-height:1.4;margin:0 0 12px;color:${BRAND.ink};">Amanhã é dia, ${greeting}vamos nessa!</p>
-        <p style="font-size:15px;line-height:1.65;margin:0 0 18px;color:${BRAND.ink};">
-          Sua viagem <strong>${tripTitle}</strong> pra <strong>${destination}</strong> começa amanhã. Separei um checklist rápido pra você não esquecer nada:
-        </p>
-        <ul style="font-size:15px;line-height:1.85;margin:0 0 24px;padding-left:20px;color:${BRAND.ink};">
-          <li>Documento com foto (RG ou CNH)</li>
-          <li>Cartao de credito + dinheiro em especie</li>
-          <li>Carregador de celular + cabo</li>
-          <li>Roupas conforme o clima do destino</li>
-          <li>Protetor solar + repelente</li>
-          <li>Remedios pessoais</li>
-          <li>Garrafa de agua reutilizavel</li>
-          <li>Confirmar reserva de hospedagem + transporte</li>
-        </ul>
-        <p style="margin:0 0 28px;">
-          <a href="${hrefAttr(tripUrl)}" style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-weight:500;font-size:15px;padding:14px 28px;border-radius:999px;">Ver detalhes da viagem</a>
-        </p>
-        <p style="font-size:14px;line-height:1.6;margin:0;color:${BRAND.muted};">
-          Duvida de ultima hora? Me chama no chat do app, eu respondo na hora.
-        </p>
+        ${titleHtml(f ? `Amanhã é dia, ${f}!` : "Amanhã é dia!")}
+        ${paraHtml(`Sua viagem <strong>${tripTitle}</strong> pra <strong>${destination}</strong> começa amanhã. Separei um checklist rápido pra você não esquecer nada:`)}
+        ${benefitHtml("🪪", "Documento com foto", "RG ou CNH — não esqueça!")}
+        ${dividerHtml()}
+        ${benefitHtml("💳", "Dinheiro + cartão", "Cartão de crédito e um troco em espécie.")}
+        ${dividerHtml()}
+        ${benefitHtml("🔋", "Carregador e cabo", "Celular com bateria é essencial.")}
+        ${dividerHtml()}
+        ${benefitHtml("☀️", "Protetor solar + repelente", "Especialmente pra praia e trilhas.")}
+        ${dividerHtml("20px")}
+        ${btnHtml("Ver detalhes da viagem", tripUrl)}
+        ${paraHtml("Dúvida de última hora? Me chama no chat do app, eu respondo na hora.", `color:${C.muted};font-size:14px;`)}
       `,
     }),
   };
 }
-
