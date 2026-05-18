@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { SkeletonImage } from "@/components/atoms/SkeletonImage";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { toProxyUrl } from "@/lib/imageUpload";
@@ -59,7 +59,7 @@ export function CategoryStackedCard({
               className="relative overflow-hidden"
               style={{ width: 69.317, height: 87.801, borderRadius: 18.484 }}
             >
-              <Image
+              <SkeletonImage
                 src={toProxyUrl(back0)}
                 alt=""
                 fill
@@ -80,7 +80,7 @@ export function CategoryStackedCard({
               className="relative overflow-hidden"
               style={{ width: 69.317, height: 93.796, borderRadius: 18.484 }}
             >
-              <Image
+              <SkeletonImage
                 src={toProxyUrl(back1)}
                 alt=""
                 fill
@@ -105,7 +105,7 @@ export function CategoryStackedCard({
           }}
         >
           {mainImage && (
-            <Image
+            <SkeletonImage
               src={toProxyUrl(mainImage)}
               alt={label}
               fill

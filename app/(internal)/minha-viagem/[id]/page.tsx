@@ -1,12 +1,28 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { use } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { Icon } from "@/components/atoms/Icon";
 import { toast } from "sonner";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -16,6 +32,7 @@ import dynamic from "next/dynamic";
 import { gtmTripViewed } from "@/lib/gtm";
 import { NORDESTE_CITIES } from "@/lib/nordeste-cities";
 import { AddActivitySheet } from "@/components/organisms/AddActivitySheet";
+import { EditTripSheet } from "@/components/organisms/EditTripSheet";
 import { TripWeatherCard } from "@/components/organisms/TripWeatherCard";
 
 /**
@@ -105,11 +122,11 @@ type ActivityCardProps = {
   customUrl?: string;
   icon?: string;
   dbItem?: { name?: unknown; title?: unknown; shortDesc?: unknown; image?: unknown; cover?: unknown; url?: unknown; slug?: unknown; affiliateUrl?: unknown } | undefined;
-  // OSM enrichment (only present when source = "osm")
   osmLat?: number;
   osmLng?: number;
   osmAddress?: string;
   osmWebsite?: string;
+  dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
 };
 
 function ActivityCard({
@@ -129,6 +146,7 @@ function ActivityCard({
   osmLng,
   osmAddress,
   osmWebsite,
+  dragHandleProps,
 }: ActivityCardProps) {
   const router = useRouter();
   const setActivityTime = useMutation(api.trips.setActivityTime);
@@ -258,9 +276,18 @@ function ActivityCard({
         </div>
       </div>
 
-      {/* Right rail: time pill + trash button + chevron. Outside the
+      {/* Right rail: drag handle + time pill + trash button + chevron. Outside the
           click-to-navigate area, so they never collide with it. */}
       <div className="flex flex-col items-end gap-1.5 shrink-0">
+        {dragHandleProps && (
+          <div
+            {...dragHandleProps}
+            className="grid size-7 place-items-center rounded-full text-[var(--color-neutral-400)] hover:text-[var(--color-neutral-700)] cursor-grab active:cursor-grabbing touch-none"
+            title="Arrastar para reordenar"
+          >
+            <Icon name="grip-vertical" size={14} />
+          </div>
+        )}
         <label
           title={time ? "Mudar horário" : "Definir horário"}
           className="relative inline-flex items-center gap-1 h-7 px-2 rounded-full bg-white border-[1px] border-neutral-200 cursor-pointer hover:brightness-95 transition"
@@ -314,6 +341,171 @@ function ActivityCard({
   );
 }
 
+// ─── Sortable wrapper ─────────────────────────────────────────────────────
+type Activity = {
+  source: string;
+  kind: string;
+  timeOfDay: string;
+  title: string;
+  note?: string;
+  itemId?: string;
+  icon?: string;
+  time?: string;
+  customUrl?: string;
+  osmLat?: number;
+  osmLng?: number;
+  osmAddress?: string;
+  osmWebsite?: string;
+};
+
+function SortableActivityCard({
+  id,
+  tripId,
+  day,
+  index,
+  activity,
+  dbItem,
+}: {
+  id: number;
+  tripId: Id<"trips">;
+  day: number;
+  index: number;
+  activity: Activity;
+  dbItem?: Record<string, unknown>;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.4 : 1,
+        zIndex: isDragging ? 10 : undefined,
+        position: "relative",
+      }}
+    >
+      <ActivityCard
+        tripId={tripId}
+        day={day}
+        index={index}
+        source={activity.source}
+        kind={activity.kind}
+        title={activity.title}
+        note={activity.note}
+        timeOfDay={activity.timeOfDay}
+        time={activity.time}
+        customUrl={activity.customUrl}
+        icon={activity.icon}
+        dbItem={dbItem}
+        osmLat={activity.osmLat}
+        osmLng={activity.osmLng}
+        osmAddress={activity.osmAddress}
+        osmWebsite={activity.osmWebsite}
+        dragHandleProps={{ ...attributes, ...listeners } as React.HTMLAttributes<HTMLDivElement>}
+      />
+    </div>
+  );
+}
+
+function DayActivities({
+  tripId,
+  dayNum,
+  initialActivities,
+  resolvedItems,
+  onAddSheet,
+}: {
+  tripId: Id<"trips">;
+  dayNum: number;
+  initialActivities: Activity[];
+  resolvedItems: Record<string, Record<string, unknown>> | undefined;
+  onAddSheet: () => void;
+}) {
+  const reorderActivities = useMutation(api.trips.reorderActivities);
+  const [items, setItems] = useState<Activity[]>(initialActivities);
+
+  useEffect(() => {
+    setItems(initialActivities);
+  }, [initialActivities]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
+  );
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = active.id as number;
+    const newIndex = over.id as number;
+    const newOrder = arrayMove(items, oldIndex, newIndex);
+    setItems(newOrder);
+    reorderActivities({ tripId, day: dayNum, activities: newOrder });
+  }
+
+  const hasAnyTime = items.some((a) => a.time);
+
+  function handleSortByTime() {
+    const sorted = [...items].sort((a, b) => {
+      if (a.time && b.time) return a.time.localeCompare(b.time);
+      if (a.time) return -1;
+      if (b.time) return 1;
+      return 0;
+    });
+    setItems(sorted);
+    reorderActivities({ tripId, day: dayNum, activities: sorted });
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      {hasAnyTime && (
+        <button
+          type="button"
+          onClick={handleSortByTime}
+          className="self-start inline-flex items-center gap-1.5 rounded-full bg-[var(--color-neutral-100)] px-3 py-1.5 text-[11px] font-medium text-[var(--color-neutral-700)] hover:bg-[var(--color-neutral-200)] transition-colors"
+        >
+          <Icon name="arrow-up-narrow-wide" size={12} />
+          Ordenar por horário
+        </button>
+      )}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={items.map((_, i) => i)}
+          strategy={verticalListSortingStrategy}
+        >
+          {items.map((a, idx) => (
+            <SortableActivityCard
+              key={`${dayNum}-${idx}`}
+              id={idx}
+              tripId={tripId}
+              day={dayNum}
+              index={idx}
+              activity={a}
+              dbItem={
+                a.source === "db" && a.itemId
+                  ? resolvedItems?.[a.itemId]
+                  : undefined
+              }
+            />
+          ))}
+        </SortableContext>
+      </DndContext>
+      <button
+        type="button"
+        onClick={onAddSheet}
+        className="self-start inline-flex items-center gap-1.5 rounded-full border border-dashed border-[var(--color-neutral-300)] px-3 py-1.5 text-[12px] font-medium text-[var(--color-neutral-700)] hover:border-[var(--color-neutral-800)] hover:text-[var(--color-neutral-800)] transition-colors"
+      >
+        <Icon name="plus" size={12} />
+        Adicionar ao dia {dayNum}
+      </button>
+    </div>
+  );
+}
+
 // ─── Page ──────────────────────────────────────────────────────────────────
 export default function TripDetailPage({
   params,
@@ -333,6 +525,7 @@ export default function TripDetailPage({
   const [regenerating, setRegenerating] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [addSheetDay, setAddSheetDay] = useState<number | null>(null);
+  const [editSheetOpen, setEditSheetOpen] = useState(false);
 
   useEffect(() => {
     if (!auth.isLoading && !auth.isAuthenticated) auth.openAuthModal();
@@ -424,9 +617,17 @@ export default function TripDetailPage({
         </span>
         <button
           type="button"
+          onClick={() => setEditSheetOpen(true)}
+          aria-label="Editar viagem"
+          className="ml-auto grid size-10 place-items-center rounded-full bg-[var(--color-neutral-100)]"
+        >
+          <Icon name="pencil" size={16} className="text-[var(--color-neutral-800)]" />
+        </button>
+        <button
+          type="button"
           onClick={handleDelete}
           aria-label="Excluir viagem"
-          className="ml-auto grid size-10 place-items-center rounded-full bg-[var(--color-neutral-100)] disabled:opacity-50"
+          className="grid size-10 place-items-center rounded-full bg-[var(--color-neutral-100)] disabled:opacity-50"
           disabled={deleting}
         >
           <Icon name="trash-2" size={16} className="text-[var(--color-neutral-800)]" />
@@ -512,7 +713,7 @@ export default function TripDetailPage({
 
         {itineraryReady && !regenerating && (
           <div className="flex flex-col gap-6">
-            {trip.itinerary!.map((day) => {
+            {trip.itinerary!.filter((d) => d.day <= (trip.duration ?? trip.itinerary!.length)).map((day) => {
               const dayDate = trip.startDate
                 ? new Date(trip.startDate + (day.day - 1) * 86400000)
                 : null;
@@ -546,40 +747,14 @@ export default function TripDetailPage({
                       </div>
                     )}
                   </div>
-                  <div className="flex flex-col gap-2 pl-12">
-                    {day.activities.map((a, idx) => (
-                      <ActivityCard
-                        key={`${day.day}-${idx}`}
-                        tripId={tripId}
-                        day={day.day}
-                        index={idx}
-                        source={a.source}
-                        kind={a.kind}
-                        title={a.title}
-                        note={a.note}
-                        timeOfDay={a.timeOfDay}
-                        time={a.time}
-                        customUrl={a.customUrl}
-                        icon={a.icon}
-                        dbItem={
-                          a.source === "db" && a.itemId
-                            ? (resolvedItems as Record<string, Record<string, unknown>> | undefined)?.[a.itemId]
-                            : undefined
-                        }
-                        osmLat={a.osmLat}
-                        osmLng={a.osmLng}
-                        osmAddress={a.osmAddress}
-                        osmWebsite={a.osmWebsite}
-                      />
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => setAddSheetDay(day.day)}
-                      className="self-start inline-flex items-center gap-1.5 rounded-full border border-dashed border-[var(--color-neutral-300)] px-3 py-1.5 text-[12px] font-medium text-[var(--color-neutral-700)] hover:border-[var(--color-neutral-800)] hover:text-[var(--color-neutral-800)] transition-colors"
-                    >
-                      <Icon name="plus" size={12} />
-                      Adicionar ao dia {day.day}
-                    </button>
+                  <div className="pl-12">
+                    <DayActivities
+                      tripId={tripId}
+                      dayNum={day.day}
+                      initialActivities={day.activities}
+                      resolvedItems={resolvedItems as Record<string, Record<string, unknown>> | undefined}
+                      onAddSheet={() => setAddSheetDay(day.day)}
+                    />
                   </div>
                 </div>
               );
@@ -594,6 +769,15 @@ export default function TripDetailPage({
         day={addSheetDay ?? 1}
         city={trip.destination.split(",")[0].trim()}
         onClose={() => setAddSheetDay(null)}
+      />
+
+      <EditTripSheet
+        open={editSheetOpen}
+        tripId={tripId}
+        initialDuration={trip.duration ?? 3}
+        initialGroupSize={trip.groupSize ?? 2}
+        initialBudget={trip.budget ?? "medio"}
+        onClose={() => setEditSheetOpen(false)}
       />
 
       {/* ── Notes section ──────────────────────────────────── */}

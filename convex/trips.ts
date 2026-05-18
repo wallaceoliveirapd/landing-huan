@@ -174,6 +174,42 @@ export const create = mutation({
   },
 });
 
+export const updateBasics = mutation({
+  args: {
+    id: v.id("trips"),
+    duration: v.optional(v.number()),
+    groupSize: v.optional(v.number()),
+    budget: v.optional(v.string()),
+  },
+  handler: async (ctx, { id, duration, groupSize, budget }) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+    const trip = await ctx.db.get(id);
+    if (!trip || trip.userId !== userId) throw new Error("Not found");
+
+    const patch: Record<string, unknown> = {};
+    if (duration !== undefined) patch.duration = duration;
+    if (groupSize !== undefined) patch.groupSize = groupSize;
+    if (budget !== undefined) patch.budget = budget;
+
+    // Append blank days if new duration exceeds existing itinerary depth.
+    // Existing days are never deleted — hidden by the client via display filter.
+    if (duration !== undefined) {
+      const existing = trip.itinerary ?? [];
+      const maxDay = existing.reduce((m, d) => Math.max(m, d.day), 0);
+      if (duration > maxDay) {
+        const newDays = [];
+        for (let d = maxDay + 1; d <= duration; d++) {
+          newDays.push({ day: d, theme: "", activities: [] });
+        }
+        patch.itinerary = [...existing, ...newDays];
+      }
+    }
+
+    return ctx.db.patch(id, patch);
+  },
+});
+
 export const update = mutation({
   args: {
     id: v.id("trips"),
@@ -265,6 +301,27 @@ export const removeActivity = mutation({
     const target = itinerary.find((d) => d.day === day);
     if (!target) return null;
     target.activities.splice(index, 1);
+    await ctx.db.patch(tripId, { itinerary });
+    return null;
+  },
+});
+
+/** Replace the entire activities array for a day (used by drag-and-drop reorder). */
+export const reorderActivities = mutation({
+  args: {
+    tripId: v.id("trips"),
+    day: v.number(),
+    activities: v.array(activityShape),
+  },
+  handler: async (ctx, { tripId, day, activities }) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+    const trip = await ctx.db.get(tripId);
+    if (!trip || trip.userId !== userId) throw new Error("Not found");
+    const itinerary = (trip.itinerary ?? []).map((d) => ({ ...d }));
+    const target = itinerary.find((d) => d.day === day);
+    if (!target) return null;
+    target.activities = activities;
     await ctx.db.patch(tripId, { itinerary });
     return null;
   },

@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { SkeletonImage } from "@/components/atoms/SkeletonImage";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { cn } from "@/lib/cn";
@@ -34,7 +34,7 @@ export function OfferCard({ tour, className, onSelect }: { tour: Tour; className
       )}
     >
       {/* Full-bleed image */}
-      <Image
+      <SkeletonImage
         src={toProxyUrl(tour.image)}
         alt={tour.title}
         fill

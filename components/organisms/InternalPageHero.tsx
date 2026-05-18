@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { SkeletonImage } from "@/components/atoms/SkeletonImage";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
@@ -68,7 +68,7 @@ export function InternalPageHero({
           transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
           className="absolute inset-0"
         >
-          <Image
+          <SkeletonImage
             src={s.src}
             alt={s.alt}
             fill
