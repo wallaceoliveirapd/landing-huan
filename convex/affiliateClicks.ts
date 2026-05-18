@@ -11,8 +11,11 @@ export const log = mutation({
     channel: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
     return ctx.db.insert("affiliateClicks", {
       ...args,
+      userId: identity?.subject ?? undefined,
+      isLoggedIn: identity !== null,
       timestamp: Date.now(),
     });
   },
@@ -67,6 +70,8 @@ export const stats = query({
     const byType: Record<string, number> = {};
     const byItem: Record<string, { name: string; count: number; type: string }> = {};
     const byChannel: Record<string, number> = {};
+    let loggedIn = 0;
+    let anonymous = 0;
 
     for (const c of all) {
       byType[c.itemType] = (byType[c.itemType] ?? 0) + 1;
@@ -77,6 +82,7 @@ export const stats = query({
       if (c.channel) {
         byChannel[c.channel] = (byChannel[c.channel] ?? 0) + 1;
       }
+      if (c.isLoggedIn) loggedIn++; else anonymous++;
     }
 
     const topItems = Object.entries(byItem)
@@ -89,6 +95,8 @@ export const stats = query({
       byType,
       topItems,
       byChannel,
+      loggedIn,
+      anonymous,
     };
   },
 });

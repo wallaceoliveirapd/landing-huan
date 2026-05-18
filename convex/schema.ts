@@ -530,6 +530,8 @@ export default defineSchema({
     itemName: v.string(),      // nome para exibição nos relatórios
     targetUrl: v.string(),     // URL de destino
     channel: v.optional(v.string()), // parâmetro &channel= opcional
+    userId: v.optional(v.string()),  // Convex subject ID quando logado
+    isLoggedIn: v.boolean(),         // true se usuário estava autenticado
     timestamp: v.number(),
   })
     .index("by_ref", ["ref"])

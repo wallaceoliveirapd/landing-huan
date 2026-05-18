@@ -5,6 +5,7 @@ import "./globals.css";
 import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import { AppProviders } from "@/components/providers/AppProviders";
 import { DisablePinchZoom } from "@/components/atoms/DisablePinchZoom";
+import { ClarityScript } from "@/components/atoms/ClarityScript";
 
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 
@@ -101,6 +102,7 @@ dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});`}
         <ConvexAuthNextjsServerProvider>
           <AppProviders>
             <DisablePinchZoom />
+            <ClarityScript />
             <main className="flex flex-col flex-1 w-full bg-white">
               {children}
             </main>

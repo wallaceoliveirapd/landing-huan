@@ -59,12 +59,14 @@ export default function RelatoriosPage() {
 
       {/* ── Summary cards ───────────────────────────────────── */}
       {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-          <SkeletonCard />
-          <SkeletonCard />
-          <SkeletonCard />
-          <SkeletonCard />
-        </div>
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
+            <SkeletonCard /><SkeletonCard /><SkeletonCard />
+          </div>
+          <div className="grid grid-cols-3 gap-4 mb-8">
+            <SkeletonCard /><SkeletonCard /><SkeletonCard />
+          </div>
+        </>
       ) : noData ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <Icon name="lucide:bar-chart-2" size={40} className="text-[var(--color-neutral-400)] mb-4" />
@@ -74,7 +76,7 @@ export default function RelatoriosPage() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
             {/* Total */}
             <div className="bg-white border border-[var(--color-neutral-300)] rounded-2xl p-5">
               <p className="text-xs font-medium text-[var(--color-neutral-600)] uppercase tracking-wide mb-1">
@@ -83,7 +85,25 @@ export default function RelatoriosPage() {
               <p className="text-3xl font-bold text-[var(--color-neutral-800)]">{stats.total}</p>
             </div>
 
-            {/* By type */}
+            {/* Logged in */}
+            <div className="bg-white border border-[var(--color-neutral-300)] rounded-2xl p-5">
+              <p className="text-xs font-medium text-[var(--color-neutral-600)] uppercase tracking-wide mb-1">
+                Usuários logados
+              </p>
+              <p className="text-3xl font-bold text-green-600">{stats.loggedIn}</p>
+            </div>
+
+            {/* Anonymous */}
+            <div className="bg-white border border-[var(--color-neutral-300)] rounded-2xl p-5">
+              <p className="text-xs font-medium text-[var(--color-neutral-600)] uppercase tracking-wide mb-1">
+                Usuários anônimos
+              </p>
+              <p className="text-3xl font-bold text-[var(--color-neutral-500)]">{stats.anonymous}</p>
+            </div>
+          </div>
+
+          {/* By type */}
+          <div className="grid grid-cols-3 gap-4 mb-8">
             {(["tour", "coupon", "hosting"] as const).map((type) => (
               <div
                 key={type}
@@ -220,6 +240,7 @@ export default function RelatoriosPage() {
                       <th className="px-4 py-3 text-left font-medium">Data / Hora</th>
                       <th className="px-4 py-3 text-left font-medium">Nome</th>
                       <th className="px-4 py-3 text-left font-medium">Tipo</th>
+                      <th className="px-4 py-3 text-left font-medium">Usuário</th>
                       <th className="px-4 py-3 text-left font-medium">Destino</th>
                     </tr>
                   </thead>
@@ -251,6 +272,17 @@ export default function RelatoriosPage() {
                             >
                               {TYPE_LABELS[click.itemType] ?? click.itemType}
                             </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            {click.isLoggedIn ? (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-green-100 text-green-700 px-2 py-0.5 text-[10px] font-medium">
+                                Logado
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-neutral-100)] text-[var(--color-neutral-500)] px-2 py-0.5 text-[10px] font-medium">
+                                Anônimo
+                              </span>
+                            )}
                           </td>
                           <td className="px-4 py-3 text-[var(--color-neutral-500)] text-xs font-mono">
                             <a
