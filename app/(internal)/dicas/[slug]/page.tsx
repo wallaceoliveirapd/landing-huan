@@ -8,6 +8,7 @@ import { Icon } from "@/components/atoms/Icon";
 import { Header } from "@/components/organisms/Header";
 import { DicaReactions } from "@/components/organisms/DicaReactions";
 import { GtmViewItem } from "@/components/atoms/GtmViewItem";
+import { RichContent } from "@/components/atoms/RichContent";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -15,31 +16,6 @@ export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
   const d = await fetchQuery(api.dicas.getBySlug, { slug });
   return { title: d ? `${d.title}, HUAN` : "Dica, HUAN" };
-}
-
-/** Minimal Markdown → HTML (headings, bold, lists, line breaks). */
-function markdownToHtml(md: string): string {
-  return md
-    // H1, skip rendering as heading (it duplicates the page title)
-    .replace(/^# (.+)$/gm, '')
-    // H2
-    .replace(/^## (.+)$/gm, '<h2 class="font-display font-medium text-[22px] mt-6 mb-2 text-[var(--color-ink)]">$1</h2>')
-    // H3
-    .replace(/^### (.+)$/gm, '<h3 class="font-display font-medium text-[18px] mt-5 mb-1.5 text-[var(--color-ink)]">$1</h3>')
-    // Bold
-    .replace(/\*\*(.+?)\*\*/g, '<strong class="font-medium text-[var(--color-ink)]">$1</strong>')
-    // Italic
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    // Unordered list items
-    .replace(/^[-*] (.+)$/gm, '<li class="ml-5 list-disc leading-relaxed">$1</li>')
-    // Wrap consecutive <li> in <ul>
-    .replace(/(<li[\s\S]*?<\/li>)(\n<li)/g, '$1$2')
-    .replace(/(<li[\s\S]+?<\/li>)/g, '<ul class="my-3 space-y-1">$1</ul>')
-    // Paragraphs (double newline)
-    .replace(/\n\n(?!<)/g, '</p><p class="font-display text-[15px] leading-[1.75] text-[var(--color-neutral-600)] my-3">')
-    // Clean up trailing/leading
-    .replace(/^(?!<)/, '<p class="font-display text-[15px] leading-[1.75] text-[var(--color-neutral-600)] my-3">')
-    .replace(/(?<!>)$/, '</p>');
 }
 
 export default async function DicaPage({ params }: PageProps) {
@@ -104,9 +80,9 @@ export default async function DicaPage({ params }: PageProps) {
           </p>
 
           {dica.content ? (
-            <div
-              className="prose-reset"
-              dangerouslySetInnerHTML={{ __html: markdownToHtml(dica.content) }}
+            <RichContent
+              content={dica.content}
+              className="font-display text-[15px] leading-[1.75] text-[var(--color-neutral-600)]"
             />
           ) : (
             <p className="font-display text-[15px] leading-[1.65] text-[var(--color-neutral-600)]">

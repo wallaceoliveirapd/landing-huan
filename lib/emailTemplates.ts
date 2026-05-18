@@ -202,6 +202,43 @@ export function passwordResetEmail({
 }
 
 /**
+ * Triggered by admin asking to reset a user's password. Sends a deep link
+ * to /esqueci-senha?email=...&autosend=1 so the OTP code flows through
+ * Convex Auth's normal reset flow, not through admin.
+ */
+export function passwordResetRequestedEmail({
+  name,
+  resetUrl,
+}: {
+  name?: string;
+  resetUrl: string;
+}) {
+  const firstName = name?.split(" ")[0];
+  const greeting = firstName ? `Oi ${firstName},` : "Oi,";
+  return {
+    subject: "Link pra redefinir sua senha",
+    html: baseLayout({
+      title: "Redefinir senha",
+      preview: "Clique pra escolher uma senha nova.",
+      signOff: "Qualquer dúvida tô por aqui,",
+      body: `
+        <p style="font-size:18px;font-weight:600;line-height:1.4;margin:0 0 12px;color:${BRAND.ink};">${greeting}</p>
+        <p style="font-size:15px;line-height:1.65;margin:0 0 24px;color:${BRAND.ink};">
+          Recebi um pedido pra redefinir a senha da sua conta. Clique no botão abaixo, vou te mandar um código por email pra confirmar a troca.
+        </p>
+        <div style="text-align:center;margin:0 0 24px;">
+          <a href="${resetUrl}" style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:14px 28px;border-radius:999px;">Redefinir senha</a>
+        </div>
+        <p style="font-size:13px;line-height:1.55;color:${BRAND.muted};margin:0 0 16px;">
+          Se você não pediu essa redefinição, pode ignorar este email. Sua senha atual continua valendo.
+        </p>
+      `,
+      footerNote: "Você recebeu este email porque alguém pediu pra redefinir a senha da sua conta no huanfalcao.com.br.",
+    }),
+  };
+}
+
+/**
  * Trip-created confirmation, Huan dizendo que o roteiro tá pronto.
  */
 export function tripCreatedEmail({

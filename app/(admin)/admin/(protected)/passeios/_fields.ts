@@ -4,7 +4,7 @@ export const FIELDS: Field[] = [
   { key: "title", label: "Título", type: "text", required: true },
   { key: "slug", label: "Slug (URL)", type: "text", required: true, slugFrom: "title", placeholder: "gerado-do-titulo" },
   { key: "shortDesc", label: "Resumo curto", type: "text", required: true },
-  { key: "description", label: "Descrição completa", type: "textarea", required: true },
+  { key: "description", label: "Descrição completa", type: "rich", required: true },
   { key: "price", label: "Preço (R$)", type: "number", required: true },
   { key: "originalPrice", label: "Preço original (R$, 0 = sem desconto)", type: "number" },
   { key: "image", label: "Imagem principal", type: "image", required: true, uploadCategory: "passeios" },

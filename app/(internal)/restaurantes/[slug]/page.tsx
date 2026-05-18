@@ -6,7 +6,7 @@ import { RestaurantOverview } from "@/components/organisms/RestaurantOverview";
 import { PhotoGallery } from "@/components/organisms/PhotoGallery";
 import { OperatingHours } from "@/components/organisms/OperatingHours";
 import { SectionSpacer } from "@/components/organisms/SectionSpacer";
-import { RestaurantReviews } from "@/components/organisms/RestaurantReviews";
+import { PlaceReviewsSection } from "@/components/organisms/PlaceReviewsSection";
 import { GtmViewItem } from "@/components/atoms/GtmViewItem";
 
 type PageProps = { params: Promise<{ slug: string }> };
@@ -69,7 +69,7 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
         </>
       )}
       <SectionSpacer />
-      <RestaurantReviews restaurantId={restaurant._id} />
+      <PlaceReviewsSection kind="restaurant" itemId={restaurant._id} noun="este restaurante" />
     </>
   );
 }

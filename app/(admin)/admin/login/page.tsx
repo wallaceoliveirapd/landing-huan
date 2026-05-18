@@ -106,31 +106,6 @@ export default function AdminLoginPage() {
             )}
           </button>
         </form>
-
-        {/* Toggle mode */}
-        <p className="mt-4 text-center text-sm text-[var(--color-neutral-600)]">
-          {mode === "signIn" ? (
-            <>
-              Primeiro acesso?{" "}
-              <button
-                onClick={() => { setMode("signUp"); setError(""); }}
-                className="text-[var(--color-brand-purple)] font-medium hover:underline"
-              >
-                Criar conta admin
-              </button>
-            </>
-          ) : (
-            <>
-              Já tem conta?{" "}
-              <button
-                onClick={() => { setMode("signIn"); setError(""); }}
-                className="text-[var(--color-brand-purple)] font-medium hover:underline"
-              >
-                Entrar
-              </button>
-            </>
-          )}
-        </p>
       </div>
     </div>
   );

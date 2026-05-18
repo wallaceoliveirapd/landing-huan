@@ -22,10 +22,24 @@ export default function EsqueciSenhaPage() {
   const [loading, setLoading] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
 
+  const [autoTriggered, setAutoTriggered] = useState(false);
+
   useEffect(() => {
     const e = params.get("email");
     if (e) setEmail(e);
   }, [params]);
+
+  // Auto-fire code request when arriving from admin-issued reset email
+  // (link contains ?email=...&autosend=1). Runs once after email is set.
+  useEffect(() => {
+    if (autoTriggered) return;
+    if (params.get("autosend") !== "1") return;
+    const e = params.get("email");
+    if (!e || !email) return;
+    setAutoTriggered(true);
+    void requestCode();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [email, params, autoTriggered]);
 
   useEffect(() => {
     if (resendCooldown <= 0) return;

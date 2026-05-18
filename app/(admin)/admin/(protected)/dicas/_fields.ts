@@ -4,7 +4,7 @@ export const FIELDS: Field[] = [
   { key: "title", label: "Título", type: "text", required: true },
   { key: "slug", label: "Slug (URL)", type: "text", required: true, slugFrom: "title" },
   { key: "excerpt", label: "Resumo (aparece na listagem)", type: "textarea", required: true },
-  { key: "content", label: "Conteúdo (Markdown)", type: "textarea", required: true },
+  { key: "content", label: "Conteúdo", type: "rich", required: true },
   { key: "cover", label: "Imagem de capa", type: "image", required: true, uploadCategory: "dicas" },
   {
     key: "category",

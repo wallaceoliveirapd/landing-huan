@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { action, mutation, query } from "./_generated/server";
 import { requireAdmin } from "./helpers";
 import { matchesCity } from "./cityFilter";
+import { combinedStats, combinedStatsForItems } from "./placeReviews";
 
 const hoursValidator = v.array(
   v.object({ day: v.string(), open: v.string(), close: v.string() })
@@ -20,32 +21,54 @@ export const list = query({
       : ctx.db.query("restaurants")
     ).collect();
     const filtered = city ? items.filter((i) => matchesCity(i.city, city)) : items;
-    return filtered.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+    const sorted = filtered.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
+    return combinedStatsForItems(ctx, "restaurant", sorted);
   },
 });
 
 export const featured = query({
   handler: async (ctx) => {
-    return ctx.db
+    const items = await ctx.db
       .query("restaurants")
       .withIndex("by_featured", (q) => q.eq("featured", true))
       .collect();
+    return combinedStatsForItems(ctx, "restaurant", items);
   },
 });
 
 export const getBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, { slug }) => {
-    return ctx.db
+    const item = await ctx.db
       .query("restaurants")
       .withIndex("by_slug", (q) => q.eq("slug", slug))
       .unique();
+    if (!item) return null;
+    const { rating, total } = await combinedStats(
+      ctx,
+      "restaurant",
+      item._id,
+      item.rating,
+      item.reviewCount,
+    );
+    return { ...item, rating: rating ?? item.rating, reviewCount: total };
   },
 });
 
 export const getById = query({
   args: { id: v.id("restaurants") },
-  handler: async (ctx, { id }) => ctx.db.get(id),
+  handler: async (ctx, { id }) => {
+    const item = await ctx.db.get(id);
+    if (!item) return null;
+    const { rating, total } = await combinedStats(
+      ctx,
+      "restaurant",
+      item._id,
+      item.rating,
+      item.reviewCount,
+    );
+    return { ...item, rating: rating ?? item.rating, reviewCount: total };
+  },
 });
 
 export const create = mutation({

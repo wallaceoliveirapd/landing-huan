@@ -12,6 +12,7 @@ import { PhotosField } from "./PhotosField";
 import { HoursBuilder } from "./HoursBuilder";
 import { DaysBuilder } from "./DaysBuilder";
 import { CityAutocompleteField } from "./CityAutocompleteField";
+import { RichTextEditor } from "./RichTextEditor";
 import type { FunctionReference } from "convex/server";
 import type { Field } from "./AdminCrudPage";
 
@@ -182,6 +183,16 @@ function FieldInput({
         onChange={(e) => onChange(e.target.value)}
         placeholder={field.placeholder}
         required={field.required}
+      />
+    );
+  }
+
+  if (field.type === "rich") {
+    return (
+      <RichTextEditor
+        value={String(value ?? "")}
+        onChange={onChange}
+        placeholder={field.placeholder}
       />
     );
   }

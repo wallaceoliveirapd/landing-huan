@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import { InfoRow } from "@/components/molecules/InfoRow";
 import { Badge } from "@/components/atoms/Badge";
 import { PriceTag } from "@/components/atoms/PriceTag";
+import { RichContent } from "@/components/atoms/RichContent";
 import { fadeUp, staggerChildren } from "@/lib/motion-presets";
 
 export function TourOverview({
@@ -47,12 +48,12 @@ export function TourOverview({
         )}
 
         {description && (
-          <motion.p
-            variants={fadeUp}
-            className="text-[15px] leading-[1.6] text-[var(--color-neutral-700)] whitespace-pre-line"
-          >
-            {description}
-          </motion.p>
+          <motion.div variants={fadeUp}>
+            <RichContent
+              content={description}
+              className="text-[15px] leading-[1.6]"
+            />
+          </motion.div>
         )}
 
         {tags.length > 0 && (

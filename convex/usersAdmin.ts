@@ -1,6 +1,9 @@
 import { v } from "convex/values";
 import { mutation, query, type QueryCtx, type MutationCtx } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { internal } from "./_generated/api";
+
+const SITE_URL = "https://huanfalcao.com.br";
 
 const VALID_ROLES = ["admin", "customer"] as const;
 
@@ -111,6 +114,8 @@ export const get = query({
       emailVerificationTime:
         (u as { emailVerificationTime?: number }).emailVerificationTime ?? null,
       welcomedAt: (u as { welcomedAt?: number }).welcomedAt ?? null,
+      tripLimitBonus: (u as { tripLimitBonus?: number }).tripLimitBonus ?? 0,
+      chatLimitBonus: (u as { chatLimitBonus?: number }).chatLimitBonus ?? 0,
       trips: trips.map((t) => ({
         _id: t._id,
         title: t.title,
@@ -194,6 +199,49 @@ export const unmarkEmailVerified = mutation({
     await requireAdmin(ctx);
     await ctx.db.patch(id, { emailVerificationTime: undefined });
     return await ctx.db.get(id);
+  },
+});
+
+/** Admin-only, set per-user trip and chat limit bonuses (stacked on top of global defaults). */
+export const setLimits = mutation({
+  args: {
+    id: v.id("users"),
+    tripLimitBonus: v.number(),
+    chatLimitBonus: v.number(),
+  },
+  handler: async (ctx, { id, tripLimitBonus, chatLimitBonus }) => {
+    await requireAdmin(ctx);
+    await ctx.db.patch(id, {
+      tripLimitBonus: Math.max(0, Math.round(tripLimitBonus)),
+      chatLimitBonus: Math.max(0, Math.round(chatLimitBonus)),
+    });
+    return await ctx.db.get(id);
+  },
+});
+
+/**
+ * Admin-only, trigger a password reset for a user. Sends them an email
+ * with a deep link to /esqueci-senha?email=...&autosend=1 that auto-fires
+ * the standard Convex Auth reset-OTP flow on page load.
+ *
+ * Admin never sees the OTP code; it goes straight to the user's email.
+ */
+export const requestPasswordReset = mutation({
+  args: { id: v.id("users") },
+  handler: async (ctx, { id }) => {
+    await requireAdmin(ctx);
+    const u = await ctx.db.get(id);
+    if (!u) throw new Error("Usuário não encontrado");
+    const email = (u as { email?: string }).email;
+    if (!email) throw new Error("Usuário sem email cadastrado");
+    const name = (u as { name?: string }).name;
+    const resetUrl = `${SITE_URL}/esqueci-senha?email=${encodeURIComponent(email)}&autosend=1`;
+    await ctx.scheduler.runAfter(0, internal.email.sendPasswordResetRequest, {
+      to: email,
+      name,
+      resetUrl,
+    });
+    return { ok: true };
   },
 });
 

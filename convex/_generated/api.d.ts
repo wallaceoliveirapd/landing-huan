@@ -31,6 +31,8 @@ import type * as notifications from "../notifications.js";
 import type * as osmCache from "../osmCache.js";
 import type * as osmPlaces from "../osmPlaces.js";
 import type * as otp from "../otp.js";
+import type * as placeReactions from "../placeReactions.js";
+import type * as placeReviews from "../placeReviews.js";
 import type * as praias from "../praias.js";
 import type * as push from "../push.js";
 import type * as pushQueries from "../pushQueries.js";
@@ -83,6 +85,8 @@ declare const fullApi: ApiFromModules<{
   osmCache: typeof osmCache;
   osmPlaces: typeof osmPlaces;
   otp: typeof otp;
+  placeReactions: typeof placeReactions;
+  placeReviews: typeof placeReviews;
   praias: typeof praias;
   push: typeof push;
   pushQueries: typeof pushQueries;

@@ -7,6 +7,8 @@ import { toProxyUrl } from "@/lib/imageUpload";
 import { GtmViewItem } from "@/components/atoms/GtmViewItem";
 import { PraiaPhotosGrid } from "@/components/organisms/PraiaPhotosGrid";
 import { BackButton } from "@/components/atoms/BackButton";
+import { PlaceReviewsSection } from "@/components/organisms/PlaceReviewsSection";
+import { RichContent } from "@/components/atoms/RichContent";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -127,9 +129,10 @@ export default async function PraiaDetailPage({ params }: PageProps) {
           <h2 className="font-display font-medium text-[14px] text-[var(--color-neutral-800)] mb-3">
             Sobre a praia
           </h2>
-          <p className="text-[14px] leading-[1.65] text-[var(--color-neutral-700)] whitespace-pre-line">
-            {praia.description}
-          </p>
+          <RichContent
+            content={praia.description}
+            className="text-[14px] leading-[1.65]"
+          />
         </section>
       )}
 
@@ -142,6 +145,8 @@ export default async function PraiaDetailPage({ params }: PageProps) {
           <PraiaPhotosGrid photos={praia.photos} alt={`Foto de ${praia.name}`} />
         </section>
       )}
+
+      <PlaceReviewsSection kind="praia" itemId={praia._id} noun="esta praia" />
     </main>
   );
 }

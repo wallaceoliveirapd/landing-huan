@@ -7,6 +7,8 @@ import { Icon } from "@/components/atoms/Icon";
 import { toProxyUrl } from "@/lib/imageUpload";
 import { GtmViewItem } from "@/components/atoms/GtmViewItem";
 import { BackButton } from "@/components/atoms/BackButton";
+import { PlaceReviewsSection } from "@/components/organisms/PlaceReviewsSection";
+import { RichContent } from "@/components/atoms/RichContent";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -124,9 +126,10 @@ export default async function NightlifeDetailPage({ params }: PageProps) {
           <h2 className="font-display font-medium text-[14px] text-[var(--color-neutral-800)] mb-3">
             Sobre o lugar
           </h2>
-          <p className="text-[14px] leading-[1.65] text-[var(--color-neutral-700)] whitespace-pre-line">
-            {place.description}
-          </p>
+          <RichContent
+            content={place.description}
+            className="text-[14px] leading-[1.65]"
+          />
         </section>
       )}
 
@@ -154,6 +157,8 @@ export default async function NightlifeDetailPage({ params }: PageProps) {
           </div>
         </section>
       )}
+
+      <PlaceReviewsSection kind="nightlife" itemId={place._id} noun="este lugar" />
     </main>
   );
 }

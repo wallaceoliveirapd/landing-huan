@@ -39,21 +39,28 @@ export default function AdminUserDetailPage({
   const setRole = useMutation(api.usersAdmin.setRole);
   const markVerified = useMutation(api.usersAdmin.markEmailVerified);
   const unmarkVerified = useMutation(api.usersAdmin.unmarkEmailVerified);
+  const setLimits = useMutation(api.usersAdmin.setLimits);
+  const requestPasswordReset = useMutation(api.usersAdmin.requestPasswordReset);
   const remove = useMutation(api.usersAdmin.remove);
 
   // Editable form state, initialized from server doc
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
+  const [tripBonus, setTripBonus] = useState(0);
+  const [chatBonus, setChatBonus] = useState(0);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [resetSentAt, setResetSentAt] = useState<number | null>(null);
 
   useEffect(() => {
     if (user) {
       setName(user.name);
       setEmail(user.email);
       setWhatsapp(maskWhatsapp(user.whatsapp));
+      setTripBonus(user.tripLimitBonus ?? 0);
+      setChatBonus(user.chatLimitBonus ?? 0);
     }
   }, [user]);
 
@@ -119,6 +126,32 @@ export default function AdminUserDetailPage({
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleSaveLimits() {
+    setSaving(true);
+    setError("");
+    try {
+      await setLimits({ id: userId, tripLimitBonus: tripBonus, chatLimitBonus: chatBonus });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao salvar limites.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleRequestPasswordReset() {
+    if (!confirm(`Enviar email de redefinição de senha pra ${user!.email}?`)) return;
+    setSaving(true);
+    setError("");
+    try {
+      await requestPasswordReset({ id: userId });
+      setResetSentAt(Date.now());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao enviar email.");
     } finally {
       setSaving(false);
     }
@@ -281,6 +314,59 @@ export default function AdminUserDetailPage({
             )}
           </section>
 
+          {/* Password reset */}
+          <section className="rounded-2xl border border-[var(--color-neutral-200)] bg-white p-5">
+            <h3 className="font-display font-medium text-[14px] text-[var(--color-neutral-800)] mb-2">
+              Redefinir senha
+            </h3>
+            <p className="text-[12px] text-[var(--color-neutral-600)] mb-3 leading-[1.5]">
+              Envia um email pro usuário com um link pra escolher uma nova senha. Você não vê o código.
+            </p>
+            <button
+              type="button"
+              onClick={handleRequestPasswordReset}
+              disabled={saving || !user.email}
+              className="w-full h-9 rounded-full bg-white border border-[var(--color-neutral-300)] text-[var(--color-neutral-800)] text-[12px] font-medium disabled:opacity-50 hover:border-[var(--color-neutral-800)]"
+            >
+              {saving ? "Enviando…" : "Enviar email de redefinição"}
+            </button>
+            {resetSentAt && (
+              <p className="mt-2 text-[12px] text-emerald-700 inline-flex items-center gap-1">
+                <Icon name="check-circle" size={12} />
+                Email enviado às {fmtDateTime(resetSentAt)}
+              </p>
+            )}
+          </section>
+
+          {/* Limits */}
+          <section className="rounded-2xl border border-[var(--color-neutral-200)] bg-white p-5">
+            <h3 className="font-display font-medium text-[14px] text-[var(--color-neutral-800)] mb-3">
+              Limites extras
+            </h3>
+            <div className="flex flex-col gap-3">
+              <LimitStepper
+                label="Viagens"
+                base={3}
+                bonus={tripBonus}
+                onchange={setTripBonus}
+              />
+              <LimitStepper
+                label="Chats/dia"
+                base={10}
+                bonus={chatBonus}
+                onchange={setChatBonus}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleSaveLimits}
+              disabled={saving}
+              className="mt-4 w-full h-9 rounded-full bg-[var(--color-neutral-800)] text-white text-[12px] font-medium disabled:opacity-50"
+            >
+              {saving ? "Salvando…" : "Salvar limites"}
+            </button>
+          </section>
+
           {/* Activity summary */}
           <section className="rounded-2xl border border-[var(--color-neutral-200)] bg-white p-5">
             <h3 className="font-display font-medium text-[14px] text-[var(--color-neutral-800)] mb-3">
@@ -379,6 +465,48 @@ function Row({ label, value }: { label: string; value: string }) {
     <div className="flex items-center justify-between">
       <span className="text-[var(--color-neutral-600)]">{label}</span>
       <span className="font-medium text-[var(--color-neutral-800)]">{value}</span>
+    </div>
+  );
+}
+
+function LimitStepper({
+  label,
+  base,
+  bonus,
+  onchange,
+}: {
+  label: string;
+  base: number;
+  bonus: number;
+  onchange: (v: number) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-col min-w-0">
+        <span className="text-[12px] font-medium text-[var(--color-neutral-700)]">{label}</span>
+        <span className="text-[11px] text-[var(--color-neutral-500)]">
+          Base {base} + bônus {bonus} = {base + bonus}
+        </span>
+      </div>
+      <div className="flex items-center gap-1 shrink-0">
+        <button
+          type="button"
+          onClick={() => onchange(Math.max(0, bonus - 1))}
+          className="size-7 rounded-full border border-[var(--color-neutral-300)] text-[var(--color-neutral-700)] text-[14px] grid place-items-center hover:border-[var(--color-neutral-800)]"
+        >
+          −
+        </button>
+        <span className="w-6 text-center text-[13px] font-medium text-[var(--color-neutral-800)]">
+          {bonus}
+        </span>
+        <button
+          type="button"
+          onClick={() => onchange(bonus + 1)}
+          className="size-7 rounded-full border border-[var(--color-neutral-300)] text-[var(--color-neutral-700)] text-[14px] grid place-items-center hover:border-[var(--color-neutral-800)]"
+        >
+          +
+        </button>
+      </div>
     </div>
   );
 }

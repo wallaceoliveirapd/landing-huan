@@ -6,6 +6,7 @@ import { Resend } from "resend";
 import {
   welcomeEmail,
   otpEmail,
+  passwordResetRequestedEmail,
   tripCreatedEmail,
   broadcastEmail,
 } from "../lib/emailTemplates";
@@ -77,6 +78,26 @@ export const sendOtp = internalAction({
     await resend.emails.send({
       from: getFrom(),
       to,
+      subject: tpl.subject,
+      html: tpl.html,
+      replyTo: getReplyTo(),
+    });
+  },
+});
+
+// ─── Password reset requested (triggered by admin) ───────────────────────
+export const sendPasswordResetRequest = internalAction({
+  args: {
+    to: v.string(),
+    name: v.optional(v.string()),
+    resetUrl: v.string(),
+  },
+  handler: async (_ctx, args) => {
+    const tpl = passwordResetRequestedEmail({ name: args.name, resetUrl: args.resetUrl });
+    const resend = getResend();
+    await resend.emails.send({
+      from: getFrom(),
+      to: args.to,
       subject: tpl.subject,
       html: tpl.html,
       replyTo: getReplyTo(),

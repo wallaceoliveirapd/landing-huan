@@ -5,6 +5,7 @@ import { TourDetailHero } from "@/components/organisms/TourDetailHero";
 import { TourOverview } from "@/components/organisms/TourOverview";
 import { TourCtaFooter } from "@/components/organisms/TourCtaFooter";
 import { GtmViewItem } from "@/components/atoms/GtmViewItem";
+import { PlaceReviewsSection } from "@/components/organisms/PlaceReviewsSection";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -50,6 +51,7 @@ export default async function TourDetailPage({ params }: PageProps) {
         city={tour.city}
         tags={tour.tags}
       />
+      <PlaceReviewsSection kind="tour" itemId={tour._id} noun="este passeio" />
       <div className="h-32" />
       <TourCtaFooter url={tour.url} title={tour.title} />
     </>

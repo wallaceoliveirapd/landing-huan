@@ -26,6 +26,9 @@ export const myStatus = query({
     if (!userId) {
       return { used: 0, limit: DAILY_LIMIT, remaining: DAILY_LIMIT, blocked: false };
     }
+    const user = await ctx.db.get(userId);
+    const bonus = (user as { chatLimitBonus?: number } | null)?.chatLimitBonus ?? 0;
+    const limit = DAILY_LIMIT + bonus;
     const row = await ctx.db
       .query("chatDailyUsage")
       .withIndex("by_user_date", (q) =>
@@ -35,9 +38,9 @@ export const myStatus = query({
     const used = row?.count ?? 0;
     return {
       used,
-      limit: DAILY_LIMIT,
-      remaining: Math.max(0, DAILY_LIMIT - used),
-      blocked: used >= DAILY_LIMIT,
+      limit,
+      remaining: Math.max(0, limit - used),
+      blocked: used >= limit,
     };
   },
 });
@@ -54,6 +57,9 @@ export const consume = mutation({
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) throw new Error("Not authenticated");
+    const user = await ctx.db.get(userId);
+    const bonus = (user as { chatLimitBonus?: number } | null)?.chatLimitBonus ?? 0;
+    const limit = DAILY_LIMIT + bonus;
     const dateKey = brDateKey();
     const row = await ctx.db
       .query("chatDailyUsage")
@@ -62,8 +68,8 @@ export const consume = mutation({
       )
       .unique();
     const current = row?.count ?? 0;
-    if (current >= DAILY_LIMIT) {
-      return { used: current, limit: DAILY_LIMIT, remaining: 0, blocked: true };
+    if (current >= limit) {
+      return { used: current, limit, remaining: 0, blocked: true };
     }
     if (row) {
       await ctx.db.patch(row._id, { count: current + 1 });
@@ -73,9 +79,9 @@ export const consume = mutation({
     const used = current + 1;
     return {
       used,
-      limit: DAILY_LIMIT,
-      remaining: Math.max(0, DAILY_LIMIT - used),
-      blocked: used >= DAILY_LIMIT,
+      limit,
+      remaining: Math.max(0, limit - used),
+      blocked: used >= limit,
     };
   },
 });

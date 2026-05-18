@@ -20,6 +20,10 @@ export default defineSchema({
     welcomedAt: v.optional(v.number()),
     // RBAC role, "admin" can access /admin pages. Defaults to "customer".
     role: v.optional(v.string()),
+    // Extra trip slots granted by admin (stacks on top of the default TRIP_LIMIT).
+    tripLimitBonus: v.optional(v.number()),
+    // Extra daily chat messages granted by admin (stacks on top of DAILY_LIMIT).
+    chatLimitBonus: v.optional(v.number()),
   }).index("email", ["email"]),
 
 
@@ -330,6 +334,32 @@ export default defineSchema({
   })
     .index("by_restaurant", ["restaurantId"])
     .index("by_user_restaurant", ["userId", "restaurantId"]),
+
+  // ── Avaliações genéricas (tour | restaurant | praia | nightlife) ─
+  // Uma linha por (userId, kind, itemId). Substitui restaurantReviews
+  // pra novos lugares. kind é discriminator de qual coleção.
+  placeReviews: defineTable({
+    userId: v.string(),
+    kind: v.string(), // "tour" | "restaurant" | "praia" | "nightlife"
+    itemId: v.string(), // Convex id da entidade (tours/_id, etc.)
+    rating: v.number(), // 1..5
+    comment: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_kind_item", ["kind", "itemId"])
+    .index("by_user_kind_item", ["userId", "kind", "itemId"]),
+
+  // ── Reações genéricas (mesmo modelo) ─────────────────────────
+  placeReactions: defineTable({
+    userId: v.string(),
+    kind: v.string(),
+    itemId: v.string(),
+    reaction: v.string(), // "like" | "love" | "wow" | "fire"
+    createdAt: v.number(),
+  })
+    .index("by_kind_item", ["kind", "itemId"])
+    .index("by_user_kind_item", ["userId", "kind", "itemId"]),
 
   // ── Reações em dicas ─────────────────────────────────────────
   dicaReactions: defineTable({
