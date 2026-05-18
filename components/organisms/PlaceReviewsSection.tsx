@@ -6,6 +6,7 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Icon } from "@/components/atoms/Icon";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { BottomNavSpacer } from "@/components/atoms/BottomNavSpacer";
 
 export type PlaceKind = "tour" | "restaurant" | "praia" | "nightlife";
 
@@ -158,7 +159,7 @@ export function PlaceReviewsSection({ kind, itemId, noun = "este lugar" }: Props
 
   return (
     <section className="w-full bg-white">
-      <div className="mx-auto flex w-full max-w-screen-md flex-col px-6 pt-8 pb-20">
+      <div className="mx-auto flex w-full max-w-screen-md flex-col px-6 pt-8">
       {/* ── Reactions bar (matches DicaReactions style) ───────────────── */}
       <div className="mb-6">
         <p className="text-[12px] font-medium uppercase tracking-wide text-[var(--color-neutral-600)] mb-3">
@@ -372,6 +373,7 @@ export function PlaceReviewsSection({ kind, itemId, noun = "este lugar" }: Props
           </AnimatePresence>
         </div>
       )}
+      <BottomNavSpacer />
       </div>
     </section>
   );
