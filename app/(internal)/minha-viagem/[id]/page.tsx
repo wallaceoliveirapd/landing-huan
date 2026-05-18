@@ -23,7 +23,9 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import Image from "next/image";
 import { Icon } from "@/components/atoms/Icon";
+import { toProxyUrl } from "@/lib/imageUpload";
 import { toast } from "sonner";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { fadeUp, staggerChildren } from "@/lib/motion-presets";
@@ -177,9 +179,7 @@ function ActivityCard({
       if (kind === "nightlife" && dbItem.slug) return `/vida-noturna/${dbItem.slug}`;
       if (kind === "dica" && dbItem.slug) return `/dicas/${dbItem.slug}`;
     }
-    if (source === "custom" && customUrl) {
-      return /^https?:\/\//i.test(customUrl) ? customUrl : `https://${customUrl}`;
-    }
+    if (source === "custom" && customUrl) return customUrl;
     if (isOsm && typeof osmLat === "number" && typeof osmLng === "number") {
       const q = encodeURIComponent(`${displayTitle}@${osmLat},${osmLng}`);
       return `https://www.google.com/maps/search/?api=1&query=${q}`;
@@ -216,18 +216,31 @@ function ActivityCard({
         }}
         className={`ml-1 flex flex-1 gap-3 min-w-0 ${linkHref ? "cursor-pointer" : ""}`}
       >
-        <div className="grid size-12 flex-none place-items-center rounded-xl bg-[var(--color-neutral-100)]">
-          <Icon
-            name={
-              isSuggestion
-                ? icon ?? "compass"
-                : isOsm
-                  ? "map-pin"
-                  : TIME_ICON[timeOfDay] ?? "compass"
-            }
-            size={20}
-            className="text-[var(--color-neutral-800)]"
-          />
+        <div className="relative size-12 flex-none rounded-xl overflow-hidden bg-[var(--color-neutral-100)]">
+          {dbItem?.image || dbItem?.cover ? (
+            <Image
+              src={toProxyUrl(String(dbItem.image ?? dbItem.cover))}
+              alt={displayTitle}
+              fill
+              sizes="48px"
+              className="object-cover"
+              unoptimized
+            />
+          ) : (
+            <div className="grid size-full place-items-center">
+              <Icon
+                name={
+                  isSuggestion
+                    ? icon ?? "compass"
+                    : isOsm
+                      ? "map-pin"
+                      : TIME_ICON[timeOfDay] ?? "compass"
+                }
+                size={20}
+                className="text-[var(--color-neutral-800)]"
+              />
+            </div>
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
@@ -707,7 +720,7 @@ export default function TripDetailPage({
       {/* ── Itinerary section ──────────────────────────────── */}
       <motion.div variants={fadeUp} className="px-5 pt-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display font-medium text-[18px] text-[var(--color-neutral-800)]">
+          <h2 className="font-display font-medium text-[22px] text-[var(--color-neutral-800)]">
             Seu roteiro
           </h2>
         </div>
@@ -728,7 +741,7 @@ export default function TripDetailPage({
                 <div key={day.day} className="flex flex-col gap-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="grid size-10 place-items-center rounded-full bg-[var(--color-neutral-800)] text-white font-display font-medium text-[14px]">
+                      <div className="grid size-10 place-items-center rounded-full bg-[var(--color-neutral-800)] text-white font-display font-semibold text-[16px]">
                         {day.day}
                       </div>
                       <div>
@@ -754,7 +767,7 @@ export default function TripDetailPage({
                       </div>
                     )}
                   </div>
-                  <div className="pl-12">
+                  <div className="pl-0 pb-5">
                     <DayActivities
                       tripId={tripId}
                       dayNum={day.day}
@@ -763,6 +776,8 @@ export default function TripDetailPage({
                       onAddSheet={() => setAddSheetDay(day.day)}
                     />
                   </div>
+
+                  <hr className="border-[var(--color-neutral-200)]" />
                 </div>
               );
             })}
