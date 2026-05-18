@@ -20,25 +20,60 @@ function assertKind(kind: string) {
 // ── Profanity filter (PT-BR) ────────────────────────────────────────────────
 const BLOCKLIST_PT = [
   // anatomia / ato sexual
-  "cu", "cuzao", "buceta", "puta", "viado", "foder", "foda", "fodase",
-  "foda-se", "porra", "caralho", "piroca", "rola", "xota", "xoxota",
-  // xingamentos
-  "merda", "fdp", "filha da puta", "filho da puta", "vadia", "vagabunda",
-  "vagabundo", "safada", "safado", "idiota", "imbecil", "retardado",
-  "retardada", "otario", "otaria", "babaca", "corno", "corna",
-  // desgraça e variantes
-  "desgraça", "desgraçado", "desgraçada", "maldito", "maldita",
-  // insultos leves mas claramente ofensivos
-  "lixo", "inutil", "arrombado", "arrombada", "broxa",
+  "cu", "cuzao", "cuzinho", "buceta", "bucetao", "puta", "putinha", "putao",
+  "viado", "viadinho", "foder", "foda", "fodase", "foda-se", "fodendo",
+  "porra", "caralho", "piroca", "piroquinha", "rola", "rolinha",
+  "xota", "xoxota", "xibiu", "xibinha", "pepeca", "boceta",
+  "pau", "pauzao", "pinto", "pintinho", "siririca", "punheta",
+  // nordeste / regionalismos ofensivos
+  "corno", "corna", "cornao", "chifrudo", "chifruda",
+  "arrombado", "arrombada", "arrombamento",
+  "escroto", "escrota", "escrotao",
+  "broxa", "broxador",
+  "cagao", "cagona", "cagona",
+  "mijao", "mijona",
+  "bunda", "bundao", "bundinha",
+  // xingamentos diretos
+  "merda", "merdao", "merdinha",
+  "fdp", "filha da puta", "filho da puta", "filha de puta", "filho de puta",
+  "vadia", "vadio", "vagabunda", "vagabundo",
+  "safada", "safado", "safadao",
+  "idiota", "imbecil",
+  "retardado", "retardada",
+  "otario", "otaria",
+  "babaca",
+  "inutil",
+  "lixo",
+  "desgraça", "desgraçado", "desgraçada", "desgraça",
+  "maldito", "maldita",
+  "miseravel", "miseravel",
+  // racismo / ódio
+  "preto lixo", "nego lixo",
+  "nordestino burro", "nordestino safado",
+  "paraiba safado", "paraiba otario",
+  // violência / ameaças
+  "vai se matar", "se mata", "morra", "morre logo",
+  "te mato", "vou te matar",
+  // bypasses com pontuação (p.u.t.a → normalizado vira puta depois de strip)
+  "p.u.t.a", "p-u-t-a", "f.o.d.a", "m.e.r.d.a", "c.a.r.a.l.h.o",
 ];
 
-function passesLocalFilter(text: string): boolean {
-  const norm = text
+// Normalizes text: lowercase, strip accents, collapse dots/dashes between single chars
+function normalizeForFilter(s: string): string {
+  return s
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "");
+    .replace(/[̀-ͯ]/g, "")
+    // collapse patterns like "p.u.t.a" or "p-u-t-a" into "puta"
+    .replace(/\b(\w)([.\-_](\w))+\b/g, (m) => m.replace(/[.\-_]/g, ""));
+}
+
+function passesLocalFilter(text: string): boolean {
+  const norm = normalizeForFilter(text);
   return !BLOCKLIST_PT.some((w) => {
-    const wn = w.normalize("NFD").replace(/[̀-ͯ]/g, "");
+    const wn = normalizeForFilter(w);
+    // multi-word phrases: simple includes; single words: word boundary
+    if (wn.includes(" ")) return norm.includes(wn);
     return new RegExp(`\\b${wn}\\b`).test(norm);
   });
 }
