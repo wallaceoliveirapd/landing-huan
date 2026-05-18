@@ -50,10 +50,14 @@ export const generate = action({
     const trip = await ctx.runQuery(internal.itineraryHelpers.getTrip, { tripId });
     if (!trip) throw new Error("Trip not found");
 
-    // 1. Curated DB content (highest priority)
+    // 1. Curated DB content (highest priority). Pass the trip city so the
+    // helper drops any items from other cities — prevents Natal places from
+    // showing up in a João Pessoa trip.
+    const tripCity = trip.destination?.split(",")[0]?.trim() || undefined;
     const content = await ctx.runQuery(internal.itineraryHelpers.collectContent, {
       type: trip.type,
       budget: trip.budget,
+      city: tripCity,
     });
 
     // 2. Real-world places from OpenStreetMap (medium priority, exists in
@@ -185,7 +189,7 @@ async function planWithAI(
 
   const prompt = `Planejador de viagens pelo Nordeste/BR. Monte JSON do roteiro.
 
-VIAGEM: destino=${trip.destination} estilo=${trip.type} dias=${days} grupo=${groupSize} orcamento=${trip.budget ?? "medio"}
+VIAGEM: destino=${trip.destination} cidade=${cityName} estilo=${trip.type} dias=${days} grupo=${groupSize} orcamento=${trip.budget ?? "medio"}
 
 DB CURADO (passeios/praias/vida noturna) — use _id em itemId:
 ${JSON.stringify(dbItems.slice(0, 30))}
@@ -194,10 +198,11 @@ OSM REAL (atrações/passeios/praias) — use osmId em itemId:
 ${JSON.stringify(osmCompact)}
 
 REGRAS:
-1. Passeios/praias/vida noturna: PREFIRA db, depois osm. Suggestion só se nada cobrir.
-2. Restaurantes (kind="restaurant"): SEMPRE source="suggestion". NUNCA cite nome real ou cadastro. Title genérico tipo "Almoço em restaurante regional na Orla" / "Jantar de frutos do mar em ${cityName}" / "Café da manhã em padaria local". Usuário escolhe o restaurante real depois.
-3. Cada dia: tema (3-5 palavras) + 3 a 5 atividades.
-4. Atividade:
+1. RESTRIÇÃO DE CIDADE: TODAS as atividades devem ficar em ${cityName} ou bairros/praias da própria cidade. NUNCA inclua lugares de outras cidades (ex: para João Pessoa, NUNCA Natal/Recife/Maceió/etc). Se o DB ou OSM trouxer algo de fora, ignore.
+2. Passeios/praias/vida noturna: PREFIRA db, depois osm. Suggestion só se nada cobrir.
+3. Restaurantes (kind="restaurant"): SEMPRE source="suggestion". NUNCA cite nome real ou cadastro. Title genérico tipo "Almoço em restaurante regional na Orla" / "Jantar de frutos do mar em ${cityName}" / "Café da manhã em padaria local". Usuário escolhe o restaurante real depois.
+4. Cada dia: tema (3-5 palavras) + 3 a 5 atividades.
+5. Atividade:
    - source: "db" | "osm" | "suggestion"
    - kind: "tour" | "restaurant" | "praia" | "nightlife" | "activity"
    - timeOfDay: "morning" | "afternoon" | "evening" | "fullday"
@@ -205,9 +210,9 @@ REGRAS:
    - note opcional (1 linha)
    - itemId só se source db/osm
    - icon só se suggestion (Lucide: "utensils","music","waves","compass","sunset","map-pin","coffee","wind")
-5. fullday substitui manhã+tarde (sem almoço no mesmo dia).
-6. SEMPRE 1 jantar (suggestion) por dia.
-7. Balanceie relax/movimento. Orcamento baixo=grátis/econômico, alto=premium.
+6. fullday substitui manhã+tarde (sem almoço no mesmo dia).
+7. SEMPRE 1 jantar (suggestion) por dia.
+8. Balanceie relax/movimento. Orcamento baixo=grátis/econômico, alto=premium.
 
 Retorne: { "days": [{ "day": 1, "theme": "...", "activities": [...] }] }`;
 

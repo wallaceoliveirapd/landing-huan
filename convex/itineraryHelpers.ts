@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery } from "./_generated/server";
+import { matchesCity } from "./cityFilter";
 
 // ─── Internal query: read the trip itself ─────────────────────────────────
 export const getTrip = internalQuery({
@@ -9,14 +10,30 @@ export const getTrip = internalQuery({
 
 // ─── Internal query: collect all content for the trip type ─────────────────
 export const collectContent = internalQuery({
-  args: { type: v.string(), budget: v.optional(v.string()) },
-  handler: async (ctx, { type }) => {
-    const [tours, restaurants, praias, nightlife] = await Promise.all([
+  args: {
+    type: v.string(),
+    budget: v.optional(v.string()),
+    city: v.optional(v.string()),
+  },
+  handler: async (ctx, { type, city }) => {
+    const [toursAll, restaurantsAll, praiasAll, nightlifeAll] = await Promise.all([
       ctx.db.query("tours").withIndex("by_active", (q) => q.eq("active", true)).collect(),
       ctx.db.query("restaurants").withIndex("by_active", (q) => q.eq("active", true)).collect(),
       ctx.db.query("praias").withIndex("by_active", (q) => q.eq("active", true)).collect(),
       ctx.db.query("nightlife").withIndex("by_active", (q) => q.eq("active", true)).collect(),
     ]);
+
+    // City scoping. If the trip has a destination city, drop items from any
+    // other city so the AI can't recommend Natal places for a João Pessoa
+    // trip. Without a city, everything stays in scope.
+    const tours = city ? toursAll.filter((t) => matchesCity(t.city, city)) : toursAll;
+    const restaurants = city
+      ? restaurantsAll.filter((r) => matchesCity(r.city, city))
+      : restaurantsAll;
+    const praias = city ? praiasAll.filter((p) => matchesCity(p.city, city)) : praiasAll;
+    const nightlife = city
+      ? nightlifeAll.filter((n) => matchesCity(n.city, city))
+      : nightlifeAll;
 
     // Broad keyword-match by trip type to surface relevant content.
     const typeKeywords: Record<string, string[]> = {
