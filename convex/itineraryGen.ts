@@ -43,6 +43,59 @@ type Trip = {
   budget?: string;
 };
 
+// Northeastern Brazilian capitals + a few well-known beach towns. Used to
+// detect when Gemini hallucinates an out-of-city place name. Each entry is
+// normalized (lowercase, no accents) at compare time.
+const NE_CITIES = [
+  "natal",
+  "recife",
+  "fortaleza",
+  "salvador",
+  "maceio",
+  "sao luis",
+  "teresina",
+  "aracaju",
+  "joao pessoa",
+  "olinda",
+  "porto de galinhas",
+  "jericoacoara",
+  "pipa",
+  "morro de sao paulo",
+  "praia do forte",
+];
+
+function normalize(s: string): string {
+  return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+}
+
+/**
+ * Drop activities whose title or note mentions another known city. Keeps
+ * activities that explicitly reference the trip's own city (the AI is
+ * allowed to write "Jantar em João Pessoa"). Day themes are not filtered.
+ */
+function sanitizeForCity(itinerary: Day[], tripCity: string | undefined): Day[] {
+  if (!tripCity) return itinerary;
+  const tripCityNorm = normalize(tripCity);
+  return itinerary.map((d) => ({
+    ...d,
+    activities: d.activities.filter((a) => {
+      const haystack = normalize(`${a.title} ${a.note ?? ""}`);
+      for (const c of NE_CITIES) {
+        if (c === tripCityNorm) continue;
+        // word-boundary match so "natal" doesn't fire on, say, "natalino"
+        const re = new RegExp(`\\b${c.replace(/ /g, "\\s+")}\\b`);
+        if (re.test(haystack)) {
+          console.warn(
+            `[itineraryGen] dropped activity "${a.title}" — mentions ${c}, trip is in ${tripCity}`,
+          );
+          return false;
+        }
+      }
+      return true;
+    }),
+  }));
+}
+
 // ─── Main action ───────────────────────────────────────────────────────────
 export const generate = action({
   args: { tripId: v.id("trips") },
@@ -84,6 +137,13 @@ export const generate = action({
       console.warn("[itineraryGen] AI failed, using deterministic fallback:", err);
       itinerary = deterministicPlan(trip, content, osmPlaces);
     }
+
+    // 3.5. Hard guard: drop any AI-generated activity whose title/note
+    // mentions another Northeastern city (Gemini sometimes hallucinates,
+    // e.g. "Praia da Ponta Negra" for a João Pessoa trip). Suggestion-source
+    // titles like "Almoço em João Pessoa" are kept (they reference the
+    // destination itself).
+    itinerary = sanitizeForCity(itinerary, tripCity);
 
     // 4. Enrich OSM activities with lat/lng/address/website for rendering.
     const osmById = new Map(osmPlaces.map((p) => [p.osmId, p]));

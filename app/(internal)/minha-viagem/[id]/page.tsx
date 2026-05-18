@@ -383,6 +383,11 @@ function SortableActivityCard({
         opacity: isDragging ? 0.4 : 1,
         zIndex: isDragging ? 10 : undefined,
         position: "relative",
+        // Block iOS/Android text-select + callout (copy popover) during drag
+        WebkitUserSelect: "none",
+        userSelect: "none",
+        WebkitTouchCallout: "none",
+        touchAction: "manipulation",
       }}
     >
       <ActivityCard
