@@ -29,7 +29,7 @@ export default async function PraiaDetailPage({ params }: PageProps) {
   if (!praia) return notFound();
 
   return (
-    <main className="min-h-screen bg-white pb-32">
+    <main className="min-h-screen bg-white">
       <GtmViewItem
         item_type="praia"
         item_id={praia._id}

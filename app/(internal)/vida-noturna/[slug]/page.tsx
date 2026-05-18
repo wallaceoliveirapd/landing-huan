@@ -32,7 +32,7 @@ export default async function NightlifeDetailPage({ params }: PageProps) {
   if (!place) return notFound();
 
   return (
-    <main className="min-h-screen bg-white pb-32">
+    <main className="min-h-screen bg-white">
       <GtmViewItem
         item_type="nightlife"
         item_id={place._id}
