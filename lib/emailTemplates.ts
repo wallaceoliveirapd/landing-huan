@@ -18,6 +18,11 @@ const BRAND = {
   border: "#dde1e8",
 };
 
+// Escape & in URLs for HTML attribute context (Outlook/Word renderer is strict)
+function hrefAttr(url: string): string {
+  return url.replace(/&/g, "&amp;");
+}
+
 /**
  * Base email shell, header with Huan's name/photo placeholder, body slot,
  * Huan's signature, footer (legal links).
@@ -227,7 +232,7 @@ export function passwordResetRequestedEmail({
           Recebi um pedido pra redefinir a senha da sua conta. Clique no botão abaixo, vou te mandar um código por email pra confirmar a troca.
         </p>
         <div style="text-align:center;margin:0 0 24px;">
-          <a href="${resetUrl}" style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:14px 28px;border-radius:999px;">Redefinir senha</a>
+          <a href="${hrefAttr(resetUrl)}" style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:14px 28px;border-radius:999px;">Redefinir senha</a>
         </div>
         <p style="font-size:13px;line-height:1.55;color:${BRAND.muted};margin:0 0 16px;">
           Se você não pediu essa redefinição, pode ignorar este email. Sua senha atual continua valendo.
@@ -269,7 +274,7 @@ export function tripCreatedEmail({
           <p style="font-size:18px;font-weight:600;color:${BRAND.ink};margin:0;">${tripTitle}</p>
         </div>
         <p style="margin:0 0 28px;">
-          <a href="${tripUrl}"
+          <a href="${hrefAttr(tripUrl)}"
              style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-weight:500;font-size:15px;padding:14px 28px;border-radius:999px;">
             Ver meu roteiro
           </a>
@@ -307,7 +312,7 @@ export function broadcastEmail({
         ${
           ctaUrl && ctaLabel
             ? `<p style="margin:0 0 28px;">
-                 <a href="${ctaUrl}" style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-weight:500;font-size:15px;padding:14px 28px;border-radius:999px;">${ctaLabel}</a>
+                 <a href="${hrefAttr(ctaUrl)}" style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-weight:500;font-size:15px;padding:14px 28px;border-radius:999px;">${ctaLabel}</a>
                </p>`
             : ""
         }
@@ -343,7 +348,7 @@ export function tripWeekBeforeEmail({
           Dá uma olhada no roteiro que montei pra você, ajusta o que quiser, e me chama no chat se quiser dicas extras sobre o destino, eu tô aqui pra ajudar.
         </p>
         <p style="margin:0 0 28px;">
-          <a href="${tripUrl}" style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-weight:500;font-size:15px;padding:14px 28px;border-radius:999px;">Ver minha viagem</a>
+          <a href="${hrefAttr(tripUrl)}" style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-weight:500;font-size:15px;padding:14px 28px;border-radius:999px;">Ver minha viagem</a>
         </p>
         <p style="font-size:14px;line-height:1.6;margin:0;color:${BRAND.muted};">
           Quer falar comigo? Abre o app e clica no botao amarelo do Huan, eu respondo na hora.
@@ -388,7 +393,7 @@ export function tripWeatherUpdateEmail({
           ${tempLine}
         </p>
         <p style="margin:0 0 28px;">
-          <a href="${tripUrl}" style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-weight:500;font-size:15px;padding:14px 28px;border-radius:999px;">Ver previsão atualizada</a>
+          <a href="${hrefAttr(tripUrl)}" style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-weight:500;font-size:15px;padding:14px 28px;border-radius:999px;">Ver previsão atualizada</a>
         </p>
         <p style="font-size:14px;line-height:1.6;margin:0;color:${BRAND.muted};">
           Quer ajustar o roteiro com base no clima? Me chama no chat, eu te ajudo.
@@ -432,7 +437,7 @@ export function tripChecklistEmail({
           <li>Confirmar reserva de hospedagem + transporte</li>
         </ul>
         <p style="margin:0 0 28px;">
-          <a href="${tripUrl}" style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-weight:500;font-size:15px;padding:14px 28px;border-radius:999px;">Ver detalhes da viagem</a>
+          <a href="${hrefAttr(tripUrl)}" style="display:inline-block;background:${BRAND.ink};color:#ffffff;text-decoration:none;font-weight:500;font-size:15px;padding:14px 28px;border-radius:999px;">Ver detalhes da viagem</a>
         </p>
         <p style="font-size:14px;line-height:1.6;margin:0;color:${BRAND.muted};">
           Duvida de ultima hora? Me chama no chat do app, eu respondo na hora.
