@@ -162,7 +162,7 @@ export function PlaceReviewsSection({ kind, itemId, noun = "este lugar" }: Props
 
   return (
     <section className="w-full bg-white">
-      <div className="mx-auto flex w-full max-w-screen-md flex-col px-6 pt-8">
+      <div className="mx-auto flex w-full max-w-screen-md flex-col px-6 pt-8 pb-8">
       {/* ── Reactions bar (matches DicaReactions style) ───────────────── */}
       <div className="mb-6">
         <p className="text-[12px] font-medium uppercase tracking-wide text-[var(--color-neutral-600)] mb-3">
