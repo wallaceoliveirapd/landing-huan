@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Icon } from "@/components/atoms/Icon";
@@ -17,6 +17,112 @@ import type { FunctionReference } from "convex/server";
 import type { Field } from "./AdminCrudPage";
 
 type AnyDoc = Record<string, unknown> & { _id?: string };
+
+const TAG_CHIP =
+  "inline-flex items-center gap-1 rounded-full bg-[var(--color-brand-purple)]/10 px-3 py-1 text-xs text-[var(--color-brand-purple)]";
+
+function TagsAutocompleteInput({
+  value: tags,
+  onChange,
+  suggestions,
+  inputClass,
+}: {
+  value: string[];
+  onChange: (v: string[]) => void;
+  suggestions: string[];
+  inputClass: string;
+}) {
+  const [inputValue, setInputValue] = useState("");
+  const [open, setOpen] = useState(false);
+
+  const filtered = suggestions
+    .filter((s) => !tags.includes(s))
+    .filter((s) => !inputValue || s.toLowerCase().includes(inputValue.toLowerCase()));
+
+  function addTag(t: string) {
+    const trimmed = t.trim();
+    if (trimmed && !tags.includes(trimmed)) onChange([...tags, trimmed]);
+    setInputValue("");
+    setOpen(false);
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      {tags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {tags.map((t, i) => (
+            <span key={i} className={TAG_CHIP}>
+              {t}
+              <button
+                type="button"
+                onClick={() => onChange(tags.filter((_, j) => j !== i))}
+                className="hover:text-[var(--color-brand-purple)]/60"
+              >
+                <Icon name="lucide:x" size={11} />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="relative">
+        <input
+          type="text"
+          className={inputClass}
+          placeholder="Digite e pressione Enter"
+          value={inputValue}
+          onChange={(e) => { setInputValue(e.target.value); setOpen(true); }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setTimeout(() => setOpen(false), 150)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === ",") {
+              e.preventDefault();
+              if (inputValue.trim()) addTag(inputValue);
+            }
+            if (e.key === "Escape") setOpen(false);
+          }}
+        />
+        {open && filtered.length > 0 && (
+          <div className="absolute top-full mt-1 left-0 right-0 z-20 bg-white border border-[var(--color-neutral-200)] rounded-xl shadow-lg max-h-48 overflow-y-auto">
+            {filtered.slice(0, 10).map((s) => (
+              <button
+                key={s}
+                type="button"
+                onMouseDown={() => addTag(s)}
+                className="w-full text-left px-3 py-2 text-sm text-[var(--color-neutral-800)] hover:bg-[var(--color-neutral-50)] first:rounded-t-xl last:rounded-b-xl transition-colors"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function TagsWithSuggestionsWrapper({
+  value,
+  onChange,
+  suggestionsQuery,
+  inputClass,
+}: {
+  value: string[];
+  onChange: (v: string[]) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  suggestionsQuery: FunctionReference<"query", any, any, any>;
+  inputClass: string;
+}) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const suggestions: string[] = (useQuery(suggestionsQuery as any, {}) as string[] | undefined) ?? [];
+  return (
+    <TagsAutocompleteInput
+      value={value}
+      onChange={onChange}
+      suggestions={suggestions}
+      inputClass={inputClass}
+    />
+  );
+}
 
 interface AdminItemPageProps {
   title: string;
@@ -199,6 +305,16 @@ function FieldInput({
 
   if (field.type === "tags") {
     const tags = Array.isArray(value) ? (value as string[]) : [];
+    if (field.suggestionsQuery) {
+      return (
+        <TagsWithSuggestionsWrapper
+          value={tags}
+          onChange={onChange}
+          suggestionsQuery={field.suggestionsQuery}
+          inputClass={base}
+        />
+      );
+    }
     return (
       <div className="flex flex-col gap-2">
         {tags.length > 0 && (
@@ -206,7 +322,7 @@ function FieldInput({
             {tags.map((t, i) => (
               <span
                 key={i}
-                className="inline-flex items-center gap-1 rounded-full bg-[var(--color-brand-purple)]/10 px-3 py-1 text-xs text-[var(--color-brand-purple)]"
+                className={TAG_CHIP}
               >
                 {t}
                 <button

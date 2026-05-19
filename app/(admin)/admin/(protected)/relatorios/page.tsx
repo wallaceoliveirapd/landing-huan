@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { Icon } from "@/components/atoms/Icon";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -36,8 +37,137 @@ function SkeletonRow() {
   );
 }
 
+function ClickDetailModal({
+  clickId,
+  onClose,
+}: {
+  clickId: Id<"affiliateClicks">;
+  onClose: () => void;
+}) {
+  const detail = useQuery(api.affiliateClicks.getClickDetail, { clickId });
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div className="absolute inset-0 bg-black/50" />
+      <div
+        className="relative bg-white rounded-2xl p-6 max-w-lg w-full z-10 max-h-[85vh] overflow-y-auto shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="font-semibold text-base text-[var(--color-neutral-800)]">
+            Detalhes do clique
+          </h2>
+          <button
+            onClick={onClose}
+            className="size-8 flex items-center justify-center rounded-full hover:bg-[var(--color-neutral-100)] transition-colors"
+          >
+            <Icon name="lucide:x" size={16} className="text-[var(--color-neutral-600)]" />
+          </button>
+        </div>
+
+        {detail === undefined ? (
+          <div className="flex flex-col gap-3 animate-pulse">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-4 bg-[var(--color-neutral-100)] rounded w-full" />
+            ))}
+          </div>
+        ) : detail === null ? (
+          <p className="text-sm text-[var(--color-neutral-500)]">Clique não encontrado.</p>
+        ) : (
+          <div className="flex flex-col gap-5">
+            {/* Click info */}
+            <section>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--color-neutral-500)] mb-2">
+                Clique
+              </p>
+              <div className="rounded-xl border border-[var(--color-neutral-200)] divide-y divide-[var(--color-neutral-100)]">
+                <Row label="Data / Hora">
+                  <span className="font-mono text-xs">
+                    {new Date(detail.click.timestamp).toLocaleString("pt-BR")}
+                  </span>
+                </Row>
+                <Row label="Item">
+                  {detail.click.itemName}
+                </Row>
+                <Row label="Tipo">
+                  <span
+                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${TYPE_COLORS[detail.click.itemType] ?? "bg-[var(--color-neutral-100)] text-[var(--color-neutral-700)]"}`}
+                  >
+                    {TYPE_LABELS[detail.click.itemType] ?? detail.click.itemType}
+                  </span>
+                </Row>
+                {detail.click.channel && (
+                  <Row label="Canal">
+                    <span className="font-mono text-xs">{detail.click.channel}</span>
+                  </Row>
+                )}
+                <Row label="Ref">
+                  <span className="font-mono text-xs text-[var(--color-neutral-500)]">{detail.click.ref}</span>
+                </Row>
+                <Row label="URL destino">
+                  <a
+                    href={detail.click.targetUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-mono text-xs text-[var(--color-brand-purple)] hover:underline break-all"
+                  >
+                    {detail.click.targetUrl.length > 60
+                      ? detail.click.targetUrl.slice(0, 60) + "…"
+                      : detail.click.targetUrl}
+                  </a>
+                </Row>
+              </div>
+            </section>
+
+            {/* User info */}
+            <section>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--color-neutral-500)] mb-2">
+                Usuário
+              </p>
+              {detail.click.isLoggedIn === false || detail.click.isLoggedIn === undefined ? (
+                <div className="rounded-xl border border-[var(--color-neutral-200)] px-4 py-3">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-neutral-100)] text-[var(--color-neutral-500)] px-2 py-0.5 text-xs font-medium">
+                    Anônimo
+                  </span>
+                </div>
+              ) : detail.user === null ? (
+                <div className="rounded-xl border border-[var(--color-neutral-200)] px-4 py-3 text-sm text-[var(--color-neutral-500)]">
+                  Logado, mas usuário não encontrado.
+                </div>
+              ) : (
+                <div className="rounded-xl border border-[var(--color-neutral-200)] divide-y divide-[var(--color-neutral-100)]">
+                  {detail.user.name && <Row label="Nome">{detail.user.name}</Row>}
+                  {detail.user.email && <Row label="E-mail"><span className="font-mono text-xs">{detail.user.email}</span></Row>}
+                  {detail.user.phone && <Row label="Telefone"><span className="font-mono text-xs">{detail.user.phone}</span></Row>}
+                  {detail.user.whatsapp && <Row label="WhatsApp"><span className="font-mono text-xs">{detail.user.whatsapp}</span></Row>}
+                  {!detail.user.name && !detail.user.email && !detail.user.phone && !detail.user.whatsapp && (
+                    <div className="px-4 py-3 text-sm text-[var(--color-neutral-500)]">Sem dados de perfil.</div>
+                  )}
+                </div>
+              )}
+            </section>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-start gap-3 px-4 py-2.5">
+      <span className="text-xs text-[var(--color-neutral-500)] w-24 shrink-0 pt-0.5">{label}</span>
+      <span className="text-sm text-[var(--color-neutral-800)] font-medium flex-1">{children}</span>
+    </div>
+  );
+}
+
 export default function RelatoriosPage() {
   const [selectedType, setSelectedType] = useState<string>("");
+  const [detailClickId, setDetailClickId] = useState<Id<"affiliateClicks"> | null>(null);
 
   const stats = useQuery(api.affiliateClicks.stats, {});
   const clicks = useQuery(api.affiliateClicks.list, {
@@ -242,6 +372,7 @@ export default function RelatoriosPage() {
                       <th className="px-4 py-3 text-left font-medium">Tipo</th>
                       <th className="px-4 py-3 text-left font-medium">Usuário</th>
                       <th className="px-4 py-3 text-left font-medium">Destino</th>
+                      <th className="px-4 py-3" />
                     </tr>
                   </thead>
                   <tbody>
@@ -252,8 +383,8 @@ export default function RelatoriosPage() {
                         " " +
                         d.toLocaleTimeString("pt-BR");
                       const shortUrl =
-                        click.targetUrl.length > 50
-                          ? click.targetUrl.slice(0, 50) + "…"
+                        click.targetUrl.length > 40
+                          ? click.targetUrl.slice(0, 40) + "…"
                           : click.targetUrl;
                       return (
                         <tr
@@ -297,6 +428,14 @@ export default function RelatoriosPage() {
                               {shortUrl}
                             </a>
                           </td>
+                          <td className="px-4 py-3">
+                            <button
+                              onClick={() => setDetailClickId(click._id)}
+                              className="h-7 px-2.5 rounded-lg border border-[var(--color-neutral-200)] text-xs text-[var(--color-neutral-600)] hover:border-[var(--color-neutral-400)] hover:text-[var(--color-neutral-800)] transition-colors whitespace-nowrap"
+                            >
+                              Ver
+                            </button>
+                          </td>
                         </tr>
                       );
                     })}
@@ -306,6 +445,13 @@ export default function RelatoriosPage() {
             )}
           </div>
         </>
+      )}
+
+      {detailClickId && (
+        <ClickDetailModal
+          clickId={detailClickId}
+          onClose={() => setDetailClickId(null)}
+        />
       )}
     </div>
   );

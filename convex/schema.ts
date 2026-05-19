@@ -410,7 +410,8 @@ export default defineSchema({
     title: v.string(),
     body: v.string(),
     url: v.optional(v.string()),
-    segment: v.string(), // "all" | "planning" | "with-favorites"
+    segment: v.string(), // "all" | "planning" | "with-favorites" | "specific-users"
+    targetUserIds: v.optional(v.array(v.string())),
     delivered: v.number(),
     failed: v.number(),
     sentAt: v.number(),

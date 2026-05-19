@@ -6,6 +6,7 @@ import {
   query,
 } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { Id } from "./_generated/dataModel";
 
 // ─── User-facing: subscribe / unsubscribe / status ─────────────────────────
 
@@ -185,6 +186,42 @@ export const clearAllSubscriptions = mutation({
   },
 });
 
+/** Admin: list users who have active push subscriptions, with profile data. */
+export const listSubscribedUsers = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+
+    const subs = await ctx.db.query("pushSubscriptions").collect();
+    const seen = new Set<string>();
+    const result: {
+      userId: string;
+      name?: string;
+      email?: string;
+      phone?: string;
+      whatsapp?: string;
+    }[] = [];
+
+    for (const s of subs) {
+      if (seen.has(s.userId)) continue;
+      seen.add(s.userId);
+      const user = await ctx.db.get(s.userId as Id<"users">);
+      if (user) {
+        result.push({
+          userId: s.userId,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          whatsapp: user.whatsapp,
+        });
+      }
+    }
+
+    return result;
+  },
+});
+
 /** Persist a broadcast attempt to the audit log. */
 export const recordBroadcast = internalMutation({
   args: {
@@ -192,6 +229,7 @@ export const recordBroadcast = internalMutation({
     body: v.string(),
     url: v.optional(v.string()),
     segment: v.string(),
+    targetUserIds: v.optional(v.array(v.string())),
     delivered: v.number(),
     failed: v.number(),
   },
@@ -203,6 +241,7 @@ export const recordBroadcast = internalMutation({
       body: args.body,
       url: args.url,
       segment: args.segment,
+      targetUserIds: args.targetUserIds,
       delivered: args.delivered,
       failed: args.failed,
       sentAt: Date.now(),

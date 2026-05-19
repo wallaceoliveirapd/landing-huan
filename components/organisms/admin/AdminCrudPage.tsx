@@ -44,6 +44,9 @@ export type Field = {
    * Defaults to "geral".
    */
   uploadCategory?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  /** For "tags" type: a Convex query that returns string[] of autocomplete suggestions */
+  suggestionsQuery?: FunctionReference<"query", any, any, any>;
 };
 
 type AnyDoc = Record<string, unknown> & { _id: string };

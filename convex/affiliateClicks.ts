@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { requireAdmin } from "./helpers";
+import { Id } from "./_generated/dataModel";
 
 export const log = mutation({
   args: {
@@ -98,5 +99,19 @@ export const stats = query({
       loggedIn,
       anonymous,
     };
+  },
+});
+
+export const getClickDetail = query({
+  args: { clickId: v.id("affiliateClicks") },
+  handler: async (ctx, { clickId }) => {
+    await requireAdmin(ctx);
+    const click = await ctx.db.get(clickId);
+    if (!click) return null;
+    let user = null;
+    if (click.userId) {
+      user = await ctx.db.get(click.userId as Id<"users">);
+    }
+    return { click, user };
   },
 });

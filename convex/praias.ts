@@ -47,6 +47,16 @@ export const getById = query({
   handler: async (ctx, { id }) => ctx.db.get(id),
 });
 
+export const allFeatures = query({
+  args: {},
+  handler: async (ctx) => {
+    const all = await ctx.db.query("praias").collect();
+    const set = new Set<string>();
+    for (const p of all) for (const f of p.features) set.add(f);
+    return [...set].sort();
+  },
+});
+
 export const create = mutation({
   args: {
     name: v.string(),
@@ -64,7 +74,20 @@ export const create = mutation({
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
-    return ctx.db.insert("praias", args);
+    let slug = args.slug;
+    let existing = await ctx.db
+      .query("praias")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .unique();
+    let suffix = 2;
+    while (existing) {
+      slug = `${args.slug}-${suffix++}`;
+      existing = await ctx.db
+        .query("praias")
+        .withIndex("by_slug", (q) => q.eq("slug", slug))
+        .unique();
+    }
+    return ctx.db.insert("praias", { ...args, slug });
   },
 });
 

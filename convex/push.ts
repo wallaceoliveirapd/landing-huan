@@ -190,3 +190,78 @@ export const sendBroadcast = action({
     return { delivered, failed };
   },
 });
+
+/**
+ * Admin: send a push notification to a specific list of users.
+ * Both the OS-level push and inbox notification are delivered.
+ */
+export const sendToSelectedUsers = action({
+  args: {
+    title: v.string(),
+    body: v.string(),
+    url: v.optional(v.string()),
+    userIds: v.array(v.string()),
+  },
+  handler: async (ctx, { title, body, url, userIds }): Promise<{ delivered: number; failed: number }> => {
+    configureVapid();
+
+    const iconUrl = "https://evokemedia.com.br/landing-huan/icon.png";
+
+    await ctx.runMutation(internal.notifications.insertBulk, {
+      userIds,
+      title,
+      body,
+      url: url ?? "/",
+      icon: iconUrl,
+      kind: "broadcast",
+    });
+
+    const subs: { _id: string; endpoint: string; p256dh: string; auth: string; userId: string }[] =
+      await ctx.runQuery(internal.pushQueries.subscriptionsForUsers, { userIds });
+
+    const payload = JSON.stringify({
+      title,
+      body,
+      url: url ?? "/",
+      tag: "broadcast",
+      icon: iconUrl,
+      badge: iconUrl,
+    });
+
+    let delivered = 0;
+    let failed = 0;
+    const expired: string[] = [];
+
+    await Promise.all(
+      subs.map(async (s) => {
+        try {
+          await webpush.sendNotification(
+            { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
+            payload,
+            { TTL: 60 * 60 * 24 },
+          );
+          delivered++;
+        } catch (err) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const status = (err as any)?.statusCode;
+          if (status === 401 || status === 404 || status === 410) {
+            expired.push(s._id);
+          } else {
+            console.warn("[push:specific] send error:", err);
+          }
+          failed++;
+        }
+      }),
+    );
+
+    if (expired.length > 0) {
+      await ctx.runMutation(internal.pushQueries.removeSubscriptions, { ids: expired });
+    }
+
+    await ctx.runMutation(internal.pushQueries.recordBroadcast, {
+      title, body, url, segment: "specific-users", targetUserIds: userIds, delivered, failed,
+    });
+
+    return { delivered, failed };
+  },
+});
