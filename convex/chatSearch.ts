@@ -106,6 +106,7 @@ function scoreItem(
     excerpt?: string;
     subtitle?: string;
     tags?: string[];
+    features?: string[];
     cuisine?: string;
     type?: string;
   },
@@ -127,7 +128,7 @@ function scoreItem(
     tokens,
   );
   const tagsScore = scoreMatch(
-    [...(item.tags ?? []), item.cuisine ?? "", item.type ?? ""].join(" "),
+    [...(item.tags ?? []), ...(item.features ?? []), item.cuisine ?? "", item.type ?? ""].join(" "),
     tokens,
   );
   return titleScore * 3 + descScore * 1.5 + tagsScore;
@@ -204,6 +205,8 @@ export const search = query({
             title: t.title,
             slug: t.slug,
             shortDesc: t.shortDesc,
+            description: t.shortDesc,
+            tags: t.tags,
             price: t.price,
             duration: t.duration,
             rating: t.rating,
@@ -228,6 +231,8 @@ export const search = query({
             id: r._id,
             title: r.name,
             shortDesc: r.shortDesc,
+            description: r.shortDesc,
+            tags: r.tags,
             cuisine: r.cuisine,
             priceRange: r.priceRange,
             rating: r.rating,
@@ -252,6 +257,7 @@ export const search = query({
             id: d._id,
             title: d.title,
             excerpt: d.excerpt,
+            tags: d.tags,
             cover: d.cover,
             slug: d.slug,
           },
@@ -273,6 +279,8 @@ export const search = query({
             id: p._id,
             title: p.name,
             shortDesc: p.shortDesc,
+            description: p.shortDesc,
+            features: p.features,
             image: p.image,
             slug: p.slug,
           },
@@ -294,6 +302,8 @@ export const search = query({
             id: n._id,
             title: n.name,
             shortDesc: n.shortDesc,
+            description: n.shortDesc,
+            tags: n.tags,
             type: n.type,
             image: n.image,
             slug: n.slug,
@@ -316,6 +326,7 @@ export const search = query({
             id: i._id,
             title: i.title,
             subtitle: i.subtitle,
+            description: i.subtitle,
             durationDays: i.durationDays,
             cover: i.cover,
             slug: i.slug,
@@ -338,7 +349,9 @@ export const search = query({
             id: h._id,
             title: h.name,
             shortDesc: h.shortDesc,
+            description: h.shortDesc,
             type: h.type,
+            amenities: h.amenities,
             priceFrom: h.priceFrom,
             image: h.image,
             affiliateUrl: h.affiliateUrl,
@@ -361,6 +374,7 @@ export const search = query({
             id: c._id,
             title: c.title,
             description: c.description,
+            partner: c.partner,
             code: c.code,
             image: c.image,
             discountType: c.discountType,
