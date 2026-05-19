@@ -152,9 +152,28 @@ async function callTool(
     const searchType: SearchType = VALID_TYPES.includes(raw as SearchType)
       ? (raw as SearchType) : "any";
 
+    // Strip city display name + all known aliases from query so they don't
+    // consume scoring budget in chatSearch (e.g. "jampa" → removed, leaving
+    // "quero praias" which scores correctly against the praias collection).
+    let cleanQuery = args.query || "";
+    if (city) {
+      const terms = new Set<string>();
+      stripAccents(city).split(/[\s,]+/).forEach((t) => { if (t.length >= 3) terms.add(t); });
+      const entry = CITY_NICKNAMES.find(
+        (e) => stripAccents(e.city) === stripAccents(city),
+      );
+      (entry?.aliases ?? []).forEach((alias) =>
+        stripAccents(alias).split(/\s+/).forEach((t) => { if (t.length >= 3) terms.add(t); }),
+      );
+      for (const t of terms) {
+        cleanQuery = cleanQuery.replace(new RegExp(`\\b${t}\\b`, "gi"), " ");
+      }
+      cleanQuery = cleanQuery.replace(/\s+/g, " ").trim();
+    }
+
     const primary = (await fetchQuery(
       api.chatSearch.search,
-      { q: args.query || "", type: searchType, city },
+      { q: cleanQuery, type: searchType, city },
       { url: convexUrl },
     )) as SearchResult;
 

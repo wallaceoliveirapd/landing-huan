@@ -15,14 +15,40 @@ function norm(s: string): string {
 
 /** Stopwords we ignore when tokenizing, they pollute the match. */
 const STOPWORDS = new Set([
+  // Artigos e Pronomes Básicos
   "a", "o", "as", "os", "um", "uma", "uns", "umas",
+  "este", "esta", "estes", "estas", "esse", "essa", "esses", "essas",
+  "aquele", "aquela", "aqueles", "aquelas", "isto", "isso", "aquilo",
+  "meu", "minha", "meus", "minhas", "seu", "sua", "seus", "suas",
+
+  // Preposições e Conjunções Coloquiais
   "de", "do", "da", "dos", "das", "no", "na", "nos", "nas",
-  "em", "por", "para", "pra", "com", "sem", "ou", "e", "que",
-  "é", "ser", "estar", "ter", "esta", "este", "isso",
-  "quero", "queria", "preciso", "procuro", "buscar", "ver",
-  "todas", "todos", "tudo", "mais", "menos", "algum", "alguma",
-  "alguns", "algumas", "qual", "quando", "onde", "porque", "agora",
-  "principais", "melhores", "melhor", "otimas", "otima", "boas", "boa",
+  "em", "por", "para", "pra", "pro", "pras", "pros", "com", "sem",
+  "ou", "e", "que", "com", "pelo", "pela", "pelos", "pelas", "ate", "num", "numa",
+
+  // Verbos de Ligação e Auxiliares
+  "é", "sao", "ser", "estar", "ter", "ha", "tem", "vai", "vou", "fui",
+  "esta", "estao", "tinham", "tinha", "fazer", "ir",
+
+  // Verbos de Desejo/Ação do Usuário (Poluição de Input)
+  "quero", "queria", "preciso", "procuro", "buscar", "ver", "olhar",
+  "encontrar", "achar", "gostaria", "indica", "indique", "sugerir", "mostra", "mostre",
+  "diga", "sabem", "sabe", "conhecer", "recomenda",
+
+  // Quantificadores e Pronomes Indefinidos
+  "todas", "todos", "tudo", "mais", "menos", "algum", "alguma", "alguns", "algumas",
+  "nenhum", "nenhuma", "bastante", "muito", "muita", "muitos", "muitas", "tanto", "tanta",
+  "demais", "pouco", "pouca", "cada", "outro", "outra", "outros", "outras",
+
+  // Interrogações e Advérbios de Tempo/Lugar
+  "qual", "quais", "quando", "onde", "porque", "por que", "porquê", "como", "agora",
+  "aqui", "ali", "la", "hoje", "amanha", "ontem", "perto", "longe",
+
+  // Adjetivos de Opinião/Filtros Subjetivos (Inúteis para Scoring de Tags Fatais)
+  "principais", "melhores", "melhor", "otimas", "otima", "boas", "boa", "bonito",
+  "bonita", "lindas", "linda", "lindos", "lindos", "perfeito", "perfeita", "legal",
+  "top", "massa", "maravilhoso", "maravilhosa", "famoso", "famosa", "famosos", "incrivel",
+  "ruim", "pior", "piores", "barato", "barata", "caro", "cara"
 ]);
 
 /**
@@ -34,12 +60,37 @@ const STOPWORDS = new Set([
  * These tokens stay in the tokenized list so they can be detected, but
  * scoring gives them weight 0 (i.e. they don't help nor hurt).
  */
+/**
+ * "Generic" category words, they describe the CATEGORY of thing the user
+ * wants (already detected via INTENT rules) but are NOT useful for scoring
+ * within the category. e.g. "passeio" matches every single tour title;
+ * the discriminating word is "barco" / "catamarã" / "buggy" etc.
+ *
+ * These tokens stay in the tokenized list so they can be detected, but
+ * scoring gives them weight 0 (i.e. they don't help nor hurt).
+ */
 const GENERIC_CATEGORY_TOKENS = new Set([
+  // --- Turismo e Lazer ---
   "passeio", "passeios", "tour", "tours", "atividade", "atividades",
-  "restaurante", "restaurantes", "comer", "comida", "lugar", "lugares",
-  "praia", "praias", "hospedagem", "hotel", "pousada",
-  "cupom", "cupons", "desconto", "ofertas", "dica", "dicas",
-  "bar", "balada", "show",
+  "atracao", "atracoes", "roteiro", "roteiros", "destino", "destinos",
+  "ponto-turistico", "pontos-turisticos", "excursao", "excursoes",
+
+  // --- Gastronomia e Bares ---
+  "restaurante", "restaurantes", "comer", "comida", "comidas", "culinaria",
+  "almoço", "jantar", "gastronomia", "bar", "bares", "balada", "baladas",
+  "show", "shows", "quiosque", "quiosques", "barraca", "barracas",
+
+  // --- Destinos e Locais ---
+  "lugar", "lugares", "praia", "praias", "costa", "litoral", "orla",
+  "cidade", "cidades", "vila", "vilas", "regiao", "regioes",
+
+  // --- Hospedagem ---
+  "hospedagem", "hospedagens", "hotel", "hoteis", "pousada", "pousadas",
+  "resort", "resorts", "aluguel", "hostel", "hostels", "airbnb",
+
+  // --- Comercial e Vantagens ---
+  "cupom", "cupons", "desconto", "descontos", "oferta", "ofertas",
+  "promocao", "promocoes", "dica", "dicas", "recomendacao", "recomendacoes"
 ]);
 
 /**
@@ -48,21 +99,120 @@ const GENERIC_CATEGORY_TOKENS = new Set([
  * to generic categories ("passeio"), that pollutes results.
  */
 const SYNONYMS: Record<string, string[]> = {
-  barco:      ["catamara", "lancha", "veleiro", "navio"],
-  catamara:   ["barco", "lancha", "veleiro"],
-  lancha:     ["barco", "catamara"],
-  veleiro:    ["barco"],
-  comer:      ["restaurante", "comida", "gastronomia"],
-  comida:     ["restaurante", "comer"],
-  noite:      ["bar", "balada", "show"],
-  hospedagem: ["hotel", "pousada", "airbnb", "hostel"],
-  hotel:      ["pousada", "hospedagem"],
-  pousada:    ["hotel", "hospedagem"],
-  cupom:      ["desconto", "oferta", "promocao"],
-  desconto:   ["cupom", "oferta", "promocao"],
-  buggy:      ["dunas", "areia"],
-  trilha:     ["ecologica", "natureza"],
-  mergulho:   ["snorkel", "scuba"],
+  // --- TRANSPORTE E PASSEIOS MARÍTIMOS (MANTIDO E EXPANDIDO) ---
+  barco: ["catamara", "lancha", "veleiro", "navio", "jangada", "escuna", "chalana", "embarcacao", "maritimo", "travessea", "passeio-de-barco", "marinheiro", "balsa", "canoa", "flutuante"],
+  catamara: ["barco", "lancha", "veleiro", "escuna", "passeio-de-barco", "catamara-nordeste"],
+  lancha: ["barco", "catamara", "voadeira", "jet-ski", "passeio-de-lancha", "marinheiro", "iate"],
+  veleiro: ["barco", "velejar", "catamara", "monocasco", "veleirismo"],
+  jangada: ["barco", "passeio-de-jangada", "rustico", "pescador", "jangadeiro", "vela-de-jangada"],
+
+  // --- GASTRONOMIA E ALIMENTAÇÃO (MANTIDO E MASSIVAMENTE EXPANDIDO) ---
+  comer: ["restaurante", "comida", "gastronomia", "culinaria", "almoco", "jantar", "cardapio", "tapiocaria", "petisco", "frutos-do-mar", "comer-bem", "onde-comer", "pizzaria", "hamburgueria", "toca-do-caranguejo", "creperia", "pastelaria"],
+  comida: ["restaurante", "comer", "culinaria", "gastronomia", "alimento", "refeicao", "prato-feito", "alimentacao", "buffet", "self-service"],
+  restaurante: ["comer", "comida", "gastronomia", "culinaria", "polo-gastronomico", "bar-de-praia", "quiosque", "barraca", "bistrô", "chiringuito", "pizzaria", "churrascaria"],
+  gastronomia: ["culinaria", "restaurante", "chef", "cardapio", "gastronomia-local", "gastronomia-refinada", "cozinha-baiana", "cozinha-nordestina", "gourmet", "alta-gastronomia"],
+  "frutos-do-mar": ["peixe", "camarao", "lagosta", "caranguejo", "caranguejada", "marisco", "ostra", "moqueca", "siri", "caldeirada", "paella", "polvo", "lula", "peixe-frito", "isca-de-peixe", "chora-menino"],
+  "culinaria-local": ["tapioca", "acaraje", "beiju", "cuscuz", "carne-de-sol", "macaxeira", "mandioca", "baiao-de-dois", "queijo-coalho", "caldinho", "agua-de-coco"],
+
+  // --- ENTRETENIMENTO, VIDA NOTURNA E AGITO (MANTIDO E EXPANDIDO) ---
+  noite: ["bar", "balada", "show", "vida-noturna", "baladinha", "luau", "musica-ao-vivo", "dj", "festa", "agito", "badalada", "noitada", "curtição", "onde-ir-a-noite", "pub", "balada-sertaneja", "forrozo"],
+  bar: ["boteco", "pub", "quiosque", "barraca", "drinks", "cerveja", "chopp", "coquetel", "badalada", "botequim", "caipirinha", "cachaçaria", "gintoneria"],
+  balada: ["festa", "night", "noite", "agito", "jovem", "badalada", "vida-noturna", "luau", "rave", "sunset-party", "clubber", "fervo", "resenha"],
+  show: ["musica-ao-vivo", "concerto", "evento", "forro", "reggae", "mpb", "banda", "axé", "samba", "pagode", "sertanejo", "festa-junina", "sao-joao"],
+
+  // --- HOSPEDAGEM E ACOMODAÇÃO (MANTIDO E EXPANDIDO) ---
+  hospedagem: ["hotel", "pousada", "airbnb", "hostel", "resort", "aluguel-por-temporada", "quarto", "estadia", "chale", "camping", "albergue", "onde-ficar", "glamping", "flat", "casa-de-praia", "acomodacao"],
+  hotel: ["pousada", "hospedagem", "resort", "estadia", "acomodacao", "quarto-de-hotel", "hoteis"],
+  pousada: ["hotel", "hospedagem", "pousadas-charmosas", "pousada-boutique", "chale", "estadia", "rustico", "pousadinhas", "estalagem"],
+  resort: ["hotel", "all-inclusive", "hospedagem-de-luxo", "infraestrutura-completa", "hotel-fazenda", "spa", "resorts", "tudo-incluido", "cinco-estrelas"],
+
+  // --- BENEFÍCIOS E PROMOÇÕES (MANTIDO) ---
+  cupom: ["desconto", "oferta", "promocao", "voucher", "barato", "gratis", "off", "codigo", "descontao", "cupom-promocional"],
+  desconto: ["cupom", "oferta", "promocao", "liquidacao", "abaixou", "preço-baixo", "economizar", "poupanca", "mais-barato"],
+  promocao: ["cupom", "desconto", "oferta", "combo", "especial", "imperdivel", "bota-fora", "saldão"],
+
+  // --- AVENTURA, VEÍCULOS E PASSEIOS EM TERRA (MANTIDO E EXPANDIDO) ---
+  buggy: ["dunas", "areia", "passeio-de-buggy", "4x4", "quadriciclo", "offroad", "com-emocao", "aventura", "bugueiro", "bugi", "passeio-de-bugue"],
+  quadriciclo: ["buggy", "4x4", "offroad", "passeio", "moto", "aventura", "aluguel-de-quadriciclo", "atv", "quadri"],
+  trilha: ["ecologica", "natureza", "caminhada", "trekking", "hiking", "acesso-por-trilha", "ecoturismo", "reserva", "caminhar", "trekking-nordeste", "exploracao"],
+
+  // --- ESPORTES AQUÁTICOS E MERGULHO (MANTIDO E EXPANDIDO) ---
+  mergulho: ["snorkel", "scuba", "mergulhar", "subaquatico", "vida-marinha", "corais", "recifes", "mergulho-com-snorkel", "batismo", "cilindro", "apneia"],
+  snorkel: ["mergulho", "mascara-de-mergulho", "aguas-cristalinas", "peixinhos", "piscinas-naturais", "snorkeling", "peixes-coloridos"],
+  surf: ["surfando", "prancha", "ondas", "mar-aberto", "pico-de-surf", "bodyboard", "surfe", "surfista", "ondas-grandes", "escolinha-de-surf"],
+  kitesurf: ["kite", "windsurf", "velejar", "vento", "ventos-fortes", "esportes-aquaticos", "prancha-a-vela", "downwind", "kiteboard", "kiter", "velejador", "escola-de-kite"],
+  "stand-up-paddle": ["sup", "remar", "prancha-com-remo", "mar-calmo", "caiaque", "esportes-aquaticos", "paddleboard", "remada"],
+
+  // --- CARACTERÍSTICAS DA PRAIA (ESTADO DO MAR E NATUREZA) (MANTIDO E EXPANDIDO) ---
+  "mar-calmo": ["mar-manso", "sem-ondas", "piscina", "lagoa", "raso", "mar-raso", "aguas-calmas", "protegido-por-recifes", "piscininha", "flat", "espelho-d-agua", "mar-parado"],
+  "mar-aberto": ["mar-forte", "ondas", "agitado", "fundo", "correnteza", "surf", "mar-bravo", "repuxo", "mar-grosso", "ondas-fortes"],
+  "aguas-cristalinas": ["agua-limpa", "transparente", "azul-turquesa", "verde-esmeralda", "caribe", "translúcida", "visibilidade", "caribe-brasileiro", "agua-transparente", "sem-algas"],
+  "praia-deserta": ["isolada", "selvagem", "intocada", "afastada", "vazia", "pouca-gente", "escondida", "paraiso-escondido", "sossego", "sossegada", "desabitada", "paz-e-amor", "roots"],
+  falesias: ["paredoes", "barreiras", "areias-coloridas", "morro-de-areia", "escarpas", "rochas", "barreiras-de-argila", "falesia"],
+  dunas: ["montanhas-de-areia", "areia-branca", "passeio-de-buggy", "esquibunda", "tirolesa", "pôr-do-sol", "morro-de-areia", "lençois"],
+  "encontro-com-rio": ["foz", "rio", "agua-doce", "lagoa", "barra", "manguezal", "desaguar", "banho-de-rio", "encontro-do-rio", "rio-e-mar"],
+
+  // --- COMPORTAMENTO, PÚBLICO E PERFIL (MANTIDO E ULTRA-EXPANDIDO) ---
+  "ideal-para-familias": ["criancas", "idosos", "bebes", "seguro", "raso", "familiar", "tranquilo", "playground", "fraldario", "vovo", "com-criancas", "criancada", "ambiente-familiar", "rasinho"],
+  sossego: ["paz", "tranquilidade", "relaxar", "descanso", "silencio", "calmaria", "desconectar", "privacidade", "relax", "calmo", "sossegado", "zen", "meditacao", "slow-travel"],
+  badalada: ["vibrante", "movimentada", "cheia", "point", "famosa", "agitada", "turistica", "lotada", "popular", "muvuca", "agito", "pipoco", "famosinha", "hype", "bombando", "top", "massa"],
+  "beach-club": ["clube-de-praia", "lounge", "estrutura-vip", "sofisticada", "pe-na-areia", "bar-de-luxo", "bangalo", "beachclub", "day-use", "exclusive", "camarote"],
+  "turismo-sustentavel": ["ecologico", "preservado", "natureza-preservada", "projeto-tamar", "ecoturismo", "consciente", "reserva-ambiental", "preservacao", "sustentabilidade", "parque-nacional", "reserva-ecologica"],
+  "orla-urbana": ["cidade", "calcadao", "avenida-litoranea", "ciclovia", "urbana", "central", "proximo-ao-centro", "avenida-beira-mar", "orla"],
+  "perfil-romantico": ["casal", "casais", "lua-de-mel", "namorados", "romance", "romantico", "casamento", "bodas", "viagem-a-dois", "intimista"],
+  instagramavel: ["fotos", "fotografia", "lindo", "cenario", "vista", "mirante", "cartao-postal", "tumblr", "aesthetic", "blogueira", "selfie", "drone", "visual-incrivel"],
+
+  // --- INFRAESTRUTURA E COMODIDADES (MANTIDO E NOVO) ---
+  "infraestrutura-completa": ["barracas", "banheiros", "chuveiro", "ducha", "restaurantes", "cadeiras", "guarda-sol", "atendimento", "serviço-de-praia", "bucha", "sombreiro", "garçom", "wi-fi", "internet", "estrutura", "comercio"],
+  acessivel: ["rampa", "cadeirante", "acessibilidade", "facil-acesso", "estacionamento-proximo", "passarela", "pcd", "idoso-acesso"],
+  estacionamento: ["vaga", "estacionar", "garagem", "parcar", "carro", "flanelinha", "seguro", "estacionamento-privado", "valet", "onde-parar"],
+  "pôr-do-sol": ["entardecer", "fim-da-tarde", "sunset", "crepusculo", "mirante", "por-do-sol", "anoitecer", "golden-hour"],
+  petfriendly: ["cachorro", "gato", "animais", "pet", "pets", "levar-cachorro", "animal-de-estimacao", "aceita-pet"],
+  "maré-baixa": ["tabua-de-mares", "mare-0.0", "mare-baixa", "mare-secando", "mare-morta", "piscina-natural-maré"],
+
+  // --- CORREÇÃO DE TYPOS REGIONAIS E ESTADOS DO NORDESTE (PROTETORES DE UX) ---
+  alagoas: ["al", "alagoano", "alagoana", "alagoas-al", "maceio", "maragogi", "milagres"],
+  maceio: ["maceió", "maceio-al", "pajuçara", "ponta-verde", "jatiúca", "ipioca", "garça-torta", "pratagy"],
+  maragogi: ["maragoji", "antunes", "barra-grande", "gales", "maragogi-al", "peroba", "burgalhau"],
+  milagres: ["sao-miguel-dos-milagres", "rota-dos-milagres", "praia-do-toque", "porto-de-pedras", "patacho", "lajes", "tatuamunha"],
+
+  sergipe: ["se", "sergipano", "sergipana", "sergipe-se", "aracaju", "estancia", "pirambu"],
+  aracaju: ["aracajú", "aracaju-se", "atalaia", "aruana", "mosqueiro", "robalo", "passarela-do-caranguejo"],
+  estancia: ["estância", "praia-do-saco", "abais", "lagoa-dos-tambaquis", "ilhadasogra"],
+
+  bahia: ["ba", "baiano", "baiana", "bahia-ba", "salvador", "trancoso", "porto-seguro", "itacare"],
+  salvador: ["salvador-ba", "porto-da-barra", "stella-maris", "farol-da-barra", "itapuã", "ondina", "rio-vermelho"],
+  trancoso: ["quadrado", "praia-dos-coqueiros", "praia-dos-nativos", "espelho", "trancoso-ba", "itapororoca", "rio-verde"],
+  "porto-seguro": ["porto-seguro-ba", "arraial-d-ajuda", "pitinga", "mucugê", "taperapuan", "mutá", "caraíva"],
+  itacare: ["itacaré", "itacare-ba", "engenhoca", "itacarezinho", "resende", "tiririca", "jeribucaçu"],
+
+  ceara: ["ce", "cearense", "ceara-ce", "fortaleza", "jeri", "canoa-quebrada"],
+  fortaleza: ["fortaleza-ce", "praia-do-futuro", "meireles", "iracema", "mucuripe", "sabiaguaba"],
+  jericoacoara: ["jeri", "jericoacoara-ce", "jijoca", "lagoa-do-paraiso", "malhada", "pedra-furada", "preá"],
+  "canoa-quebrada": ["canoa", "canoa-quebrada-ce", "aracati", "falesias-canoa"],
+
+  paraiba: ["pb", "paraíba", "paraibano", "paraibana", "paraiba-pb", "joao-pessoa", "jampa", "conde"],
+  "joao-pessoa": ["joão-pessoa", "jampa", "joao-pessoa-pb", "tambaú", "cabo-branco", "bessa", "manaíra", "ponta-do-seixas", "caribessa"],
+  conde: ["conde-pb", "coqueirinho", "tambaba", "praia-do-amor", "tabatinga", "carapibus"],
+  cabedelo: ["cabedelo-pb", "intermares", "camboinha", "ponta-de-campina", "ilha-de-areia-vermelha", "por-do-sol-jacare"],
+
+  "rio-grande-do-norte": ["rn", "potiguar", "rio-grande-do-norte-rn", "natal", "pipa", "sao-miguel-do-gostoso"],
+  natal: ["natal-rn", "ponta-negra", "morro-do-careca", "praia-dos-artistas", "via-costeira"],
+  pipa: ["praia-da-pipa", "tibau-do-sul", "praia-do-amor", "baia-dos-golfinhos", "madeiro", "pipa-rn"],
+  "sao-miguel-do-gostoso": ["gostoso", "são-miguel-do-gostoso", "gostoso-rn", "ponta-do-santo-cristo", "tourinhos"],
+
+  pernambuco: ["pe", "pernambucano", "pernambucana", "pernambuco-pe", "recife", "porto-de-galinhas", "noronha"],
+  recife: ["recife-pe", "boa-viagem", "pina", "piedade"],
+  "porto-de-galinhas": ["porto", "porto-de-galinhas-pe", "ipojuca", "maracaípe", "muro-alto", "cupe"],
+  "fernando-de-noronha": ["noronha", "fernando-de-noronha-pe", "sancho", "baia-do-sancho", "porcos", "cacimba-do-padre"],
+
+  maranhao: ["ma", "maranhense", "maranhao-ma", "sao-luis", "barreirinhas", "lencois-maranhenses"],
+  "sao-luis": ["são-luís", "sao-luis-ma", "calhau", "ponta-d-areia", "olho-d-agua", "litoranea"],
+  barreirinhas: ["lencois", "lençóis-maranhenses", "barreirinhas-ma", "atins", "lagoa-azul", "lagoa-bonita"],
+
+  piaui: ["pi", "piauiense", "piaui-pi", "parnaiba", "barra-grande-pi"],
+  parnaiba: ["parnaíba", "parnaiba-pi", "delta-do-parnaiba", "pedra-do-sal"],
+  "barra-grande-pi": ["barra-grande", "bg", "cajueiro-da-praia", "barra-grande-piaui"]
 };
 
 function tokenize(s: string): string[] {

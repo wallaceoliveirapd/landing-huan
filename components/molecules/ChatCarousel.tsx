@@ -204,8 +204,8 @@ function ChatCard({ item: rawItem }: { item: RawCardItem }) {
 
       {/* Non-coupon rating badge */}
       {badge && kind !== "coupon" && (
-        <div className="absolute top-2 right-2 z-10 bg-black/50 backdrop-blur-sm px-1.5 py-0.5 rounded-full">
-          <span className="text-white text-[11px] font-medium">{badge}</span>
+        <div className="absolute top-2 right-2 z-10 bg-black/50 backdrop-blur-sm px-1.5 py-0 rounded-full">
+          <span className="text-white text-[11px] font-medium ">{badge}</span>
         </div>
       )}
 
@@ -249,14 +249,16 @@ export function ChatCarousel({ items }: { items: RawCardItem[] }) {
     >
       {contentItems.length > 0 && (
         <div
-          className="flex gap-2 overflow-x-auto no-scrollbar -mx-5 pl-5"
+          className="flex gap-2 overflow-x-auto no-scrollbar -mx-5"
           style={{ scrollSnapType: "x mandatory" }}
         >
+          {/* Left spacer: 12px + gap-2(8px) = 20px — matches chat px-5 padding */}
+          <div className="w-3 flex-none shrink-0" aria-hidden />
           {contentItems.map((item) => (
             <ChatCard key={String(item.id ?? Math.random())} item={item} />
           ))}
-          {/* Right-side breathing room so last card doesn't sit flush on scroll end */}
-          <div className="w-5 flex-none shrink-0" aria-hidden />
+          {/* Right spacer */}
+          <div className="w-3 flex-none shrink-0" aria-hidden />
         </div>
       )}
       {routerItems.map((item) => (
