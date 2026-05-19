@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "motion/react";
@@ -137,7 +138,7 @@ function RouterCard({ item }: { item: Normalized }) {
 }
 
 // ─── iFood-style vertical card ───────────────────────────────────────────────
-function ChatCard({ item: rawItem }: { item: RawCardItem }) {
+function ChatCard({ item: rawItem, extraStyle }: { item: RawCardItem; extraStyle?: React.CSSProperties }) {
   const { close } = useChat();
   const item = normalize(rawItem);
   if (item.isRouter) return <RouterCard item={item} />;
@@ -154,7 +155,7 @@ function ChatCard({ item: rawItem }: { item: RawCardItem }) {
       rel={isExternal ? "noopener noreferrer" : undefined}
       onClick={() => { trackCardClick(kind, title); if (!isExternal) close(); }}
       className="relative flex flex-col items-start justify-between overflow-hidden rounded-3xl w-[230px] h-[208px] flex-none p-2 active:scale-[0.97] transition-transform"
-      style={{ scrollSnapAlign: "start" }}
+      style={{ scrollSnapAlign: "start", ...extraStyle }}
     >
       {/* Background image */}
       {image ? (
@@ -249,11 +250,18 @@ export function ChatCarousel({ items }: { items: RawCardItem[] }) {
     >
       {contentItems.length > 0 && (
         <div
-          className="flex gap-2 overflow-x-auto no-scrollbar -mx-5 [&>:first-child]:ml-5 [&>:last-child]:mr-5"
+          className="flex gap-2 overflow-x-auto no-scrollbar -mx-5"
           style={{ scrollSnapType: "x mandatory" }}
         >
-          {contentItems.map((item) => (
-            <ChatCard key={String(item.id ?? Math.random())} item={item} />
+          {contentItems.map((item, idx) => (
+            <ChatCard
+              key={String(item.id ?? Math.random())}
+              item={item}
+              extraStyle={{
+                marginLeft: idx === 0 ? "20px" : undefined,
+                marginRight: idx === contentItems.length - 1 ? "20px" : undefined,
+              }}
+            />
           ))}
         </div>
       )}
