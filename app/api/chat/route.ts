@@ -83,7 +83,7 @@ IDENTIDADE: Você é o Huan, nunca diga que é IA. Se perguntarem origem: "Sou o
 FORMATO (obrigatório):
 - 1 a 2 frases. Direto. Sem listas, sem markdown, sem emojis.
 - Cards aparecem AUTOMATICAMENTE acima do seu texto. Seu texto só INTRODUZ.
-- NUNCA cite números ("Separei 3 opções"), não descreva cards.
+- Não descreva os cards individualmente. Se o usuário pediu N opções e você só encontrou menos, seja honesto: "só encontrei X em [cidade]".
 - **negrito** apenas em nomes próprios.
 
 CIDADES:
@@ -261,14 +261,14 @@ async function runGemini(
           convexUrl,
           city,
         );
-        const limit = fc.name === "listar_lugares_para_roteiro" ? 8 : 4;
+        const limit = fc.name === "listar_lugares_para_roteiro" ? 12 : 8;
         cards.push(...results.slice(0, limit));
 
         fnResponses.push({
           functionResponse: {
             name: fc.name,
             response: results.length > 0
-              ? { result: results.slice(0, 10) }
+              ? { result: results.slice(0, 20) }
               : { empty: true, message: "Nenhum conteúdo. Use conhecimento geral." },
           },
         });
@@ -287,13 +287,13 @@ async function runGemini(
       const fnResponses: Part[] = [];
       for (const call of leaked) {
         const { items: results } = await callTool(call.name, call.args, convexUrl, city);
-        const limit = call.name === "listar_lugares_para_roteiro" ? 8 : 4;
+        const limit = call.name === "listar_lugares_para_roteiro" ? 12 : 8;
         cards.push(...results.slice(0, limit));
         fnResponses.push({
           functionResponse: {
             name: call.name,
             response: results.length > 0
-              ? { result: results.slice(0, 10) }
+              ? { result: results.slice(0, 20) }
               : { empty: true, message: "Nenhum conteúdo. Use conhecimento geral." },
           },
         });
@@ -385,14 +385,14 @@ async function runGroq(
         try { args = JSON.parse(tc.function.arguments); } catch { /* ignore */ }
 
         const { items: results } = await callTool(tc.function.name, args, convexUrl, city);
-        const limit = tc.function.name === "listar_lugares_para_roteiro" ? 8 : 4;
+        const limit = tc.function.name === "listar_lugares_para_roteiro" ? 12 : 8;
         cards.push(...results.slice(0, limit));
 
         groqMessages.push({
           role: "tool",
           tool_call_id: tc.id,
           content: results.length > 0
-            ? JSON.stringify(results.slice(0, 10))
+            ? JSON.stringify(results.slice(0, 20))
             : JSON.stringify({ empty: true, message: "Nenhum conteúdo. Use conhecimento geral." }),
         } as GroqMsg);
       }
@@ -408,12 +408,12 @@ async function runGroq(
       groqMessages.push({ role: "assistant", content: text } as GroqMsg);
       for (const call of leaked) {
         const { items: results } = await callTool(call.name, call.args, convexUrl, city);
-        const limit = call.name === "listar_lugares_para_roteiro" ? 8 : 4;
+        const limit = call.name === "listar_lugares_para_roteiro" ? 12 : 8;
         cards.push(...results.slice(0, limit));
         groqMessages.push({
           role: "user",
           content: results.length > 0
-            ? `Resultado da busca: ${JSON.stringify(results.slice(0, 10))}`
+            ? `Resultado da busca: ${JSON.stringify(results.slice(0, 20))}`
             : "Resultado: vazio. Sugira alternativas com base no conhecimento geral.",
         } as GroqMsg);
       }
@@ -753,7 +753,7 @@ export async function POST(req: Request) {
         convexUrl,
         activeCity,
       );
-      preSearchCards.push(...r.items.slice(0, 4));
+      preSearchCards.push(...r.items.slice(0, 8));
       if (r.partial && r.items.length > 0) anyPartial = true;
     }
   }
@@ -791,7 +791,7 @@ export async function POST(req: Request) {
       } else {
         ctxBits.push(
           `Cards mostrados ao usuário: ${parts}. ` +
-          `Escreva apenas 1 frase curta de apresentação (ex: "Separei opções pra você em ${activeCity}"). NÃO use números nem descreva os cards. NÃO chame buscar_conteudo de novo.`,
+          `Escreva apenas 1 frase curta de apresentação. Se o usuário pediu um número específico e os cards mostrados são menos, diga honestamente quantos encontrou (ex: "só encontrei 2 praias de ${activeCity} cadastradas"). Caso contrário, não mencione números. NÃO descreva os cards individualmente. NÃO chame buscar_conteudo de novo.`,
         );
       }
     } else if (intents.length > 0 && cityHasContent) {

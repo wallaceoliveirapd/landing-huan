@@ -9,24 +9,19 @@ import { trackCardClick } from "@/lib/analytics";
 import { useChat } from "@/components/providers/ChatProvider";
 import type { RawCardItem } from "@/lib/chat-mocks";
 
-/**
- * Per-kind metadata. Each category gets a subtle accent color (used as a
- * small left accent stripe + label tone). NOT loud borders, just an
- * understated visual cue so the user can scan categories quickly.
- */
 const KIND_META: Record<
   string,
-  { label: string; icon: string; accent: string; labelColor: string }
+  { label: string; icon: string; accent: string }
 > = {
-  tour:       { label: "Passeio",      icon: "compass",       accent: "#2563EB", labelColor: "text-[#1D4ED8]" },
-  restaurant: { label: "Restaurante",  icon: "utensils",      accent: "#EA580C", labelColor: "text-[#C2410C]" },
-  dica:       { label: "Dica",         icon: "lightbulb",     accent: "#CA8A04", labelColor: "text-[#A16207]" },
-  praia:      { label: "Praia",        icon: "waves",         accent: "#0891B2", labelColor: "text-[#0E7490]" },
-  nightlife:  { label: "Vida noturna", icon: "moon",          accent: "#7C3AED", labelColor: "text-[#6D28D9]" },
-  hosting:    { label: "Hospedagem",   icon: "bed-double",    accent: "#0D9488", labelColor: "text-[#0F766E]" },
-  itinerary:  { label: "Roteiro",      icon: "calendar-check", accent: "#16A34A", labelColor: "text-[#15803D]" },
-  coupon:     { label: "Cupom",        icon: "ticket-percent", accent: "#028574", labelColor: "text-[#028574]" },
-  router:     { label: "Criar viagem", icon: "sparkles",      accent: "#323439", labelColor: "text-[#323439]" },
+  tour: { label: "Passeio", icon: "compass", accent: "#2563EB" },
+  restaurant: { label: "Restaurante", icon: "utensils", accent: "#EA580C" },
+  dica: { label: "Dica", icon: "lightbulb", accent: "#CA8A04" },
+  praia: { label: "Praia", icon: "waves", accent: "#0891B2" },
+  nightlife: { label: "Vida noturna", icon: "moon", accent: "#7C3AED" },
+  hosting: { label: "Hospedagem", icon: "bed-double", accent: "#0D9488" },
+  itinerary: { label: "Roteiro", icon: "calendar-check", accent: "#16A34A" },
+  coupon: { label: "Cupom", icon: "ticket-percent", accent: "#028574" },
+  router: { label: "Criar viagem", icon: "sparkles", accent: "#323439" },
 };
 
 type Normalized = {
@@ -111,7 +106,7 @@ function normalize(item: RawCardItem): Normalized {
   return { id, kind, title, subtitle, image, href, meta, badge };
 }
 
-// ─── Router card (special: "Criar viagem") ─────────────────────────────────
+// ─── Router card (special full-width CTA) ───────────────────────────────────
 function RouterCard({ item }: { item: Normalized }) {
   const { close } = useChat();
   return (
@@ -141,117 +136,109 @@ function RouterCard({ item }: { item: Normalized }) {
   );
 }
 
-// ─── Standard card ────────────────────────────────────────────────────────
-function ChatCard({ item }: { item: RawCardItem }) {
+// ─── iFood-style vertical card ───────────────────────────────────────────────
+function ChatCard({ item: rawItem }: { item: RawCardItem }) {
   const { close } = useChat();
-  const normalized = normalize(item);
-  if (normalized.isRouter) return <RouterCard item={normalized} />;
+  const item = normalize(rawItem);
+  if (item.isRouter) return <RouterCard item={item} />;
 
-  const { kind, title, subtitle, image, href, meta, badge } = normalized;
+  const { kind, title, subtitle, image, href, badge } = item;
   const km = KIND_META[kind] ?? KIND_META.tour;
   const isExternal =
-    href.startsWith("http") ||
-    kind === "hosting" ||
-    kind === "coupon";
+    href.startsWith("http") || kind === "hosting" || kind === "coupon";
 
   return (
-    <motion.div
-      whileHover={{ y: -2 }}
-      transition={{ type: "spring", stiffness: 400, damping: 25 }}
-      className="w-full flex-none"
+    <Link
+      href={href}
+      target={isExternal ? "_blank" : undefined}
+      rel={isExternal ? "noopener noreferrer" : undefined}
+      onClick={() => { trackCardClick(kind, title); if (!isExternal) close(); }}
+      className="relative flex flex-col items-start justify-between overflow-hidden rounded-3xl w-[230px] h-[208px] flex-none p-2 active:scale-[0.97] transition-transform"
+      style={{ scrollSnapAlign: "start" }}
     >
-      <Link
-        href={href}
-        target={isExternal ? "_blank" : undefined}
-        rel={isExternal ? "noopener noreferrer" : undefined}
-        onClick={() => { trackCardClick(kind, title); if (!isExternal) close(); }}
-        className="group relative flex gap-3 overflow-hidden rounded-2xl bg-white border border-[var(--color-neutral-200)] hover:border-[var(--color-neutral-800)] transition-colors p-3"
-      >
-        {/* Subtle category accent stripe on the left */}
-        <span
-          aria-hidden
-          className="absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl"
-          style={{ backgroundColor: km.accent }}
+      {/* Background image */}
+      {image ? (
+        <Image
+          src={image}
+          alt={title}
+          fill
+          sizes="148px"
+          className="object-cover"
         />
-
-        {/* Square image */}
-        <div className="relative h-[80px] w-[80px] flex-none rounded-xl overflow-hidden bg-[var(--color-neutral-100)] ml-1">
-          {image ? (
-            <Image
-              src={image}
-              alt={title}
-              fill
-              sizes="80px"
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
-            />
-          ) : (
-            <div className="w-full h-full grid place-items-center">
-              <Icon name={km.icon} size={22} className="opacity-30" />
-            </div>
-          )}
-          {/* Coupon discount overlay */}
-          {kind === "coupon" && badge && (
-            <div
-              className="absolute inset-0 flex items-center justify-center"
-              style={{ backgroundColor: `${km.accent}E6` }}
-            >
-              <span className="font-display font-medium text-[14px] text-white leading-tight text-center px-1">
-                {badge}
-              </span>
-            </div>
-          )}
+      ) : (
+        <div
+          className="absolute inset-0 flex items-center justify-center"
+          style={{ backgroundColor: `${km.accent}1A` }}
+        >
+          <span style={{ color: km.accent }}>
+            <Icon name={km.icon} size={36} className="opacity-30" />
+          </span>
         </div>
+      )}
 
-        {/* Text column */}
-        <div className="flex flex-col justify-between flex-1 min-w-0 py-0.5">
-          {/* Top row: kind label + rating badge */}
-          <div className="flex items-center justify-between gap-2">
-            <span
-              className={`inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide ${km.labelColor}`}
-            >
-              <Icon name={km.icon} size={10} />
-              {km.label}
-              {meta && (
-                <span className="text-[var(--color-neutral-600)] font-normal normal-case tracking-normal">
-                  • {meta}
-                </span>
-              )}
-            </span>
-            {badge && kind !== "coupon" && (
-              <span className="inline-flex items-center gap-0.5 text-[11px] font-medium text-[var(--color-neutral-800)] whitespace-nowrap">
-                {badge}
-              </span>
-            )}
-          </div>
+      {/* Gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/20 pointer-events-none" />
 
-          {/* Title */}
-          <p className="font-display font-medium text-[14px] leading-[1.3] text-[var(--color-neutral-800)] line-clamp-2 mt-1">
+      {/* Coupon discount overlay */}
+      {kind === "coupon" && badge && (
+        <div
+          className="absolute inset-0 z-[5] flex items-center justify-center"
+          style={{ backgroundColor: `${km.accent}D9` }}
+        >
+          <span className="font-display font-bold text-[22px] text-white text-center px-3 leading-tight">
+            {badge}
+          </span>
+        </div>
+      )}
+
+      {/* Category badge */}
+      <div
+        className="relative z-10 inline-flex items-center gap-1 px-2 py-[5px] rounded-full shrink-0"
+        style={{ backgroundColor: km.accent }}
+      >
+        <Icon name={km.icon} size={12} className="text-white" />
+        <span className="text-white text-[10px] font-medium uppercase tracking-wide font-display leading-none">
+          {km.label}
+        </span>
+      </div>
+
+      {/* Non-coupon rating badge */}
+      {badge && kind !== "coupon" && (
+        <div className="absolute top-2 right-2 z-10 bg-black/50 backdrop-blur-sm px-1.5 py-0.5 rounded-full">
+          <span className="text-white text-[11px] font-medium">{badge}</span>
+        </div>
+      )}
+
+      {/* White footer panel */}
+      <div className="relative z-10 bg-white rounded-[16px] px-3 py-2 w-full flex items-center gap-1.5">
+        <div className="flex-1 min-w-0">
+          <p className="font-display font-medium text-[13px] text-[var(--color-neutral-800)] truncate leading-snug">
             {title}
           </p>
-
-          {/* Subtitle */}
           {subtitle && (
-            <p className="text-[12px] leading-[1.4] text-[var(--color-neutral-600)] line-clamp-1 mt-1">
+            <p className="text-[11px] text-[var(--color-neutral-600)] truncate mt-0.5 leading-snug">
               {subtitle}
             </p>
           )}
-
-          {/* CTA arrow */}
-          <div className="flex items-center gap-1 mt-1.5">
-            <span className="text-[11px] text-[var(--color-neutral-700)] font-medium">
-              {isExternal ? "Ver oferta" : "Ver mais"}
-            </span>
-            <Icon name="arrow-right" size={11} className="text-[var(--color-neutral-700)]" />
-          </div>
         </div>
-      </Link>
-    </motion.div>
+        <Icon
+          name="chevron-right"
+          size={18}
+          className="text-[var(--color-neutral-500)] shrink-0"
+        />
+      </div>
+    </Link>
   );
 }
 
-// ─── Carousel ───────────────────────────────────────────────────────────────
+// ─── Carousel ────────────────────────────────────────────────────────────────
 export function ChatCarousel({ items }: { items: RawCardItem[] }) {
   if (!items.length) return null;
+
+  const contentItems = items
+    .filter((i) => (i.kind ?? i.type) !== "router")
+    .slice(0, 8);
+  const routerItems = items.filter((i) => (i.kind ?? i.type) === "router");
 
   return (
     <motion.div
@@ -260,7 +247,17 @@ export function ChatCarousel({ items }: { items: RawCardItem[] }) {
       transition={{ duration: 0.3 }}
       className="flex flex-col gap-2 w-full"
     >
-      {items.slice(0, 5).map((item) => (
+      {contentItems.length > 0 && (
+        <div
+          className="flex gap-2 overflow-x-auto no-scrollbar"
+          style={{ scrollSnapType: "x mandatory" }}
+        >
+          {contentItems.map((item) => (
+            <ChatCard key={String(item.id ?? Math.random())} item={item} />
+          ))}
+        </div>
+      )}
+      {routerItems.map((item) => (
         <ChatCard key={String(item.id ?? Math.random())} item={item} />
       ))}
     </motion.div>
