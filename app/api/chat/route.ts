@@ -220,6 +220,7 @@ async function runGemini(
   modelId: string,
   messages: MsgInput[],
   convexUrl: string,
+  city?: string,
 ): Promise<AgentResult> {
   const model = genAI.getGenerativeModel({
     model: modelId,
@@ -258,6 +259,7 @@ async function runGemini(
           fc.name,
           fc.args as Record<string, string>,
           convexUrl,
+          city,
         );
         const limit = fc.name === "listar_lugares_para_roteiro" ? 8 : 4;
         cards.push(...results.slice(0, limit));
@@ -284,7 +286,7 @@ async function runGemini(
     if (leaked.length > 0 && turn < 3) {
       const fnResponses: Part[] = [];
       for (const call of leaked) {
-        const { items: results } = await callTool(call.name, call.args, convexUrl);
+        const { items: results } = await callTool(call.name, call.args, convexUrl, city);
         const limit = call.name === "listar_lugares_para_roteiro" ? 8 : 4;
         cards.push(...results.slice(0, limit));
         fnResponses.push({
@@ -347,6 +349,7 @@ async function runGroq(
   modelId: string,
   messages: MsgInput[],
   convexUrl: string,
+  city?: string,
 ): Promise<AgentResult> {
   const groqMessages: GroqMsg[] = [
     { role: "system", content: SYSTEM_PROMPT },
@@ -381,7 +384,7 @@ async function runGroq(
         let args: Record<string, string> = {};
         try { args = JSON.parse(tc.function.arguments); } catch { /* ignore */ }
 
-        const { items: results } = await callTool(tc.function.name, args, convexUrl);
+        const { items: results } = await callTool(tc.function.name, args, convexUrl, city);
         const limit = tc.function.name === "listar_lugares_para_roteiro" ? 8 : 4;
         cards.push(...results.slice(0, limit));
 
@@ -404,7 +407,7 @@ async function runGroq(
     if (leaked.length > 0 && turn < 3) {
       groqMessages.push({ role: "assistant", content: text } as GroqMsg);
       for (const call of leaked) {
-        const { items: results } = await callTool(call.name, call.args, convexUrl);
+        const { items: results } = await callTool(call.name, call.args, convexUrl, city);
         const limit = call.name === "listar_lugares_para_roteiro" ? 8 : 4;
         cards.push(...results.slice(0, limit));
         groqMessages.push({
@@ -545,16 +548,16 @@ const stripAccents = (s: string) =>
 // interested in. If they ask "passeio de barco" without context, we reply
 // with a question first.
 const CITY_NICKNAMES: { city: string; aliases: string[] }[] = [
-  { city: "João Pessoa", aliases: ["joao pessoa", "joão pessoa", "jampa", "jpa"] },
-  { city: "Recife", aliases: ["recife"] },
+  { city: "João Pessoa", aliases: ["joao pessoa", "joão pessoa", "jampa", "jpa", "paraiba", "paraíba"] },
+  { city: "Recife", aliases: ["recife", "pernambuco"] },
   { city: "Olinda", aliases: ["olinda"] },
-  { city: "Fortaleza", aliases: ["fortaleza", "forta"] },
-  { city: "Salvador", aliases: ["salvador", "soterópolis", "soteropolis"] },
-  { city: "Natal", aliases: ["natal"] },
-  { city: "Maceió", aliases: ["maceio", "maceió"] },
-  { city: "Aracaju", aliases: ["aracaju"] },
-  { city: "São Luís", aliases: ["sao luis", "são luís"] },
-  { city: "Teresina", aliases: ["teresina"] },
+  { city: "Fortaleza", aliases: ["fortaleza", "forta", "ceara", "ceará"] },
+  { city: "Salvador", aliases: ["salvador", "soterópolis", "soteropolis", "bahia"] },
+  { city: "Natal", aliases: ["natal", "rio grande do norte"] },
+  { city: "Maceió", aliases: ["maceio", "maceió", "alagoas"] },
+  { city: "Aracaju", aliases: ["aracaju", "sergipe"] },
+  { city: "São Luís", aliases: ["sao luis", "são luís", "maranhao", "maranhão"] },
+  { city: "Teresina", aliases: ["teresina", "piaui", "piauí"] },
   { city: "Fernando de Noronha", aliases: ["noronha", "fernando de noronha"] },
   { city: "Porto de Galinhas", aliases: ["porto de galinhas"] },
   { city: "Jericoacoara", aliases: ["jericoacoara", "jeri"] },
@@ -834,9 +837,9 @@ export async function POST(req: Request) {
         try {
           console.log(`[chat] trying ${provider}/${id}`);
           if (provider === "gemini") {
-            result = await runGemini(id, messagesWithHint, convexUrl);
+            result = await runGemini(id, messagesWithHint, convexUrl, activeCity ?? undefined);
           } else {
-            result = await runGroq(id, messagesWithHint, convexUrl);
+            result = await runGroq(id, messagesWithHint, convexUrl, activeCity ?? undefined);
           }
           console.log(`[chat] success with ${provider}/${id}`);
           break;

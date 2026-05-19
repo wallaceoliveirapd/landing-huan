@@ -58,12 +58,15 @@ const BLOCKLIST_PT = [
   "p.u.t.a", "p-u-t-a", "f.o.d.a", "m.e.r.d.a", "c.a.r.a.l.h.o",
 ];
 
-// Normalizes text: lowercase, strip accents, collapse dots/dashes between single chars
+// Normalizes text: lowercase, strip accents, leet speak, collapse bypasses
 function normalizeForFilter(s: string): string {
   return s
     .toLowerCase()
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
+    // leet speak: 4→a, 3→e, 0→o, @→a, $→s
+    .replace(/4/g, "a").replace(/3/g, "e").replace(/0/g, "o")
+    .replace(/@/g, "a").replace(/\$/g, "s")
     // collapse patterns like "p.u.t.a" or "p-u-t-a" into "puta"
     .replace(/\b(\w)([.\-_](\w))+\b/g, (m) => m.replace(/[.\-_]/g, ""));
 }
