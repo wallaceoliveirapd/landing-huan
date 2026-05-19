@@ -375,12 +375,15 @@ export function PraiasContent() {
                         sizes="(min-width: 768px) 720px, 100vw"
                         className="object-cover transition-transform duration-700 group-hover:scale-105"
                       />
-                      {p.city && (
-                        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1 text-[11px] font-medium text-[var(--color-neutral-800)] flex items-center gap-1">
-                          <Icon name="map-pin" size={11} />
-                          {p.city.split(",")[0]}
-                        </div>
-                      )}
+                      {p.city && (() => {
+                        const { name, state } = parseCity(p.city);
+                        return (
+                          <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1 text-[11px] font-medium text-[var(--color-neutral-800)] flex items-center gap-1">
+                            <Icon name="map-pin" size={11} />
+                            {name}{state && STATE_LABEL[state] ? `, ${STATE_LABEL[state]}` : state ? `, ${state}` : ""}
+                          </div>
+                        );
+                      })()}
                     </div>
                     <div className="flex flex-col gap-2">
                       <h3 className="font-display font-medium text-[18px] text-[var(--color-neutral-800)] group-hover:underline">
