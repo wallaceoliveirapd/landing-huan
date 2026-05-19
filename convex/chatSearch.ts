@@ -20,6 +20,9 @@ const STOPWORDS = new Set([
   "em", "por", "para", "pra", "com", "sem", "ou", "e", "que",
   "é", "ser", "estar", "ter", "esta", "este", "isso",
   "quero", "queria", "preciso", "procuro", "buscar", "ver",
+  "todas", "todos", "tudo", "mais", "menos", "algum", "alguma",
+  "alguns", "algumas", "qual", "quando", "onde", "porque", "agora",
+  "principais", "melhores", "melhor", "otimas", "otima", "boas", "boa",
 ]);
 
 /**
@@ -154,7 +157,24 @@ export const search = query({
     city: v.optional(v.string()),
   },
   handler: async (ctx, { q, type, city }) => {
-    const tokens = tokenize(q);
+    let tokens = tokenize(q);
+
+    // When a city filter is active, remove city-name tokens from scoring.
+    // "praias de João Pessoa" with city="João Pessoa" → strip "joao"/"pessoa"
+    // so the remaining tokens reflect CONTENT (not WHERE), letting the
+    // city filter handle WHERE and content scoring handle WHAT.
+    if (city) {
+      const cityNormTokens = new Set(
+        city
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[̀-ͯ]/g, "")
+          .split(/[\s,]+/)
+          .filter((t) => t.length >= 3),
+      );
+      tokens = tokens.filter((t) => !cityNormTokens.has(t));
+    }
+
     const isEmptyQuery = tokens.length === 0;
     const specificTokens = tokens.filter((t) => !GENERIC_CATEGORY_TOKENS.has(t));
     const isBrowseQuery = isEmptyQuery || specificTokens.length === 0;
@@ -394,7 +414,7 @@ export const search = query({
     // present "não encontrei X exato, mas posso te indicar estes".
     const near = nearMiss
       .sort((a, b) => b.score - a.score)
-      .slice(0, 6)
+      .slice(0, 8)
       .map((r) => r.item);
     return { items: near, partial: near.length > 0 };
   },
