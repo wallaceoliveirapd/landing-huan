@@ -251,7 +251,7 @@ export function ChatCarousel({ items }: { items: RawCardItem[] }) {
       {contentItems.length > 0 && (
         <div
           className="flex gap-2 overflow-x-auto no-scrollbar -mx-5"
-          style={{ scrollSnapType: "x mandatory" }}
+          style={{ scrollSnapType: "x mandatory", scrollPaddingLeft: "20px", scrollPaddingRight: "20px" }}
         >
           {contentItems.map((item, idx) => (
             <ChatCard
