@@ -13,21 +13,28 @@ import { ListingSearch } from "@/components/molecules/ListingSearch";
 import { useInfiniteList, InfiniteSentinel } from "@/components/molecules/InfiniteList";
 import { Icon } from "@/components/atoms/Icon";
 import { toProxyUrl } from "@/lib/imageUpload";
+// Keys are normalized (NFD stripped, uppercase) so "PB", "PARAIBA", "Paraíba" all match.
 const STATE_LABEL: Record<string, string> = {
-  AL: "Alagoas",
-  BA: "Bahia",
-  CE: "Ceará",
-  MA: "Maranhão",
-  PB: "Paraíba",
-  PE: "Pernambuco",
-  PI: "Piauí",
-  RN: "Rio Grande do Norte",
-  SE: "Sergipe",
+  AL: "Alagoas",       ALAGOAS: "Alagoas",
+  BA: "Bahia",         BAHIA: "Bahia",
+  CE: "Ceará",         CEARA: "Ceará",
+  MA: "Maranhão",      MARANHAO: "Maranhão",
+  PB: "Paraíba",       PARAIBA: "Paraíba",
+  PE: "Pernambuco",    PERNAMBUCO: "Pernambuco",
+  PI: "Piauí",         PIAUI: "Piauí",
+  RN: "Rio Grande do Norte", "RIO GRANDE DO NORTE": "Rio Grande do Norte",
+  SE: "Sergipe",       SERGIPE: "Sergipe",
 };
 
+function normalizeKey(s: string): string {
+  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().trim();
+}
+
 function parseCity(value: string): { name: string; state: string } {
-  const [name, state] = value.split(",").map((s) => s.trim());
-  return { name: name ?? "", state: (state ?? "").toUpperCase() };
+  const [name, raw] = value.split(",").map((s) => s.trim());
+  const key = normalizeKey(raw ?? "");
+  const state = STATE_LABEL[key] ?? (raw ?? "");
+  return { name: name ?? "", state };
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -380,7 +387,7 @@ export function PraiasContent() {
                         return (
                           <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1 text-[11px] font-medium text-[var(--color-neutral-800)] flex items-center gap-1">
                             <Icon name="map-pin" size={11} />
-                            {name}{state && STATE_LABEL[state] ? `, ${STATE_LABEL[state]}` : state ? `, ${state}` : ""}
+                            {name}{state ? `, ${state}` : ""}
                           </div>
                         );
                       })()}
