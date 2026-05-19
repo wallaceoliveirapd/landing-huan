@@ -249,16 +249,12 @@ export function ChatCarousel({ items }: { items: RawCardItem[] }) {
     >
       {contentItems.length > 0 && (
         <div
-          className="flex gap-2 overflow-x-auto no-scrollbar -mx-5"
+          className="flex gap-2 overflow-x-auto no-scrollbar -mx-5 [&>:first-child]:ml-5 [&>:last-child]:mr-5"
           style={{ scrollSnapType: "x mandatory" }}
         >
-          {/* Left spacer: 12px + gap-2(8px) = 20px — matches chat px-5 padding */}
-          <div className="w-3 flex-none shrink-0" aria-hidden />
           {contentItems.map((item) => (
             <ChatCard key={String(item.id ?? Math.random())} item={item} />
           ))}
-          {/* Right spacer */}
-          <div className="w-3 flex-none shrink-0" aria-hidden />
         </div>
       )}
       {routerItems.map((item) => (
