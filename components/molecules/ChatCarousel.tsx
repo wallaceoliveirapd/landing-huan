@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import { Icon } from "@/components/atoms/Icon";
 import { toProxyUrl } from "@/lib/imageUpload";
 import { trackCardClick } from "@/lib/analytics";
+import { useChat } from "@/components/providers/ChatProvider";
 import type { RawCardItem } from "@/lib/chat-mocks";
 
 /**
@@ -112,10 +113,11 @@ function normalize(item: RawCardItem): Normalized {
 
 // ─── Router card (special: "Criar viagem") ─────────────────────────────────
 function RouterCard({ item }: { item: Normalized }) {
+  const { close } = useChat();
   return (
     <Link
       href={item.href}
-      onClick={() => trackCardClick("router", item.title)}
+      onClick={() => { trackCardClick("router", item.title); close(); }}
       className="group relative flex items-center gap-3 w-full overflow-hidden rounded-2xl bg-[var(--color-neutral-800)] text-white p-4 transition-transform"
     >
       <span
@@ -141,6 +143,7 @@ function RouterCard({ item }: { item: Normalized }) {
 
 // ─── Standard card ────────────────────────────────────────────────────────
 function ChatCard({ item }: { item: RawCardItem }) {
+  const { close } = useChat();
   const normalized = normalize(item);
   if (normalized.isRouter) return <RouterCard item={normalized} />;
 
@@ -161,7 +164,7 @@ function ChatCard({ item }: { item: RawCardItem }) {
         href={href}
         target={isExternal ? "_blank" : undefined}
         rel={isExternal ? "noopener noreferrer" : undefined}
-        onClick={() => trackCardClick(kind, title)}
+        onClick={() => { trackCardClick(kind, title); if (!isExternal) close(); }}
         className="group relative flex gap-3 overflow-hidden rounded-2xl bg-white border border-[var(--color-neutral-200)] hover:border-[var(--color-neutral-800)] transition-colors p-3"
       >
         {/* Subtle category accent stripe on the left */}

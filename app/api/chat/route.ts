@@ -125,6 +125,15 @@ type SearchResult = {
   partial: boolean;
 };
 
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 // ─── Shared tool executor (no streaming) ──────────────────────────────────
 async function callTool(
   name: string,
@@ -137,7 +146,7 @@ async function callTool(
       const items = (await fetchQuery(
         api.chatSearch.getContentForItinerary, {}, { url: convexUrl },
       )) as Record<string, unknown>[];
-      return { items, partial: false };
+      return { items: shuffle(items), partial: false };
     }
     const raw = (args.tipo ?? args.type ?? "any") as string;
     const searchType: SearchType = VALID_TYPES.includes(raw as SearchType)
@@ -157,10 +166,13 @@ async function callTool(
         { q: "", type: searchType, city },
         { url: convexUrl },
       )) as SearchResult;
-      return { items: browse.items, partial: browse.items.length > 0 };
+      // Shuffle so repeated generic queries show different items.
+      return { items: shuffle(browse.items), partial: browse.items.length > 0 };
     }
 
-    return primary;
+    // Shuffle the scored pool so repeated similar queries show variety
+    // while still surfacing only relevant items (Convex already ranked by score).
+    return { items: shuffle(primary.items), partial: primary.partial };
   } catch (err) {
     console.error(`Tool ${name} error:`, err);
     return { items: [], partial: false };
@@ -767,10 +779,11 @@ export async function POST(req: Request) {
         .map(([k, t]) => `${k}(${t.length}): ${t.join(" | ")}`)
         .join(" ; ");
       if (anyPartial) {
-        // Strict search returned 0, but we showed the closest items.
+        // Strict search returned 0, showed nearest-miss items.
         ctxBits.push(
-          `Cards mostrados (aproximados, NÃO bateram exato com o pedido): ${parts}. ` +
-          `Escreva 1 frase honesta: "não achei [pedido exato] cadastrado, mas separei o mais próximo que tenho em ${activeCity}". NÃO chame buscar_conteudo de novo.`,
+          `Cards mostrados (aproximados, não batem exato com o pedido): ${parts}. ` +
+          `Escreva 1 frase honesta: "não achei [pedido exato] cadastrado, mas separei o mais próximo que tenho em ${activeCity}". ` +
+          `Se você tiver termos mais precisos, pode chamar buscar_conteudo uma vez com a query refinada.`,
         );
       } else {
         ctxBits.push(
