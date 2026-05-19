@@ -212,7 +212,7 @@ function ChatCard({ item: rawItem }: { item: RawCardItem }) {
       {/* White footer panel */}
       <div className="relative z-10 bg-white rounded-[16px] px-3 py-2 w-full flex items-center gap-1.5">
         <div className="flex-1 min-w-0">
-          <p className="font-display font-medium text-[13px] text-[var(--color-neutral-800)] truncate leading-snug">
+          <p className="font-display font-medium text-[14px] text-[var(--color-neutral-800)] truncate leading-snug">
             {title}
           </p>
           {subtitle && (
@@ -249,12 +249,14 @@ export function ChatCarousel({ items }: { items: RawCardItem[] }) {
     >
       {contentItems.length > 0 && (
         <div
-          className="flex gap-2 overflow-x-auto no-scrollbar"
+          className="flex gap-2 overflow-x-auto no-scrollbar -mx-5 pl-5"
           style={{ scrollSnapType: "x mandatory" }}
         >
           {contentItems.map((item) => (
             <ChatCard key={String(item.id ?? Math.random())} item={item} />
           ))}
+          {/* Right-side breathing room so last card doesn't sit flush on scroll end */}
+          <div className="w-5 flex-none shrink-0" aria-hidden />
         </div>
       )}
       {routerItems.map((item) => (
