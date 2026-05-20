@@ -502,30 +502,38 @@ function ComposeStep({
           <p className="text-[11px] font-medium uppercase tracking-wide text-[var(--color-neutral-500)]">
             Vai convidar ({draft.length})
           </p>
-          {draft.map((d) => (
-            <div
-              key={d.email}
-              className="flex items-center gap-3 rounded-2xl border border-[var(--color-neutral-200)] px-3 py-2.5"
-            >
-              <AvatarSm name={d.name ?? null} email={d.email} src={d.image ?? null} />
-              <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-medium text-[var(--color-neutral-800)] truncate">
-                  {shortName(d.name) || d.email}
-                </p>
-                <p className="text-[11px] text-[var(--color-neutral-500)] truncate">
-                  {d.email} • {d.role === "edit" ? "Edição" : "Leitura"}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => onRemoveDraft(d.email)}
-                aria-label="Remover"
-                className="grid size-8 place-items-center rounded-full hover:bg-[var(--color-neutral-100)]"
+          <AnimatePresence initial={false}>
+            {draft.map((d) => (
+              <motion.div
+                key={d.email}
+                layout
+                initial={{ opacity: 0, y: -6, height: 0 }}
+                animate={{ opacity: 1, y: 0, height: "auto" }}
+                exit={{ opacity: 0, x: 24, height: 0, marginTop: 0 }}
+                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                className="flex items-center gap-3 rounded-2xl border border-[var(--color-neutral-200)] px-3 py-2.5"
               >
-                <Icon name="x" size={14} className="text-[var(--color-neutral-600)]" />
-              </button>
-            </div>
-          ))}
+                <AvatarSm name={d.name ?? null} email={d.email} src={d.image ?? null} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-medium text-[var(--color-neutral-800)] truncate">
+                    {shortName(d.name) || d.email}
+                  </p>
+                  <p className="text-[11px] text-[var(--color-neutral-500)] truncate">
+                    {d.email} • {d.role === "edit" ? "Edição" : "Leitura"}
+                  </p>
+                </div>
+                <motion.button
+                  type="button"
+                  onClick={() => onRemoveDraft(d.email)}
+                  aria-label="Remover"
+                  whileTap={{ scale: 0.88 }}
+                  className="grid size-8 place-items-center rounded-full hover:bg-[var(--color-neutral-100)]"
+                >
+                  <Icon name="x" size={14} className="text-[var(--color-neutral-600)]" />
+                </motion.button>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       )}
     </motion.div>

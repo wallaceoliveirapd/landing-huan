@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { CouponCard, type CouponData } from "@/components/organisms/CouponCard";
@@ -58,7 +58,10 @@ export default function CuponsListingPage() {
             ))}
           </div>
         ) : coupons.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-16 text-center">
+          <motion.div
+            variants={fadeUp}
+            className="flex flex-col items-center gap-3 py-16 text-center"
+          >
             <Icon
               name="ticket-percent"
               size={48}
@@ -70,41 +73,51 @@ export default function CuponsListingPage() {
             <p className="text-[13px] text-[var(--color-neutral-600)] max-w-[300px]">
               Volte em breve, estamos sempre adicionando novas parcerias.
             </p>
-          </div>
+          </motion.div>
         ) : (
           <div className="flex flex-col gap-4 max-w-md">
-            {visible.map((c) => {
-              const data: CouponData = {
-                _id: c._id,
-                title: c.title,
-                description: c.description,
-                code: c.code,
-                image: c.image,
-                discountType: c.discountType,
-                discountValue: c.discountValue,
-                partner: c.partner,
-                partnerUrl: c.partnerUrl,
-                conditions: c.conditions,
-                rules: c.rules,
-                firstPurchaseOnly: c.firstPurchaseOnly,
-                validUntil: c.validUntil,
-              };
-              return (
-                <CouponCard
-                  key={c._id}
-                  coupon={data}
-                  onSelect={() =>
-                    gtmSelectItem({
-                      item_type: "passeio",
-                      item_id: c._id,
-                      item_name: c.title,
-                      item_city: null,
-                      list_name: "cupons",
-                    })
-                  }
-                />
-              );
-            })}
+            <AnimatePresence initial={false}>
+              {visible.map((c) => {
+                const data: CouponData = {
+                  _id: c._id,
+                  title: c.title,
+                  description: c.description,
+                  code: c.code,
+                  image: c.image,
+                  discountType: c.discountType,
+                  discountValue: c.discountValue,
+                  partner: c.partner,
+                  partnerUrl: c.partnerUrl,
+                  conditions: c.conditions,
+                  rules: c.rules,
+                  firstPurchaseOnly: c.firstPurchaseOnly,
+                  validUntil: c.validUntil,
+                };
+                return (
+                  <motion.div
+                    key={c._id}
+                    layout
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                    transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <CouponCard
+                      coupon={data}
+                      onSelect={() =>
+                        gtmSelectItem({
+                          item_type: "passeio",
+                          item_id: c._id,
+                          item_name: c.title,
+                          item_city: null,
+                          list_name: "cupons",
+                        })
+                      }
+                    />
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
             <InfiniteSentinel sentinelRef={sentinelRef} hasMore={hasMore} />
           </div>
         )}

@@ -138,9 +138,11 @@ export function TripChecklist({
               {/* Progress bar */}
               {stats.total > 0 && (
                 <div className="h-1.5 rounded-full bg-[var(--color-neutral-100)] overflow-hidden">
-                  <div
-                    className="h-full bg-[var(--color-neutral-800)] transition-all"
-                    style={{ width: `${stats.pct}%` }}
+                  <motion.div
+                    className="h-full bg-[var(--color-neutral-800)]"
+                    initial={false}
+                    animate={{ width: `${stats.pct}%` }}
+                    transition={{ type: "spring", stiffness: 220, damping: 26 }}
                   />
                 </div>
               )}
@@ -188,43 +190,52 @@ export function TripChecklist({
                     </div>
                   )}
                   <ul className="flex flex-col">
-                    {items.map((item) => (
-                      <li
-                        key={item.id}
-                        className="flex items-center gap-2 py-2 border-b border-[var(--color-neutral-100)] last:border-0"
-                      >
-                        <button
-                          type="button"
-                          onClick={() => canEdit && toggleItem(item.id)}
-                          aria-label={item.done ? "Desmarcar" : "Marcar"}
-                          disabled={!canEdit}
-                          className={`grid size-5 place-items-center rounded-full border transition-colors shrink-0 ${item.done
-                            ? "bg-[var(--color-neutral-800)] border-[var(--color-neutral-800)] text-white"
-                            : "border-[var(--color-neutral-400)]"
-                            } ${canEdit ? "" : "cursor-default"}`}
+                    <AnimatePresence initial={false}>
+                      {items.map((item) => (
+                        <motion.li
+                          key={item.id}
+                          layout
+                          initial={{ opacity: 0, y: -6, height: 0 }}
+                          animate={{ opacity: 1, y: 0, height: "auto" }}
+                          exit={{ opacity: 0, x: 24, height: 0 }}
+                          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                          className="flex items-center gap-2 py-2 border-b border-[var(--color-neutral-100)] last:border-0 overflow-hidden"
                         >
-                          {item.done && <Icon name="check" size={12} />}
-                        </button>
-                        <span
-                          className={`flex-1 text-[14px] leading-snug ${item.done
-                            ? "line-through text-[var(--color-neutral-500)]"
-                            : "text-[var(--color-neutral-800)]"
-                            }`}
-                        >
-                          {item.text}
-                        </span>
-                        {canEdit && (
-                          <button
+                          <motion.button
                             type="button"
-                            onClick={() => removeItem(item.id)}
-                            aria-label="Remover"
-                            className="grid size-7 place-items-center rounded-full hover:bg-[var(--color-neutral-100)] text-[var(--color-neutral-500)]"
+                            onClick={() => canEdit && toggleItem(item.id)}
+                            aria-label={item.done ? "Desmarcar" : "Marcar"}
+                            disabled={!canEdit}
+                            whileTap={canEdit ? { scale: 0.85 } : undefined}
+                            className={`grid size-5 place-items-center rounded-full border transition-colors shrink-0 ${item.done
+                              ? "bg-[var(--color-neutral-800)] border-[var(--color-neutral-800)] text-white"
+                              : "border-[var(--color-neutral-400)]"
+                              } ${canEdit ? "" : "cursor-default"}`}
                           >
-                            <Icon name="x" size={12} />
-                          </button>
-                        )}
-                      </li>
-                    ))}
+                            {item.done && <Icon name="check" size={12} />}
+                          </motion.button>
+                          <span
+                            className={`flex-1 text-[14px] leading-snug ${item.done
+                              ? "line-through text-[var(--color-neutral-500)]"
+                              : "text-[var(--color-neutral-800)]"
+                              }`}
+                          >
+                            {item.text}
+                          </span>
+                          {canEdit && (
+                            <motion.button
+                              type="button"
+                              onClick={() => removeItem(item.id)}
+                              aria-label="Remover"
+                              whileTap={{ scale: 0.85 }}
+                              className="grid size-7 place-items-center rounded-full hover:bg-[var(--color-neutral-100)] text-[var(--color-neutral-500)]"
+                            >
+                              <Icon name="x" size={12} />
+                            </motion.button>
+                          )}
+                        </motion.li>
+                      ))}
+                    </AnimatePresence>
                   </ul>
 
                   {/* Add row — owner / edit-role only. */}
@@ -243,14 +254,15 @@ export function TripChecklist({
                         placeholder="Adicionar item ao checklist..."
                         className="flex-1 h-10 px-3 rounded-full border border-[var(--color-neutral-300)] text-[13px] outline-none focus:border-[var(--color-neutral-800)] bg-white"
                       />
-                      <button
+                      <motion.button
                         type="button"
                         onClick={addItem}
                         disabled={!draft.trim()}
+                        whileTap={{ scale: 0.92 }}
                         className="grid size-10 place-items-center rounded-full bg-[var(--color-neutral-800)] text-white disabled:opacity-40"
                       >
                         <Icon name="plus" size={14} />
-                      </button>
+                      </motion.button>
                     </div>
                   )}
                 </>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -292,12 +292,15 @@ export function RestaurantReviews({ restaurantId }: Props) {
         </p>
       ) : (
         <div className="flex flex-col gap-3">
+          <AnimatePresence initial={false}>
           {reviews.map((r) => (
             <motion.div
               key={r._id}
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
+              layout
+              initial={{ opacity: 0, y: 12, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -8, scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 320, damping: 28 }}
               className="rounded-[16px] border border-[var(--color-neutral-200)] bg-white p-4 flex flex-col gap-2"
             >
               <div className="flex items-center justify-between">
@@ -316,6 +319,7 @@ export function RestaurantReviews({ restaurantId }: Props) {
               )}
             </motion.div>
           ))}
+          </AnimatePresence>
         </div>
       )}
     </section>

@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { use } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -435,15 +435,17 @@ function SortableActivityCard({
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, disabled: !canEdit });
   return (
-    <div
+    <motion.div
       ref={setNodeRef}
+      initial={{ opacity: 0, y: 8, scale: 0.97 }}
+      animate={{ opacity: isDragging ? 0.4 : 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, x: 32, height: 0, marginTop: 0 }}
+      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
       style={{
         transform: CSS.Transform.toString(transform),
         transition,
-        opacity: isDragging ? 0.4 : 1,
         zIndex: isDragging ? 10 : undefined,
         position: "relative",
-        // Block iOS/Android text-select + callout (copy popover) during drag
         WebkitUserSelect: "none",
         userSelect: "none",
         WebkitTouchCallout: "none",
@@ -471,7 +473,7 @@ function SortableActivityCard({
         canEdit={canEdit}
         dragHandleProps={canEdit ? ({ ...attributes, ...listeners } as React.HTMLAttributes<HTMLDivElement>) : undefined}
       />
-    </div>
+    </motion.div>
   );
 }
 
@@ -549,34 +551,37 @@ function DayActivities({
           items={items.map((_, i) => i)}
           strategy={verticalListSortingStrategy}
         >
-          {items.map((a, idx) => (
-            <SortableActivityCard
-              key={`${dayNum}-${idx}`}
-              id={idx}
-              tripId={tripId}
-              day={dayNum}
-              index={idx}
-              activity={a}
-              dbItem={
-                a.source === "db" && a.itemId
-                  ? resolvedItems?.[a.itemId]
-                  : undefined
-              }
-              addedByPerson={a.addedBy ? peopleById[a.addedBy] : undefined}
-              canEdit={canEdit}
-            />
-          ))}
+          <AnimatePresence initial={false}>
+            {items.map((a, idx) => (
+              <SortableActivityCard
+                key={`${dayNum}-${idx}`}
+                id={idx}
+                tripId={tripId}
+                day={dayNum}
+                index={idx}
+                activity={a}
+                dbItem={
+                  a.source === "db" && a.itemId
+                    ? resolvedItems?.[a.itemId]
+                    : undefined
+                }
+                addedByPerson={a.addedBy ? peopleById[a.addedBy] : undefined}
+                canEdit={canEdit}
+              />
+            ))}
+          </AnimatePresence>
         </SortableContext>
       </DndContext>
       {canEdit && (
-        <button
+        <motion.button
           type="button"
           onClick={onAddSheet}
+          whileTap={{ scale: 0.95 }}
           className="self-start inline-flex items-center gap-1.5 rounded-full border border-dashed border-[var(--color-neutral-300)] px-3 py-1.5 text-[12px] font-medium text-[var(--color-neutral-700)] hover:border-[var(--color-neutral-800)] hover:text-[var(--color-neutral-800)] transition-colors"
         >
           <Icon name="plus" size={12} />
           Adicionar ao dia {dayNum}
-        </button>
+        </motion.button>
       )}
     </div>
   );

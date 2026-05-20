@@ -4,11 +4,13 @@ import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useQuery } from "convex/react";
+import { motion, AnimatePresence } from "motion/react";
 import { api } from "@/convex/_generated/api";
 import { Icon } from "@/components/atoms/Icon";
 import { SettingsLayout } from "@/components/organisms/SettingsLayout";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { toProxyUrl } from "@/lib/imageUpload";
+import { fadeUp } from "@/lib/motion-presets";
 
 const KIND_COLOR: Record<string, string> = {
   tour: "#2563EB",
@@ -55,7 +57,12 @@ export default function FavoritosPage() {
         )}
 
         {favorites !== undefined && favorites.length === 0 && (
-          <div className="flex flex-col items-center gap-3 py-12 text-center">
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+            className="flex flex-col items-center gap-3 py-12 text-center"
+          >
             <Icon name="heart" size={36} className="text-[var(--color-neutral-400)]" />
             <p className="font-display font-medium text-[14px] text-[var(--color-neutral-800)]">
               Nenhum favorito ainda
@@ -63,9 +70,10 @@ export default function FavoritosPage() {
             <p className="text-[12px] text-[var(--color-neutral-600)] max-w-[260px]">
               Toque no ♥ dos cards da home para salvar aqui.
             </p>
-          </div>
+          </motion.div>
         )}
 
+        <AnimatePresence initial={false}>
         {favorites?.map(({ fav, item }) => {
           const color = KIND_COLOR[fav.kind] ?? "#323439";
           const label = KIND_LABEL[fav.kind] ?? fav.kind;
@@ -131,16 +139,25 @@ export default function FavoritosPage() {
           );
 
           return (
-            <Link
+            <motion.div
               key={fav._id}
-              href={href}
-              target={isExternal ? "_blank" : undefined}
-              rel={isExternal ? "noopener noreferrer" : undefined}
+              layout
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, x: 48, height: 0, marginTop: 0 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
             >
-              {Card}
-            </Link>
+              <Link
+                href={href}
+                target={isExternal ? "_blank" : undefined}
+                rel={isExternal ? "noopener noreferrer" : undefined}
+              >
+                {Card}
+              </Link>
+            </motion.div>
           );
         })}
+        </AnimatePresence>
       </div>
     </SettingsLayout>
   );
