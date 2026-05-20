@@ -135,7 +135,7 @@ export function PwaInstallSheet() {
             </button>
 
             {/* ── Header art ── */}
-            <div className="bg-[var(--color-neutral-100)] flex items-center justify-center relative shrink-0 w-full overflow-hidden">
+            <div className="bg-[var(--color-neutral-100)] pt-4 flex items-center justify-center relative shrink-0 w-full overflow-hidden">
               <div
                 className="relative w-full max-w-[440px]"
                 style={{ aspectRatio: "440 / 418" }}
@@ -153,7 +153,7 @@ export function PwaInstallSheet() {
 
             {/* ── Body (scrollable) ── */}
             <div className="flex-1 min-h-0 overflow-y-auto">
-              <div className="px-8 pt-8 pb-6 flex flex-col gap-5 mx-auto w-full max-w-screen-sm">
+              <div className="px-8 pt-8 pb-6 flex flex-col gap-3 mx-auto w-full max-w-screen-sm">
                 <h1 className="font-display font-medium text-[28px] sm:text-[34px] leading-[1.2] text-[var(--color-neutral-800)]">
                   Baixe o NordesteAÍ no seu celular
                 </h1>
@@ -272,11 +272,10 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-full px-4 py-1.5 text-[12px] font-medium transition-colors ${
-        active
-          ? "bg-[var(--color-neutral-800)] text-white"
-          : "text-[var(--color-neutral-700)] hover:text-[var(--color-neutral-800)]"
-      }`}
+      className={`rounded-full px-4 py-1.5 text-[12px] font-medium transition-colors ${active
+        ? "bg-[var(--color-neutral-800)] text-white"
+        : "text-[var(--color-neutral-700)] hover:text-[var(--color-neutral-800)]"
+        }`}
     >
       {children}
     </button>
@@ -288,12 +287,17 @@ type Step = { title: string; body: string; icon?: string };
 const IOS_STEPS: Step[] = [
   {
     title: "Abra no Safari",
-    body: "Se você está em outro app (Instagram, Gmail), toque em \"Abrir no Safari\".",
+    body: "Se você está em outro app (Instagram, Gmail), toque em “Abrir no Safari”.",
     icon: "compass",
   },
   {
-    title: "Toque no botão Compartilhar",
-    body: "É o ícone de quadrado com a seta pra cima, na barra de baixo do Safari.",
+    title: "Toque nos três pontinhos",
+    body: "No Safari mais novo, o menu “⋯” fica na barra de baixo, ao lado da URL.",
+    icon: "more-horizontal",
+  },
+  {
+    title: "Escolha “Compartilhar”",
+    body: "Dentro do menu, toque no ícone de quadrado com a seta pra cima.",
     icon: "share",
   },
   {
