@@ -23,7 +23,11 @@ export function StoriesRing({
   inline?: boolean;
 }) {
   const auth = useAuth();
-  const stories = useQuery(api.stories.listActive, {});
+  // Stories só pra usuários logados.
+  const stories = useQuery(
+    api.stories.listActive,
+    auth.isAuthenticated ? {} : "skip",
+  );
   const viewed = useQuery(
     api.stories.myViewedStoryIds,
     auth.isAuthenticated ? {} : "skip",

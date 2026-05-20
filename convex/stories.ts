@@ -34,6 +34,9 @@ function normalizeReactions(
 export const listActive = query({
   args: {},
   handler: async (ctx) => {
+    // Stories are gated to authenticated users only.
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return [];
     const now = Date.now();
     const rows = await ctx.db
       .query("stories")
