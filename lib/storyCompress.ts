@@ -25,13 +25,17 @@ export async function compressStoryFile(
   targetBytes: number = TARGET_BYTES,
 ): Promise<File> {
   onProgress({ phase: "analyzing" });
-  if (file.size <= targetBytes) return file;
 
-  if (file.type.startsWith("image/")) {
-    return compressImage(file, targetBytes, onProgress);
-  }
   if (file.type.startsWith("video/")) {
+    // Always transcode video — even small clips — so every story lands
+    // in R2 as H.264 / yuv420p with consistent bitrate, dimensions and a
+    // moov-front faststart flag.
     return compressVideo(file, targetBytes, onProgress);
+  }
+  if (file.type.startsWith("image/")) {
+    // Images already under the cap pass through unchanged.
+    if (file.size <= targetBytes) return file;
+    return compressImage(file, targetBytes, onProgress);
   }
   throw new Error("Tipo de arquivo não suportado");
 }
