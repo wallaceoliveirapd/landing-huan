@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { use } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
@@ -141,6 +141,7 @@ type ActivityCardProps = {
   osmLng?: number;
   osmAddress?: string;
   osmWebsite?: string;
+  addedByPerson?: { name: string | null; image: string | null };
   dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
 };
 
@@ -161,6 +162,7 @@ function ActivityCard({
   osmLng,
   osmAddress,
   osmWebsite,
+  addedByPerson,
   dragHandleProps,
 }: ActivityCardProps) {
   const router = useRouter();
@@ -217,6 +219,14 @@ function ActivityCard({
         className="absolute left-0 top-0 bottom-0 w-1 rounded-l-[px]"
         style={{ backgroundColor: color }}
       />
+      {addedByPerson && (
+        <div
+          className="absolute top-1.5 right-1.5 z-10"
+          title={`Adicionado por ${addedByPerson.name ?? "colaborador"}`}
+        >
+          <AddedByAvatar name={addedByPerson.name} image={addedByPerson.image} />
+        </div>
+      )}
       <div
         role={linkHref ? "button" : undefined}
         tabIndex={linkHref ? 0 : undefined}
@@ -393,6 +403,7 @@ function SortableActivityCard({
   index,
   activity,
   dbItem,
+  addedByPerson,
 }: {
   id: number;
   tripId: Id<"trips">;
@@ -400,6 +411,7 @@ function SortableActivityCard({
   index: number;
   activity: Activity;
   dbItem?: Record<string, unknown>;
+  addedByPerson?: { name: string | null; image: string | null };
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
   return (
@@ -435,6 +447,7 @@ function SortableActivityCard({
         osmLng={activity.osmLng}
         osmAddress={activity.osmAddress}
         osmWebsite={activity.osmWebsite}
+        addedByPerson={addedByPerson}
         dragHandleProps={{ ...attributes, ...listeners } as React.HTMLAttributes<HTMLDivElement>}
       />
     </div>
@@ -446,12 +459,14 @@ function DayActivities({
   dayNum,
   initialActivities,
   resolvedItems,
+  peopleById,
   onAddSheet,
 }: {
   tripId: Id<"trips">;
   dayNum: number;
   initialActivities: Activity[];
   resolvedItems: Record<string, Record<string, unknown>> | undefined;
+  peopleById: Record<string, { name: string | null; image: string | null }>;
   onAddSheet: () => void;
 }) {
   const reorderActivities = useMutation(api.trips.reorderActivities);
@@ -523,6 +538,7 @@ function DayActivities({
                   ? resolvedItems?.[a.itemId]
                   : undefined
               }
+              addedByPerson={a.addedBy ? peopleById[a.addedBy] : undefined}
             />
           ))}
         </SortableContext>
@@ -552,6 +568,19 @@ export default function TripDetailPage({
 
   const trip = useQuery(api.trips.getById, { id: tripId });
   const resolvedItems = useQuery(api.trips.resolveItineraryItems, { tripId });
+  const people = useQuery(api.tripCollab.peopleForTrip, { tripId });
+  // userId → { name, image } map used to render the avatar of whoever added
+  // each activity on the itinerary cards.
+  const peopleById = useMemo(() => {
+    const m: Record<string, { name: string | null; image: string | null }> = {};
+    if (people) {
+      m[people.owner.userId] = { name: people.owner.name, image: people.owner.image };
+      for (const c of people.collaborators) {
+        m[c.userId] = { name: c.name, image: c.image };
+      }
+    }
+    return m;
+  }, [people]);
   const generateItinerary = useAction(api.itineraryGen.generate);
   const removeTrip = useMutation(api.trips.remove);
 
@@ -813,6 +842,7 @@ export default function TripDetailPage({
                       dayNum={day.day}
                       initialActivities={day.activities}
                       resolvedItems={resolvedItems as Record<string, Record<string, unknown>> | undefined}
+                      peopleById={peopleById}
                       onAddSheet={() => setAddSheetDay(day.day)}
                     />
                   </div>
@@ -943,6 +973,39 @@ function TripDetailSkeleton() {
           <div key={i} className="h-7 w-20 rounded-full bg-[var(--color-neutral-100)]" />
         ))}
       </div>
+    </div>
+  );
+}
+
+/**
+ * Small overlay avatar shown on each itinerary card so a glance tells you
+ * which collaborator (or the trip owner) added that activity. Falls back
+ * to the person's initials when they have no profile image.
+ */
+function AddedByAvatar({
+  name,
+  image,
+}: {
+  name: string | null;
+  image: string | null;
+}) {
+  const initials = (name ?? "")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0])
+    .join("")
+    .toUpperCase() || "?";
+  if (image) {
+    return (
+      <div className="relative size-6 rounded-full overflow-hidden ring-2 ring-white shadow-sm bg-[var(--color-neutral-100)]">
+        <Image src={image} alt={name ?? ""} fill sizes="24px" className="object-cover" />
+      </div>
+    );
+  }
+  return (
+    <div className="grid size-6 place-items-center rounded-full bg-[var(--color-brand-purple)] text-white font-display font-semibold text-[10px] ring-2 ring-white shadow-sm">
+      {initials}
     </div>
   );
 }

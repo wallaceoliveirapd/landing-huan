@@ -313,13 +313,10 @@ export const setChecklist = mutation({
     items: v.array(checklistItemValidator),
   },
   handler: async (ctx, { id, items }) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Unauthorized");
-    const trip = await ctx.db.get(id);
-    if (!trip || trip.userId !== userId) throw new Error("Not found");
+    const { trip } = await loadEditable(ctx, id);
     // Hard cap to prevent abuse.
     if (items.length > 200) throw new Error("Too many items");
-    await ctx.db.patch(id, { checklist: items });
+    await ctx.db.patch(trip._id, { checklist: items });
   },
 });
 
