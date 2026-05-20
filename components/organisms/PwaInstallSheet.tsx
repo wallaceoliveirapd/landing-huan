@@ -6,6 +6,7 @@ import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { Icon } from "@/components/atoms/Icon";
 import { bottomSheetSpring } from "@/lib/motion-presets";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 const IMPRESSIONS_KEY = "pwa-prompt-impressions";
 const INSTALLED_KEY = "pwa-installed";
@@ -85,6 +86,7 @@ function shouldShowPrompt(): boolean {
 export function PwaInstallSheet() {
   const [open, setOpen] = useState(false);
   const [platform, setPlatform] = useState<Platform>("other");
+  useBodyScrollLock(open);
 
   useEffect(() => {
     if (!shouldShowPrompt()) return;
@@ -134,25 +136,25 @@ export function PwaInstallSheet() {
               <Icon name="x" size={20} />
             </button>
 
-            {/* ── Header art ── */}
-            <div className="bg-[var(--color-neutral-100)] pt-4 flex items-center justify-center relative shrink-0 w-full overflow-hidden">
-              <div
-                className="relative w-full max-w-[440px]"
-                style={{ aspectRatio: "440 / 418" }}
-              >
-                <Image
-                  src="/images/pwa/pwa-mockup.png"
-                  alt="App NordesteAÍ no celular"
-                  fill
-                  sizes="(min-width: 440px) 440px, 100vw"
-                  className="object-cover"
-                  priority
-                />
-              </div>
-            </div>
-
-            {/* ── Body (scrollable) ── */}
+            {/* ── Scrollable content (header art + body) ── */}
             <div className="flex-1 min-h-0 overflow-y-auto">
+              {/* Header art scrolls with the rest of the sheet */}
+              <div className="bg-[var(--color-neutral-100)] pt-8 flex items-center justify-center relative w-full overflow-hidden">
+                <div
+                  className="relative w-full max-w-[440px]"
+                  style={{ aspectRatio: "440 / 418" }}
+                >
+                  <Image
+                    src="/images/pwa/pwa-mockup.png"
+                    alt="App NordesteAÍ no celular"
+                    fill
+                    sizes="(min-width: 440px) 440px, 100vw"
+                    className="object-cover"
+                    priority
+                  />
+                </div>
+              </div>
+
               <div className="px-8 pt-8 pb-6 flex flex-col gap-3 mx-auto w-full max-w-screen-sm">
                 <h1 className="font-display font-medium text-[28px] sm:text-[34px] leading-[1.2] text-[var(--color-neutral-800)]">
                   Baixe o NordesteAÍ no seu celular
@@ -206,7 +208,7 @@ function TutorialSection({ platform }: { platform: Platform }) {
   return (
     <div className="flex flex-col gap-4">
       {showToggle && (
-        <div className="self-start inline-flex rounded-full border border-[var(--color-neutral-300)] p-1 bg-white">
+        <div className="self-start inline-flex rounded-full bg-[var(--color-neutral-100)] p-1">
           <TabButton active={tab === "ios"} onClick={() => setTab("ios")}>
             iOS
           </TabButton>
@@ -234,11 +236,11 @@ function TutorialSection({ platform }: { platform: Platform }) {
                 {i + 1}
               </span>
               <div className="flex-1 flex flex-col gap-1 pt-0.5">
-                <p className="text-[13px] leading-[1.45] text-[var(--color-neutral-800)] font-display font-medium flex items-center gap-1.5 flex-wrap">
+                <p className="text-[14px] leading-[1.45] text-[var(--color-neutral-800)] font-display font-medium flex justify-between items-center gap-1.5 flex-wrap">
                   {step.title}
                   {step.icon && (
-                    <span className="inline-grid size-6 place-items-center rounded-md bg-white border border-[var(--color-neutral-200)] text-[var(--color-neutral-800)]">
-                      <Icon name={step.icon} size={13} />
+                    <span className="inline-grid size-6 place-items-center rounded-full bg-white rounded-full text-[var(--color-neutral-800)]">
+                      <Icon name={step.icon} size={14} />
                     </span>
                   )}
                 </p>
@@ -273,7 +275,7 @@ function TabButton({
       type="button"
       onClick={onClick}
       className={`rounded-full px-4 py-1.5 text-[12px] font-medium transition-colors ${active
-        ? "bg-[var(--color-neutral-800)] text-white"
+        ? "bg-white text-[var(--color-neutral-800)] border border-[var(--color-neutral-300)]"
         : "text-[var(--color-neutral-700)] hover:text-[var(--color-neutral-800)]"
         }`}
     >

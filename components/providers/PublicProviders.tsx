@@ -13,6 +13,7 @@ import { PullToRefresh } from "@/components/organisms/PullToRefresh";
 import { WelcomeTour } from "@/components/organisms/WelcomeTour";
 import { PendingInviteAlert } from "@/components/organisms/PendingInviteAlert";
 import { PwaInstallSheet } from "@/components/organisms/PwaInstallSheet";
+import { ScrollRestorer } from "@/components/atoms/ScrollRestorer";
 import { ServiceWorkerRegister } from "./ServiceWorkerRegister";
 
 /**
@@ -37,6 +38,7 @@ export function PublicProviders({ children }: { children: ReactNode }) {
           <WelcomeTour />
           <PendingInviteAlert />
           <PwaInstallSheet />
+          <ScrollRestorer />
           <ServiceWorkerRegister />
         </ChatProvider>
       </CategoriesSheetProvider>

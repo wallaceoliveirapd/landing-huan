@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { Icon } from "@/components/atoms/Icon";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import { Confetti } from "@/components/atoms/Confetti";
 
 const DISMISSED_KEY = "nordesteai-invite-dismissed";
@@ -78,6 +79,8 @@ export function PendingInviteAlert() {
     (i) => !dismissedTokens.includes(i.token),
   );
   const current = filtered[index];
+
+  useBodyScrollLock(!!current || !!accepted);
 
   if (!auth.isAuthenticated || !current) return null;
   if (typeof document === "undefined") return null;

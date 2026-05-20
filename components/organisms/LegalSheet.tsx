@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Icon } from "@/components/atoms/Icon";
 import { SimpleMarkdown } from "@/components/molecules/SimpleMarkdown";
 import { bottomSheetSpring } from "@/lib/motion-presets";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 type Props = {
   open: boolean;
@@ -21,6 +22,7 @@ type Props = {
  * Drag-down to dismiss is enabled.
  */
 export function LegalSheet({ open, onClose, title, source }: Props) {
+  useBodyScrollLock(open);
   return (
     <AnimatePresence>
       {open && (

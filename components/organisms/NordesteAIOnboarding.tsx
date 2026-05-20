@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { Icon } from "@/components/atoms/Icon";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 const FEATURES = [
   {
@@ -40,6 +41,7 @@ export function NordesteAIOnboarding({
   onClose: () => void;
   onLogin: () => void;
 }) {
+  useBodyScrollLock(open);
   return (
     <AnimatePresence>
       {open && (

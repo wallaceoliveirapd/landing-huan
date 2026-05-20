@@ -5,6 +5,7 @@ import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { Icon } from "@/components/atoms/Icon";
 import { toProxyUrl } from "@/lib/imageUpload";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 const SWIPE_DISMISS = 80;
 
@@ -21,6 +22,7 @@ export function PhotoLightbox({
   onClose: () => void;
   alt?: string;
 }) {
+  useBodyScrollLock(index !== null);
   const startX = useRef<number | null>(null);
   const [drag, setDrag] = useState(0);
 

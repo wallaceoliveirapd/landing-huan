@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import Cropper, { type Area } from "react-easy-crop";
 import { AnimatePresence, motion } from "motion/react";
 import { Icon } from "@/components/atoms/Icon";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 interface Props {
   open: boolean;
@@ -55,6 +56,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
  * blob.
  */
 export function AvatarCropModal({ open, src, onClose, onConfirm }: Props) {
+  useBodyScrollLock(open);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [area, setArea] = useState<Area | null>(null);

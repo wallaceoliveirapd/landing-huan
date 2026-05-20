@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { Icon } from "@/components/atoms/Icon";
 import { bottomSheetSpring } from "@/lib/motion-presets";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import { cn } from "@/lib/cn";
 import { FilterAutocomplete } from "./FilterAutocomplete";
 import { STATE_LABEL, type CityOption } from "@/lib/locationFilter";
@@ -57,6 +58,7 @@ export function ListingFiltersModal({
   sections: FilterSection[];
   onClearAll: () => void;
 }) {
+  useBodyScrollLock(open);
   const [draft, setDraft] = useState<Record<string, DraftValue>>({});
   const [stateQuery, setStateQuery] = useState("");
   const [cityQuery, setCityQuery] = useState("");

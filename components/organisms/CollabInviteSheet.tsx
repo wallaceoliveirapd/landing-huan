@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { Icon } from "@/components/atoms/Icon";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 type Role = "edit" | "view";
 
@@ -51,6 +52,7 @@ export function CollabInviteSheet({
   tripId: Id<"trips">;
   onClose: () => void;
 }) {
+  useBodyScrollLock(open);
   const people = useQuery(api.tripCollab.peopleForTrip, { tripId });
 
   const hasPeople =

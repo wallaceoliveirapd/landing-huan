@@ -9,6 +9,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { Icon } from "@/components/atoms/Icon";
 import { bottomSheetSpring } from "@/lib/motion-presets";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 /**
  * Generates / revokes a public share token for the trip and exposes a copy
@@ -24,6 +25,7 @@ export function ShareTripSheet({
   tripId: Id<"trips">;
   onClose: () => void;
 }) {
+  useBodyScrollLock(open);
   const trip = useQuery(api.trips.getById, { id: tripId });
   const enable = useMutation(api.trips.enableSharing);
   const disable = useMutation(api.trips.disableSharing);

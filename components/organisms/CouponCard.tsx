@@ -16,6 +16,7 @@ import { trackCouponCopy, trackCouponUse } from "@/lib/analytics";
 import { RichContent } from "@/components/atoms/RichContent";
 import { affiliateUrl } from "@/lib/affiliateUrl";
 import { formatBRL } from "@/lib/format";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 export interface CouponData {
   _id: string;
@@ -80,6 +81,7 @@ function TicketSeparator() {
 }
 
 function CouponSheet({ coupon, onClose }: { coupon: CouponData; onClose: () => void }) {
+  useBodyScrollLock(true);
   const [copied, setCopied] = useState(false);
   const imgSrc = toProxyUrl(coupon.image) ||
     "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=630&q=80";

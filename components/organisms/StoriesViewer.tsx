@@ -8,6 +8,7 @@ import { api } from "@/convex/_generated/api";
 import { Icon } from "@/components/atoms/Icon";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { toProxyUrl } from "@/lib/imageUpload";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 type Story = {
   _id: string;
@@ -59,6 +60,7 @@ export function StoriesViewer({
   const recordView = useMutation(api.stories.recordView);
   const reactMut = useMutation(api.stories.reactToStory);
   const recordLinkClick = useMutation(api.stories.recordLinkClick);
+  useBodyScrollLock(true);
 
   const [index, setIndex] = useState(startIndex);
   const [progress, setProgress] = useState(0); // 0..1 for current story

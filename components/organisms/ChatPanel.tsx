@@ -19,6 +19,7 @@ import {
   type RawCardItem,
 } from "@/lib/chat-mocks";
 import { SuggestedPromptsRow } from "@/components/molecules/SuggestedPromptsRow";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import { ChatLimitChip } from "@/components/molecules/ChatLimitChip";
 import { trackChatMessage, trackSuggestedPrompt } from "@/lib/analytics";
 import { gtmChatMessageSent, gtmChatResponseReceived } from "@/lib/gtm";
@@ -46,6 +47,7 @@ function loadMessages(): ChatMessage[] {
 export function ChatPanel() {
   const chat = useChat();
   const auth = useAuth();
+  useBodyScrollLock(chat.isOpen);
   const usage = useQuery(
     api.chatUsage.myStatus,
     auth.isAuthenticated ? {} : "skip",

@@ -11,6 +11,7 @@ import { LegalSheet } from "@/components/organisms/LegalSheet";
 import { TERMS_MD } from "@/content/terms";
 import { PRIVACY_MD } from "@/content/privacy";
 import { gtmUserLoggedIn, gtmUserSignedUp } from "@/lib/gtm";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 /** Mask Brazilian WhatsApp number as the user types: (DD) 9XXXX-XXXX */
 function maskWhatsapp(raw: string): string {
@@ -48,6 +49,7 @@ export function AuthModal() {
   const { authModalOpen, closeAuthModal, authModalOptions } = useAuth();
   const { signIn } = useAuthActions();
   const router = useRouter();
+  useBodyScrollLock(authModalOpen);
 
   const [step, setStep] = useState<Step>("form");
   const [tab, setTab] = useState<"signIn" | "signUp">("signIn");

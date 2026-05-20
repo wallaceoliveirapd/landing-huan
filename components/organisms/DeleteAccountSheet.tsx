@@ -8,6 +8,7 @@ import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { Icon } from "@/components/atoms/Icon";
 import { bottomSheetSpring } from "@/lib/motion-presets";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 type Reason = "nao-uso" | "privacidade" | "bugs" | "duplicidade" | "outro";
 
@@ -22,6 +23,7 @@ const REASONS: { value: Reason; label: string; desc: string }[] = [
 type Props = { open: boolean; onClose: () => void };
 
 export function DeleteAccountSheet({ open, onClose }: Props) {
+  useBodyScrollLock(open);
   const router = useRouter();
   const auth = useAuth();
   const requestDeletion = useMutation(api.users.requestDeletion);

@@ -6,9 +6,11 @@ import { useCategoriesSheet } from "@/components/providers/CategoriesSheetProvid
 import { Icon } from "@/components/atoms/Icon";
 import { CATEGORIES } from "@/lib/categories";
 import { bottomSheetSpring } from "@/lib/motion-presets";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 export function CategoriesBottomSheet() {
   const sheet = useCategoriesSheet();
+  useBodyScrollLock(sheet.isOpen);
 
   return (
     <AnimatePresence>

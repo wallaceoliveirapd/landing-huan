@@ -9,6 +9,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { Icon } from "@/components/atoms/Icon";
 import { toProxyUrl } from "@/lib/imageUpload";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 type Tab = "tour" | "restaurant" | "praia" | "nightlife" | "dica" | "custom";
 
@@ -40,6 +41,7 @@ interface Props {
 }
 
 export function AddActivitySheet({ open, tripId, day, city, onClose }: Props) {
+  useBodyScrollLock(open);
   const [tab, setTab] = useState<Tab>("tour");
   const [search, setSearch] = useState("");
   const [time, setTime] = useState("");

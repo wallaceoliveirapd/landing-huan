@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { Icon } from "@/components/atoms/Icon";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 const DURATION_OPTIONS = [
   { value: 1, label: "1 dia" },
@@ -65,6 +66,7 @@ export function EditTripSheet({
   initialStartDate,
   onClose,
 }: Props) {
+  useBodyScrollLock(open);
   const [title, setTitle] = useState(initialTitle);
   const [type, setType] = useState(initialType);
   const [duration, setDuration] = useState(initialDuration);
