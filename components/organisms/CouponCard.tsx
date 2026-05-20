@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
+import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import { toProxyUrl } from "@/lib/imageUpload";
 import { Icon } from "@/components/atoms/Icon";
 import { bottomSheetSpring } from "@/lib/motion-presets";
@@ -11,6 +15,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { trackCouponCopy, trackCouponUse } from "@/lib/analytics";
 import { RichContent } from "@/components/atoms/RichContent";
 import { affiliateUrl } from "@/lib/affiliateUrl";
+import { formatBRL } from "@/lib/format";
 
 export interface CouponData {
   _id: string;
@@ -168,6 +173,8 @@ function CouponSheet({ coupon, onClose }: { coupon: CouponData; onClose: () => v
               </div>
             )}
 
+            <LinkedItemsCarousel couponId={coupon._id} />
+
             {coupon.partnerUrl && (
               <a
                 href={affiliateUrl(coupon._id, "coupon", coupon.title, ensureAbsoluteUrl(coupon.partnerUrl))}
@@ -294,5 +301,118 @@ export function CouponCard({ coupon, onSelect }: { coupon: CouponData; onSelect?
         document.body
       )}
     </>
+  );
+}
+
+/* ── Linked items carousel (shown inside the coupon bottom sheet) ──────── */
+
+const KIND_HREF: Record<string, (slug: string) => string> = {
+  tour: (s) => `/passeios/${s}`,
+  restaurant: (s) => `/restaurantes/${s}`,
+  hosting: (s) => `/hospedagem/${s}`,
+  nightlife: (s) => `/vida-noturna/${s}`,
+  praia: (s) => `/praias/${s}`,
+};
+
+const KIND_LABEL: Record<string, string> = {
+  tour: "Passeio",
+  restaurant: "Restaurante",
+  hosting: "Hospedagem",
+  nightlife: "Vida noturna",
+  praia: "Praia",
+};
+
+type LinkedItem = {
+  kind: "tour" | "restaurant" | "hosting" | "nightlife" | "praia";
+  _id: string;
+  slug: string;
+  name: string;
+  image: string;
+  price?: number;
+  originalPrice?: number;
+  rating?: number;
+  reviewCount?: number;
+  shortDesc?: string;
+};
+
+function LinkedItemsCarousel({ couponId }: { couponId: string }) {
+  const items = useQuery(api.coupons.linkedItemsFor, {
+    id: couponId as Id<"coupons">,
+  }) as LinkedItem[] | undefined;
+  if (!items || items.length === 0) return null;
+  return (
+    <div className="flex flex-col gap-2 -mx-6">
+      <p className="text-[12px] font-medium uppercase tracking-wide text-[var(--color-neutral-600)] px-6">
+        Usar nesses itens
+      </p>
+      <div className="flex gap-3 overflow-x-auto no-scrollbar px-6 pb-1">
+        {items.map((it) => (
+          <LinkedItemCard key={`${it.kind}-${it._id}`} item={it} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function LinkedItemCard({ item }: { item: LinkedItem }) {
+  const href = KIND_HREF[item.kind]?.(item.slug) ?? "#";
+  const hasDiscount =
+    item.price !== undefined &&
+    item.originalPrice !== undefined &&
+    item.originalPrice > item.price;
+  return (
+    <Link
+      href={href}
+      className="relative flex-none overflow-hidden rounded-[24px] bg-[var(--color-neutral-200)] w-[min(75vw,260px)] aspect-[260/190]"
+    >
+      {item.image ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={toProxyUrl(item.image)}
+          alt={item.name}
+          className="absolute inset-0 size-full object-cover"
+        />
+      ) : (
+        <div className="absolute inset-0 grid place-items-center text-[var(--color-neutral-500)]">
+          <Icon name="image" size={24} />
+        </div>
+      )}
+      <div className="absolute inset-0 p-1.5 flex flex-col justify-between">
+        <div className="flex items-start justify-between">
+          <span className="rounded-full bg-white/90 backdrop-blur-sm px-2 py-0.5 text-[10px] font-medium text-[var(--color-neutral-800)]">
+            {KIND_LABEL[item.kind] ?? ""}
+          </span>
+        </div>
+        <div className="bg-white rounded-[19px] px-3 py-2 flex flex-col gap-1">
+          <p className="font-display font-medium text-[13px] leading-[1.25] text-[var(--color-neutral-800)] line-clamp-1">
+            {item.name}
+          </p>
+          <div className="flex items-center justify-between gap-2">
+            {item.price !== undefined ? (
+              <div className="flex items-center gap-1.5 min-w-0">
+                {hasDiscount && item.originalPrice !== undefined && (
+                  <span className="text-[10px] line-through text-[var(--color-neutral-500)]">
+                    {formatBRL(item.originalPrice)}
+                  </span>
+                )}
+                <span className="text-[12px] font-semibold text-[var(--color-neutral-800)] truncate">
+                  {formatBRL(item.price)}
+                </span>
+              </div>
+            ) : (
+              <span className="text-[11px] text-[var(--color-neutral-600)] truncate">
+                {item.shortDesc ?? ""}
+              </span>
+            )}
+            {item.rating !== undefined && (
+              <span className="flex items-center gap-0.5 text-[11px] font-medium text-[var(--color-neutral-700)]">
+                <Icon name="star" size={11} className="text-[var(--color-yellow-500)]" />
+                {item.rating.toFixed(1).replace(".", ",")}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </Link>
   );
 }

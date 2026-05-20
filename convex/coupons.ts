@@ -125,6 +125,84 @@ export async function mergedCouponIdsFor(
   return [...set];
 }
 
+/**
+ * Returns the merged list of items that a given coupon applies to, across
+ * tours / restaurants / hosting / nightlife / praias. Combines the
+ * coupon-side appliesXxx fields with the item-side `coupons` arrays so
+ * both directions show up. Each entry carries the kind + minimal display
+ * fields the bottom-sheet carousel needs.
+ */
+export const linkedItemsFor = query({
+  args: { id: v.id("coupons") },
+  handler: async (ctx, { id }) => {
+    const coupon = await ctx.db.get(id);
+    if (!coupon) return [];
+
+    type Out = {
+      kind: "tour" | "restaurant" | "hosting" | "nightlife" | "praia";
+      _id: string;
+      slug: string;
+      name: string;
+      image: string;
+      price?: number;
+      originalPrice?: number;
+      rating?: number;
+      reviewCount?: number;
+      shortDesc?: string;
+    };
+    const out: Out[] = [];
+
+    async function pushKind(
+      table: "tours" | "restaurants" | "hosting" | "nightlife" | "praias",
+      kind: Out["kind"],
+      appliesField:
+        | "appliesTours"
+        | "appliesRestaurants"
+        | "appliesHosting"
+        | "appliesNightlife"
+        | "appliesPraias",
+    ) {
+      const ids = new Set<string>(
+        (((coupon as Record<string, unknown>)[appliesField] as string[]) ?? []),
+      );
+      // Item-side reverse: items whose coupons[] contains this coupon id.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rows = await (ctx.db.query(table as any) as any).collect();
+      for (const r of rows) {
+        const list = (r.coupons ?? []) as string[];
+        if (list.includes(id)) ids.add(r._id);
+      }
+      for (const itemId of ids) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const it = await ctx.db.get(itemId as any);
+        if (!it) continue;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const r = it as any;
+        out.push({
+          kind,
+          _id: r._id,
+          slug: r.slug,
+          name: r.title ?? r.name ?? "",
+          image: r.image ?? "",
+          price: r.price,
+          originalPrice: r.originalPrice,
+          rating: r.rating,
+          reviewCount: r.reviewCount,
+          shortDesc: r.shortDesc,
+        });
+      }
+    }
+
+    await pushKind("tours", "tour", "appliesTours");
+    await pushKind("restaurants", "restaurant", "appliesRestaurants");
+    await pushKind("hosting", "hosting", "appliesHosting");
+    await pushKind("nightlife", "nightlife", "appliesNightlife");
+    await pushKind("praias", "praia", "appliesPraias");
+
+    return out;
+  },
+});
+
 export const remove = mutation({
   args: { id: v.id("coupons") },
   handler: async (ctx, { id }) => {
