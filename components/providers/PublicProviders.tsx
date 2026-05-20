@@ -18,7 +18,7 @@ import { ServiceWorkerRegister } from "./ServiceWorkerRegister";
  * Providers + global UI for public pages (home + internal).
  * NOT used in admin to keep the panel clean.
  *
- * ChatFab was removed, the NordestAI chat is now opened from the
+ * ChatFab was removed, the NordesteAÍ chat is now opened from the
  * BottomNav (item with sparkle icon + periodic tooltip).
  */
 export function PublicProviders({ children }: { children: ReactNode }) {

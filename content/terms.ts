@@ -2,7 +2,7 @@ export const TERMS_MD = `## Termos de uso
 
 **Última atualização:** 16 de maio de 2026
 
-Estes Termos de Uso regulam o acesso e o uso da plataforma NordestAI / HUAN, operada por **HUAN GOMES DA SILVA SOUZA FALCAO - ME**, CNPJ 55.181.469/0001-66, João Pessoa, PB, disponível em huanfalcao.com.br ("plataforma", "serviço", "nós"). Leia atentamente antes de criar sua conta.
+Estes Termos de Uso regulam o acesso e o uso da plataforma NordesteAÍ / HUAN, operada por **HUAN GOMES DA SILVA SOUZA FALCAO - ME**, CNPJ 55.181.469/0001-66, João Pessoa, PB, disponível em huanfalcao.com.br ("plataforma", "serviço", "nós"). Leia atentamente antes de criar sua conta.
 
 ---
 
@@ -11,7 +11,7 @@ Estes Termos de Uso regulam o acesso e o uso da plataforma NordestAI / HUAN, ope
 **Razão social:** HUAN GOMES DA SILVA SOUZA FALCAO - ME
 **CNPJ:** 55.181.469/0001-66
 **Município:** João Pessoa, PB
-**Serviço:** NordestAI / HUAN, huanfalcao.com.br
+**Serviço:** NordesteAÍ / HUAN, huanfalcao.com.br
 **Contato:** suporte@huanfalcao.com.br
 
 ---
@@ -88,7 +88,7 @@ O serviço é destinado **exclusivamente a maiores de 18 anos**. Ao criar uma co
 Ao publicar avaliações ou reações:
 
 - Você garante que o conteúdo é verdadeiro, de sua autoria e não viola direitos de terceiros
-- Você concede ao NordestAI/HUAN licença gratuita e não exclusiva para exibir o conteúdo na plataforma
+- Você concede ao NordesteAÍ/HUAN licença gratuita e não exclusiva para exibir o conteúdo na plataforma
 - Reservamo-nos o direito de remover conteúdo que viole estes termos ou a legislação aplicável
 
 ---
@@ -104,14 +104,14 @@ Ao publicar avaliações ou reações:
 ### 10. Cupons e parceiros
 
 - Cupons têm condições, validade e restrições definidas pelos parceiros
-- O NordestAI/HUAN não é parte da relação entre você e o parceiro; não garantimos a qualidade ou execução dos serviços deles
+- O NordesteAÍ/HUAN não é parte da relação entre você e o parceiro; não garantimos a qualidade ou execução dos serviços deles
 - Links de parceiros podem ser links de afiliado, pelos quais podemos receber comissão sem custo para você
 
 ---
 
 ### 11. Propriedade intelectual
 
-- Todo o conteúdo editorial da plataforma (textos, imagens, layout, código) é propriedade do NordestAI/HUAN ou de seus licenciantes, protegido pela Lei 9.610/1998
+- Todo o conteúdo editorial da plataforma (textos, imagens, layout, código) é propriedade do NordesteAÍ/HUAN ou de seus licenciantes, protegido pela Lei 9.610/1998
 - Dados do OpenStreetMap estão sujeitos à licença ODbL
 - Você não está autorizado a copiar, reproduzir ou distribuir conteúdo da plataforma sem autorização prévia por escrito
 
@@ -163,5 +163,5 @@ Estes termos são regidos pela legislação brasileira, em especial pelo Código
 
 - Se qualquer cláusula for considerada inválida, as demais permanecem em plena vigência
 - A tolerância com eventuais descumprimentos não implica renúncia aos direitos aqui previstos
-- Estes termos constituem o acordo integral entre você e o NordestAI/HUAN sobre o uso da plataforma
+- Estes termos constituem o acordo integral entre você e o NordesteAÍ/HUAN sobre o uso da plataforma
 `;

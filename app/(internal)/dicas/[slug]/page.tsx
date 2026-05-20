@@ -131,7 +131,7 @@ export default async function DicaPage({ params }: PageProps) {
 
           {dica.source === "cowork" && (
             <p className="text-[12px] text-[var(--color-neutral-600)] border-t border-[var(--color-neutral-300)] pt-4 mt-2">
-              Conteúdo gerado pelo NordestAI
+              Conteúdo gerado pelo NordesteAÍ
             </p>
           )}
 

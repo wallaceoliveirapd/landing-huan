@@ -12,7 +12,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { Icon } from "@/components/atoms/Icon";
 import { Confetti } from "@/components/atoms/Confetti";
 
-const DISMISSED_KEY = "nordestai-invite-dismissed";
+const DISMISSED_KEY = "nordesteai-invite-dismissed";
 
 function firstName(full: string | null | undefined): string {
   if (!full) return "";

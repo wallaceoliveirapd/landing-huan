@@ -457,7 +457,7 @@ function FieldInput({
         />
         <textarea
           className={clsx(base, "min-h-[72px] resize-y")}
-          placeholder="Descrição curta (ex: Use o cupom NORDESTAI no checkout)"
+          placeholder="Descrição curta (ex: Use o cupom NORDESTEAI no checkout)"
           value={v.description ?? ""}
           onChange={(e) =>
             onChange({ title: v.title ?? "", description: e.target.value, active })

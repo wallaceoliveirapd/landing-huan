@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   openGraph: {
     url: "https://huanfalcao.com.br/praias",
     type: "website",
-    images: [{ url: "/images/meta/img-meta.png", width: 1200, height: 630, alt: "NordestAI - By Huan Falcão" }],
+    images: [{ url: "/images/meta/img-meta.png", width: 1200, height: 630, alt: "NordesteAÍ - By Huan Falcão" }],
   },
 };
 

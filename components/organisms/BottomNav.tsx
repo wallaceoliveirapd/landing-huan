@@ -24,14 +24,14 @@ function tourSlug(href: string): string | undefined {
 const ITEMS: Item[] = [
   { kind: "link", href: "/",          icon: "home",     label: "Início" },
   { kind: "link", href: "/favoritos", icon: "heart",    label: "Favoritos", requiresAuth: true },
-  { kind: "chat",                     icon: "sparkles", label: "NordestAI" },
+  { kind: "chat",                     icon: "sparkles", label: "NordesteAÍ" },
   { kind: "link", href: "/perfil",    icon: "user",     label: "Perfil",    requiresAuth: true },
 ];
 
 /**
  * Floating pill bottom navigation, Voyage style.
  * White pill with shadow, 4 items. Active item has a black circle
- * background. NordestAI is one of the items and opens the chat panel,
+ * background. NordesteAÍ is one of the items and opens the chat panel,
  * showing a tooltip periodically.
  */
 export function BottomNav() {
@@ -40,7 +40,7 @@ export function BottomNav() {
   const chat = useChat();
   const [tooltipOpen, setTooltipOpen] = useState(false);
 
-  // ── NordestAI tooltip schedule ─────────────────────────────────────────
+  // ── NordesteAÍ tooltip schedule ─────────────────────────────────────────
   // Behavior:
   //   - First page visit  → opens 2.5s after mount, stays 5s.
   //   - Every visit after → opens 4s after mount, stays 5s, then every 30s.
@@ -55,7 +55,7 @@ export function BottomNav() {
       hideTimer = window.setTimeout(() => setTooltipOpen(false), durationMs);
     }
 
-    const firstSeenKey = "nordestai-tooltip-seen";
+    const firstSeenKey = "nordesteai-tooltip-seen";
     const seen =
       typeof window !== "undefined" &&
       localStorage.getItem(firstSeenKey) === "1";
@@ -109,7 +109,7 @@ export function BottomNav() {
         {ITEMS.map((item) => {
           if (item.kind === "chat") {
             return (
-              <NordestAIButton
+              <NordesteAIButton
                 key="chat"
                 tooltipOpen={tooltipOpen}
                 onClick={() => {
@@ -164,8 +164,8 @@ export function BottomNav() {
   );
 }
 
-/** Animated NordestAI button, sparkle icon with ping ring + tooltip */
-function NordestAIButton({
+/** Animated NordesteAÍ button, sparkle icon with ping ring + tooltip */
+function NordesteAIButton({
   tooltipOpen,
   onClick,
 }: {
@@ -211,7 +211,7 @@ function NordestAIButton({
         animate={{ scale: tooltipOpen ? 1.08 : 1 }}
         transition={{ type: "spring", stiffness: 400, damping: 22 }}
         className="relative grid place-items-center size-12 rounded-full bg-[var(--color-brand-yellow)] overflow-hidden"
-        aria-label="NordestAI"
+        aria-label="NordesteAÍ"
         data-tour="huan"
       >
         <span
@@ -226,7 +226,7 @@ function NordestAIButton({
         >
           <Image
             src="/images/avatar.png"
-            alt="NordestAI"
+            alt="NordesteAÍ"
             fill
             sizes="48px"
             className="object-cover"

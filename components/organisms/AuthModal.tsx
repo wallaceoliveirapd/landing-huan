@@ -258,7 +258,7 @@ export function AuthModal() {
                   {step === "otp"
                     ? `Mandei um código pra ${email}.`
                     : tab === "signIn"
-                      ? "Acesse seus favoritos, cupons e o NordestAI"
+                      ? "Acesse seus favoritos, cupons e o NordesteAÍ"
                       : "Crie sua conta para salvar viagens e favoritos"}
                 </p>
               </div>

@@ -30,7 +30,7 @@ export async function GET() {
   zip.file(
     "README.txt",
     [
-      "Exportação de dados, NordestAI / HUAN",
+      "Exportação de dados, NordesteAÍ / HUAN",
       "",
       `Gerado em: ${new Date(data.exportedAt).toISOString()}`,
       "",
@@ -51,7 +51,7 @@ export async function GET() {
       status: 200,
       headers: {
         "Content-Type": "application/zip",
-        "Content-Disposition": `attachment; filename="nordestai-meus-dados-${today}.zip"`,
+        "Content-Disposition": `attachment; filename="nordesteai-meus-dados-${today}.zip"`,
         "Cache-Control": "no-store",
       },
     },

@@ -21,11 +21,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     robots: { index: false, follow: false },
     alternates: { canonical: `${BASE}/v/${token}` },
     openGraph: {
-      title: `${trip.title} • Roteiro NordestAI`,
+      title: `${trip.title} • Roteiro NordesteAÍ`,
       description: `Roteiro de ${trip.duration ?? "?"} dia(s) em ${trip.destination}.`,
       url: `${BASE}/v/${token}`,
       type: "website",
-      images: [{ url: "/images/meta/img-meta.png", width: 1200, height: 630, alt: "NordestAI - By Huan Falcão" }],
+      images: [{ url: "/images/meta/img-meta.png", width: 1200, height: 630, alt: "NordesteAÍ - By Huan Falcão" }],
     },
   };
 }
@@ -243,13 +243,13 @@ export default async function SharedTripPage({ params }: PageProps) {
         <Link href="/" className="flex items-center gap-2">
           <Image
             src="/images/avatar.png"
-            alt="NordestAI"
+            alt="NordesteAÍ"
             width={32}
             height={32}
             className="size-8 rounded-full object-cover bg-[var(--color-brand-yellow)]"
           />
           <span className="font-display font-medium text-[14px] text-[var(--color-neutral-800)]">
-            NordestAI by Huan{" "}
+            NordesteAÍ by Huan{" "}
             <span className="text-[var(--color-neutral-500)] font-normal">
               • Roteiro compartilhado
             </span>
@@ -385,7 +385,7 @@ export default async function SharedTripPage({ params }: PageProps) {
               Crie o seu roteiro também
             </span>
             <span className="text-[11px] text-white/80">
-              Grátis, em 1 minuto, no NordestAI
+              Grátis, em 1 minuto, no NordesteAÍ
             </span>
           </div>
           <span className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-white text-[var(--color-neutral-800)] px-3 py-2 text-[13px] font-medium">

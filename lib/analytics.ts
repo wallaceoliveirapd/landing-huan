@@ -45,13 +45,13 @@ export function trackPixel(
 
 // ─── Pre-built event helpers ─────────────────────────────────────────────────
 
-/** User opened the NordestAI chat panel */
+/** User opened the NordesteAÍ chat panel */
 export function trackChatOpen(): void {
   pushEvent({ event: "chat_open" });
   trackPixel("Contact");
 }
 
-/** User sent a message to NordestAI */
+/** User sent a message to NordesteAÍ */
 export function trackChatMessage(messageText?: string): void {
   pushEvent({
     event: "chat_message_sent",

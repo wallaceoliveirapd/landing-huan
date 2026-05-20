@@ -36,7 +36,7 @@ export default function OfflinePage() {
         Tentar de novo
       </Link>
       <p className="mt-6 text-[11px] uppercase tracking-[0.18em] text-[var(--color-neutral-500)]">
-        NordestAI
+        NordesteAÍ
       </p>
     </main>
   );

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 
 /**
- * Fullscreen loading overlay shown while the NordestAI is generating an
+ * Fullscreen loading overlay shown while the NordesteAÍ is generating an
  * itinerary. Clean white surface, brand-yellow orb with soft glow, and a
  * progressive status line that cycles through plausible AI steps.
  */
@@ -40,7 +40,7 @@ export function AiLoader({ show }: { show: boolean }) {
           </div>
 
           <p className="absolute bottom-8 inset-x-0 text-center text-[11px] font-medium uppercase tracking-[0.18em] text-[var(--color-neutral-500)]">
-            NordestAI
+            NordesteAÍ
           </p>
         </motion.div>
       )}

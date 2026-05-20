@@ -37,7 +37,7 @@ export function HeroPromo({
         variants={staggerChildren(0.08, 0.0)}
         className="mx-auto flex w-full max-w-screen-md flex-col px-6 pt-4 pb-6"
       >
-        {/* Search bar, opens chat with NordestAI */}
+        {/* Search bar, opens chat with NordesteAÍ */}
         <motion.div variants={fadeUp}>
           <SearchBar placeholder={searchPlaceholder} onClick={handleSearchOpen} />
         </motion.div>

@@ -23,7 +23,7 @@ import { ChatLimitChip } from "@/components/molecules/ChatLimitChip";
 import { trackChatMessage, trackSuggestedPrompt } from "@/lib/analytics";
 import { gtmChatMessageSent, gtmChatResponseReceived } from "@/lib/gtm";
 
-const STORAGE_KEY = "nordestai-chat-v1";
+const STORAGE_KEY = "nordesteai-chat-v1";
 
 function loadMessages(): ChatMessage[] {
   if (typeof window === "undefined") return INITIAL_MESSAGES;
@@ -252,7 +252,7 @@ export function ChatPanel() {
           style={{ WebkitOverflowScrolling: "touch" }}
           role="dialog"
           aria-modal="true"
-          aria-label="NordestAI, seu agente de viagem do Nordeste"
+          aria-label="NordesteAÍ, seu agente de viagem do Nordeste"
         >
           {/* ── Header ──────────────────────────────────────────── */}
           <header

@@ -51,7 +51,7 @@ export const searchAroundCity = action({
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
           // Identify ourselves so Overpass admins can reach out if we abuse limits.
-          "User-Agent": "huan-nordestai/0.1 (https://github.com/uolaci/huan)",
+          "User-Agent": "huan-nordesteai/0.1 (https://github.com/uolaci/huan)",
         },
         body: `data=${encodeURIComponent(query)}`,
       });

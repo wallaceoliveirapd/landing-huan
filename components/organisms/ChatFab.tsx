@@ -51,7 +51,7 @@ export function ChatFab() {
         onClick={handleOpen}
         whileHover={{ scale: 1.04, y: -2 }}
         whileTap={{ scale: 0.95 }}
-        aria-label="Abrir chat com NordestAI"
+        aria-label="Abrir chat com NordesteAÍ"
         className="pointer-events-auto inline-flex items-center gap-2.5 rounded-pill bg-[var(--color-brand-yellow)] pl-1 pr-5 py-1 shadow-[0_8px_24px_rgba(0,0,0,0.22)] text-black font-display font-bold text-[15px]"
       >
         <span className="relative grid size-9 place-items-center rounded-full bg-black text-[var(--color-brand-yellow)]">
@@ -63,7 +63,7 @@ export function ChatFab() {
             className="absolute inset-0 rounded-full bg-black"
           />
         </span>
-        <span>Fale com NordestAI</span>
+        <span>Fale com NordesteAÍ</span>
       </motion.button>
     </div>
   );

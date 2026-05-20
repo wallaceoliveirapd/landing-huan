@@ -109,7 +109,7 @@ export default function InformacoesPessoaisPage() {
   return (
     <SettingsLayout
       title="Informações pessoais"
-      subtitle="Esses dados ficam no seu perfil e podem ser usados pelo NordestAI."
+      subtitle="Esses dados ficam no seu perfil e podem ser usados pelo NordesteAÍ."
     >
       <div className="flex flex-col gap-4 max-w-md">
         {loading ? (

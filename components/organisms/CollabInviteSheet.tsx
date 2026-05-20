@@ -463,7 +463,7 @@ function ComposeStep({
               <span className="text-[13px] font-medium text-[var(--color-neutral-800)]">
                 {shortName(lookup.name) || emailInput}
               </span>
-              <span className="text-[11px] text-emerald-700">já tem conta NordestAI</span>
+              <span className="text-[11px] text-emerald-700">já tem conta NordesteAÍ</span>
             </div>
           </div>
         )}

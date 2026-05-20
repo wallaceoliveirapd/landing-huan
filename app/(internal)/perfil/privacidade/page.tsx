@@ -57,7 +57,7 @@ export default function PrivacidadePage() {
       const a = document.createElement("a");
       a.href = url;
       const today = new Date().toISOString().slice(0, 10);
-      a.download = `nordestai-meus-dados-${today}.zip`;
+      a.download = `nordesteai-meus-dados-${today}.zip`;
       document.body.appendChild(a);
       a.click();
       a.remove();

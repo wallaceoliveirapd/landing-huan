@@ -598,7 +598,7 @@ export const cityHasContent = query({
 
 /**
  * Returns all active content (tours, beaches, restaurants, nightlife) without
- * any filter, used by the NordestAI to build itineraries when no pre-made
+ * any filter, used by the NordesteAÍ to build itineraries when no pre-made
  * itinerary is found.
  */
 export const getContentForItinerary = query({

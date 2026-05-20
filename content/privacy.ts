@@ -2,7 +2,7 @@ export const PRIVACY_MD = `## Política de privacidade
 
 **Última atualização:** 16 de maio de 2026
 
-Esta Política de Privacidade descreve como **HUAN GOMES DA SILVA SOUZA FALCAO - ME**, CNPJ 55.181.469/0001-66, João Pessoa, PB ("NordestAI", "HUAN", "nós"), controlador dos dados, coleta, usa, compartilha e protege seus dados pessoais ao operar a plataforma disponível em huanfalcao.com.br, em conformidade com a Lei Geral de Proteção de Dados Pessoais (Lei 13.709/2018, LGPD).
+Esta Política de Privacidade descreve como **HUAN GOMES DA SILVA SOUZA FALCAO - ME**, CNPJ 55.181.469/0001-66, João Pessoa, PB ("NordesteAÍ", "HUAN", "nós"), controlador dos dados, coleta, usa, compartilha e protege seus dados pessoais ao operar a plataforma disponível em huanfalcao.com.br, em conformidade com a Lei Geral de Proteção de Dados Pessoais (Lei 13.709/2018, LGPD).
 
 ---
 
@@ -11,7 +11,7 @@ Esta Política de Privacidade descreve como **HUAN GOMES DA SILVA SOUZA FALCAO -
 **Razão social:** HUAN GOMES DA SILVA SOUZA FALCAO - ME
 **CNPJ:** 55.181.469/0001-66
 **Município:** João Pessoa, PB
-**Serviço:** NordestAI / HUAN (huanfalcao.com.br)
+**Serviço:** NordesteAÍ / HUAN (huanfalcao.com.br)
 **E-mail de contato e encarregado de dados (DPO):** suporte@huanfalcao.com.br
 
 ---

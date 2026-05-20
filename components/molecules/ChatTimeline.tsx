@@ -8,7 +8,7 @@ import { PlaceCard } from "@/components/molecules/PlaceCard";
 import { Icon } from "@/components/atoms/Icon";
 
 /**
- * Versão compacta da timeline para renderizar dentro do chat do NordestAI.
+ * Versão compacta da timeline para renderizar dentro do chat do NordesteAÍ.
  * Cada dia tem um carrossel horizontal de mini-cards (passeios + paradas livres).
  */
 export function ChatTimeline({ itinerary }: { itinerary: Itinerary }) {

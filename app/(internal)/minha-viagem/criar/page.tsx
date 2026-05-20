@@ -71,7 +71,7 @@ const ONBOARDING_STEPS = [
   {
     icon: "sparkles",
     title: "A IA monta seu roteiro",
-    desc: "O NordestAI sugere passeios, restaurantes e dicas reais, com endereço e link do Google Maps.",
+    desc: "O NordesteAÍ sugere passeios, restaurantes e dicas reais, com endereço e link do Google Maps.",
   },
   {
     icon: "map-pin-check",

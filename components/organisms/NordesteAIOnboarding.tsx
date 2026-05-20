@@ -28,10 +28,10 @@ const FEATURES = [
 ];
 
 /**
- * Fullscreen onboarding shown when a logged-out user taps the NordestAI
+ * Fullscreen onboarding shown when a logged-out user taps the NordesteAÍ
  * chat button. Explains what the assistant can do and prompts login.
  */
-export function NordestAIOnboarding({
+export function NordesteAIOnboarding({
   open,
   onClose,
   onLogin,
@@ -46,7 +46,7 @@ export function NordestAIOnboarding({
         <motion.div
           role="dialog"
           aria-modal="true"
-          aria-label="Sobre o NordestAI"
+          aria-label="Sobre o NordesteAÍ"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -96,7 +96,7 @@ export function NordestAIOnboarding({
                 />
                 <Image
                   src="/images/avatar.png"
-                  alt="NordestAI"
+                  alt="NordesteAÍ"
                   fill
                   sizes="96px"
                   className="relative object-cover"

@@ -20,15 +20,15 @@ const asap = Asap({
 export const metadata: Metadata = {
   metadataBase: new URL("https://huanfalcao.com.br"),
   title: {
-    template: "%s | NordestAI - By Huan Falcão",
-    default: "NordestAI - By Huan Falcão | Guia de viagem para o Nordeste",
+    template: "%s | NordesteAÍ - By Huan Falcão",
+    default: "NordesteAÍ - By Huan Falcão | Guia de viagem para o Nordeste",
   },
   description:
     "Passeios, praias, restaurantes e dicas exclusivas do Nordeste, curados por Huan Falcão. Planeje sua viagem com IA.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    title: "NordestAI",
+    title: "NordesteAÍ",
     statusBarStyle: "black-translucent",
   },
   icons: {
@@ -36,10 +36,10 @@ export const metadata: Metadata = {
     apple: "/images/icon-pwa.png",
   },
   openGraph: {
-    siteName: "NordestAI - By Huan Falcão",
+    siteName: "NordesteAÍ - By Huan Falcão",
     locale: "pt_BR",
     type: "website",
-    images: [{ url: "/images/meta/img-meta.png", width: 1200, height: 630, alt: "NordestAI - By Huan Falcão" }],
+    images: [{ url: "/images/meta/img-meta.png", width: 1200, height: 630, alt: "NordesteAÍ - By Huan Falcão" }],
   },
   twitter: {
     card: "summary_large_image",

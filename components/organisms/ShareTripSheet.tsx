@@ -13,7 +13,7 @@ import { bottomSheetSpring } from "@/lib/motion-presets";
 /**
  * Generates / revokes a public share token for the trip and exposes a copy
  * link. Read-only view lives at /v/{token} and renders the trip without
- * requiring auth, with a NordestAI branded CTA "Crie o seu roteiro também".
+ * requiring auth, with a NordesteAÍ branded CTA "Crie o seu roteiro também".
  */
 export function ShareTripSheet({
   open,
@@ -82,7 +82,7 @@ export function ShareTripSheet({
     if (nav.share) {
       try {
         await nav.share({
-          title: trip?.title ?? "Roteiro NordestAI",
+          title: trip?.title ?? "Roteiro NordesteAÍ",
           text: `Olha o roteiro que montei: ${trip?.title}`,
           url: shareUrl,
         });
@@ -197,7 +197,7 @@ export function ShareTripSheet({
               )}
 
               <p className="text-[11px] text-[var(--color-neutral-500)] text-center pt-1">
-                O link mostra o roteiro com a marca NordestAI e um botão pro
+                O link mostra o roteiro com a marca NordesteAÍ e um botão pro
                 visitante criar o roteiro dele.
               </p>
             </div>

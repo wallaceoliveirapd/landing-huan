@@ -334,7 +334,7 @@ Fresquíssimo e barato. O preço cai pela metade comparado ao Sudeste do país.
       },
       {
         key: "featured_subtitle",
-        value: "O NordestAI te ajuda a montar o roteiro perfeito.",
+        value: "O NordesteAÍ te ajuda a montar o roteiro perfeito.",
       },
     ];
 

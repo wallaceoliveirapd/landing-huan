@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { NordestAIOnboarding } from "@/components/organisms/NordestAIOnboarding";
+import { NordesteAIOnboarding } from "@/components/organisms/NordesteAIOnboarding";
 import { useAuth } from "./AuthProvider";
 
 type ChatContextValue = {
@@ -17,7 +17,7 @@ type ChatContextValue = {
   close: () => void;
   toggle: () => void;
   /**
-   * Auth-aware open. If the user is logged out, shows the NordestAI
+   * Auth-aware open. If the user is logged out, shows the NordesteAÍ
    * onboarding instead of the chat panel. Use this in CTAs that point at
    * the chat from public surfaces (hero, featured section, etc.).
    */
@@ -51,7 +51,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   return (
     <ChatContext.Provider value={value}>
       {children}
-      <NordestAIOnboarding
+      <NordesteAIOnboarding
         open={onboardingOpen}
         onClose={() => setOnboardingOpen(false)}
         onLogin={() => {

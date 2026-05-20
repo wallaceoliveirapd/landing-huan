@@ -21,7 +21,7 @@ function getResend() {
 
 function getFrom() {
   return process.env.EMAIL_FROM ??
-    "NordestAI <nordestai@email.huanfalcao.com.br>";
+    "NordesteAÍ <nordestai@email.huanfalcao.com.br>";
 }
 
 function getReplyTo() {

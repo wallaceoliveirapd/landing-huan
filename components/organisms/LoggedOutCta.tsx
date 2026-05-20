@@ -17,7 +17,7 @@ const BENEFITS = [
   { icon: "heart", label: "Favorite seus passeios favoritos" },
   { icon: "ticket-percent", label: "Acesse cupons exclusivos" },
   { icon: "map", label: "Crie e salve suas viagens" },
-  { icon: "sparkles", label: "Converse com o NordestAI" },
+  { icon: "sparkles", label: "Converse com o NordesteAÍ" },
 ];
 
 export function LoggedOutCta() {
