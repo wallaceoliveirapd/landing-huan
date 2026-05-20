@@ -15,6 +15,7 @@ const CSP_DIRECTIVES: Record<string, string[]> = {
     "'self'",
     "'unsafe-inline'",
     "'unsafe-eval'",
+    "blob:",
     "https://www.googletagmanager.com",
     "https://www.google-analytics.com",
     "https://connect.facebook.net",
@@ -30,6 +31,7 @@ const CSP_DIRECTIVES: Record<string, string[]> = {
   "media-src": ["'self'", "https:", "data:", "blob:"],
   "connect-src": [
     "'self'",
+    "blob:",
     `https://${CONVEX_HOST}`,
     "wss://" + CONVEX_HOST,
     "https://*.convex.cloud",

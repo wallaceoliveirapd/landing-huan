@@ -9,7 +9,9 @@ import { api } from "@/convex/_generated/api";
 import { gtmViewItemList, gtmSearch, gtmFilterApplied } from "@/lib/gtm";
 import { SectionSpacer } from "./SectionSpacer";
 import { EmptyState } from "./EmptyState";
-import { ListingSearch } from "@/components/molecules/ListingSearch";
+import { ListingFilterBar } from "@/components/molecules/ListingFilterBar";
+import type { FilterSection } from "@/components/molecules/ListingFiltersModal";
+import { buildCityOptions, parseCity } from "@/lib/locationFilter";
 import { useInfiniteList, InfiniteSentinel } from "@/components/molecules/InfiniteList";
 import { Icon } from "@/components/atoms/Icon";
 import { toProxyUrl } from "@/lib/imageUpload";
@@ -27,6 +29,7 @@ export function VidaNoturnaContent() {
 
   const [search, setSearch] = useState("");
   const [activeCity, setActiveCity] = useState<string | null>(null);
+  const [activeState, setActiveState] = useState<string | null>(null);
   const [activeType, setActiveType] = useState<string | null>(null);
 
   const allItems = useMemo(() => convexNightlife ?? [], [convexNightlife]);
@@ -47,10 +50,15 @@ export function VidaNoturnaContent() {
     }
   }, [search]);
 
-  const cities = useMemo(
-    () => [...new Set(allItems.map((n) => n.city).filter(Boolean) as string[])].sort(),
+  const cityOptions = useMemo(
+    () => buildCityOptions(allItems.map((n) => n.city)),
     [allItems],
   );
+  const stateOptions = useMemo(() => {
+    const seen = new Set<string>();
+    for (const c of cityOptions) if (c.state) seen.add(c.state);
+    return [...seen].sort();
+  }, [cityOptions]);
   const types = useMemo(
     () => [...new Set(allItems.map((n) => n.type).filter(Boolean))].sort(),
     [allItems],
@@ -60,26 +68,57 @@ export function VidaNoturnaContent() {
     const q = search.toLowerCase().trim();
     return allItems.filter((n) => {
       if (q && !n.name.toLowerCase().includes(q) && !(n.shortDesc ?? "").toLowerCase().includes(q)) return false;
-      if (activeCity && n.city !== activeCity) return false;
+      if (activeCity) {
+        const nc = parseCity(n.city ?? "");
+        const ac = parseCity(activeCity);
+        if (nc.name.toLowerCase() !== ac.name.toLowerCase()) return false;
+      } else if (activeState) {
+        const nc = parseCity(n.city ?? "");
+        if (nc.state !== activeState) return false;
+      }
       if (activeType && n.type !== activeType) return false;
       return true;
     });
-  }, [allItems, search, activeCity, activeType]);
+  }, [allItems, search, activeCity, activeState, activeType]);
 
-  const chips = [
-    ...types.map((t) => ({
-      key: `type-${t}`,
-      label: t,
-      active: activeType === t,
-      onToggle: () => { const next = activeType === t ? null : t; setActiveType(next); if (next) gtmFilterApplied("tipo", t, "vida-noturna"); },
-    })),
-    ...cities.map((c) => ({
-      key: `city-${c}`,
-      label: c.split(",")[0],
-      active: activeCity === c,
-      onToggle: () => { const next = activeCity === c ? null : c; setActiveCity(next); if (next) gtmFilterApplied("cidade", c.split(",")[0], "vida-noturna"); },
-    })),
+  const filterSections: FilterSection[] = [
+    {
+      key: "location",
+      label: "Localização",
+      icon: "map-pin",
+      type: "location",
+      cityOptions,
+      stateOptions,
+      activeCity,
+      activeState,
+      onChangeCity: (v) => {
+        setActiveCity(v);
+        if (v) gtmFilterApplied("cidade", v.split(",")[0], "vida-noturna");
+      },
+      onChangeState: (v) => {
+        setActiveState(v);
+        if (v) gtmFilterApplied("estado", v, "vida-noturna");
+      },
+    },
+    {
+      key: "type",
+      label: "Tipo",
+      icon: "music-2",
+      type: "single",
+      value: activeType,
+      onChange: (v) => {
+        setActiveType(v);
+        if (v) gtmFilterApplied("tipo", v, "vida-noturna");
+      },
+      options: types.map((t) => ({ value: t, label: t })),
+    },
   ];
+
+  const clearAllFilters = () => {
+    setActiveCity(null);
+    setActiveState(null);
+    setActiveType(null);
+  };
 
   const { visible, sentinelRef, hasMore } = useInfiniteList(filtered, { initial: 6, step: 6 });
 
@@ -112,11 +151,12 @@ export function VidaNoturnaContent() {
 
   return (
     <div className="pb-20">
-      <ListingSearch
+      <ListingFilterBar
         search={search}
         onSearch={setSearch}
         placeholder="Buscar vida noturna..."
-        chips={chips}
+        filterSections={filterSections}
+        onClearAll={clearAllFilters}
         resultCount={filtered.length}
         totalCount={allItems.length}
       />

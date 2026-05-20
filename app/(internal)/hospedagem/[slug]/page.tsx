@@ -11,6 +11,9 @@ import { GtmViewItem } from "@/components/atoms/GtmViewItem";
 import { BackButton } from "@/components/atoms/BackButton";
 import { RichContent } from "@/components/atoms/RichContent";
 import { TourCtaFooter } from "@/components/organisms/TourCtaFooter";
+import { PromoBanner } from "@/components/molecules/PromoBanner";
+import { LinkedCoupons } from "@/components/organisms/LinkedCoupons";
+import { LiveViewers } from "@/components/molecules/LiveViewers";
 
 const BASE = "https://huanfalcao.com.br";
 
@@ -57,17 +60,17 @@ export default async function HospedagemDetailPage({ params }: PageProps) {
     url: `${BASE}/hospedagem/${place.slug}`,
     ...(place.address
       ? {
-          address: {
-            "@type": "PostalAddress",
-            streetAddress: place.address,
-            addressCountry: "BR",
-          },
-        }
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: place.address,
+          addressCountry: "BR",
+        },
+      }
       : {}),
     ...(place.priceFrom
       ? {
-          priceRange: `A partir de R$ ${place.priceFrom.toFixed(0)}`,
-        }
+        priceRange: `A partir de R$ ${place.priceFrom.toFixed(0)}`,
+      }
       : {}),
   };
 
@@ -166,6 +169,24 @@ export default async function HospedagemDetailPage({ params }: PageProps) {
         )}
       </section>
 
+      {/* ── Promo banner (admin-configured) ────────────────────── */}
+      {place.discountBanner?.active &&
+        (place.discountBanner.title || place.discountBanner.description) && (
+          <section className="px-6 pt-0 max-w-screen-md mx-auto">
+            <PromoBanner
+              title={place.discountBanner.title}
+              description={place.discountBanner.description}
+            />
+          </section>
+        )}
+
+      {/* ── Linked coupons ─────────────────────────────────────── */}
+      {place.coupons && place.coupons.length > 0 && (
+        <section className="px-6 pt-6 max-w-screen-md mx-auto">
+          <LinkedCoupons ids={place.coupons} heading="Cupons para esta hospedagem" />
+        </section>
+      )}
+
       {/* ── Amenities chips ────────────────────────────────────── */}
       {place.amenities && place.amenities.length > 0 && (
         <section className="px-6 pt-6 max-w-screen-md mx-auto">
@@ -223,9 +244,10 @@ export default async function HospedagemDetailPage({ params }: PageProps) {
         </section>
       )}
 
-      {/* spacer for fixed CTA */}
-      <div className="h-32" />
+      {/* spacer for fixed CTA + live viewers pill */}
+      <div className="h-40" />
 
+      <LiveViewers itemId={place._id} />
       {/* ── CTA footer ─────────────────────────────────────────── */}
       <TourCtaFooter
         url={place.affiliateUrl}

@@ -33,5 +33,11 @@ export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
 });
 
 export const config = {
-  matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
+  // Skip /api/upload-story so its 50MB FormData bypasses the middleware body cap.
+  // That route does its own auth via fetchQuery(api.users.myRole).
+  matcher: [
+    "/((?!.*\\..*|_next|api/upload-story).*)",
+    "/",
+    "/((?!api/upload-story)api|trpc)(.*)",
+  ],
 };

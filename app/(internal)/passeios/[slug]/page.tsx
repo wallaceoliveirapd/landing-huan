@@ -7,6 +7,9 @@ import { TourOverview } from "@/components/organisms/TourOverview";
 import { TourCtaFooter } from "@/components/organisms/TourCtaFooter";
 import { GtmViewItem } from "@/components/atoms/GtmViewItem";
 import { PlaceReviewsSection } from "@/components/organisms/PlaceReviewsSection";
+import { PromoBanner } from "@/components/molecules/PromoBanner";
+import { LinkedCoupons } from "@/components/organisms/LinkedCoupons";
+import { LiveViewers } from "@/components/molecules/LiveViewers";
 
 const BASE = "https://huanfalcao.com.br";
 
@@ -48,8 +51,8 @@ export default async function TourDetailPage({ params }: PageProps) {
     tour.reviewCount >= 200
       ? "Excelente"
       : tour.reviewCount >= 100
-      ? "Muito bom"
-      : "Bom";
+        ? "Muito bom"
+        : "Bom";
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -91,8 +94,23 @@ export default async function TourDetailPage({ params }: PageProps) {
         city={tour.city}
         tags={tour.tags}
       />
+      {tour.discountBanner?.active &&
+        (tour.discountBanner.title || tour.discountBanner.description) && (
+          <section className="px-6 pt-0 w-full max-w-screen-md mx-auto">
+            <PromoBanner
+              title={tour.discountBanner.title}
+              description={tour.discountBanner.description}
+            />
+          </section>
+        )}
+      {tour.coupons && tour.coupons.length > 0 && (
+        <section className="px-6 pt-6 max-w-screen-md mx-auto">
+          <LinkedCoupons ids={tour.coupons} heading="Cupons para este passeio" />
+        </section>
+      )}
       <PlaceReviewsSection kind="tour" itemId={tour._id} noun="este passeio" />
-      <div className="h-32" />
+      <div className="h-40" />
+      <LiveViewers itemId={tour._id} />
       <TourCtaFooter url={tour.url} title={tour.title} itemId={tour._id} itemType="tour" />
     </>
   );

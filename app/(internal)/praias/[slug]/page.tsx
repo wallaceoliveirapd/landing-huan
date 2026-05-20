@@ -142,25 +142,6 @@ export default async function PraiaDetailPage({ params }: PageProps) {
         </p>
       </section>
 
-      {/* ── Features ────────────────────────────────────────────── */}
-      {praia.features && praia.features.length > 0 && (
-        <section className="px-6 pt-6 max-w-screen-md mx-auto">
-          <h2 className="font-display font-medium text-[14px] text-[var(--color-neutral-800)] mb-3">
-            Características
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {praia.features.map((f) => (
-              <span
-                key={f}
-                className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-neutral-100)] px-3 py-1.5 text-[12px] font-medium text-[var(--color-neutral-800)]"
-              >
-                {f}
-              </span>
-            ))}
-          </div>
-        </section>
-      )}
-
       {/* ── Full description ───────────────────────────────────── */}
       {praia.description && (
         <section className="px-6 pt-6 max-w-screen-md mx-auto">
@@ -181,6 +162,26 @@ export default async function PraiaDetailPage({ params }: PageProps) {
             Fotos
           </h2>
           <PraiaPhotosGrid photos={praia.photos} alt={`Foto de ${praia.name}`} />
+        </section>
+      )}
+
+
+      {/* ── Features ────────────────────────────────────────────── */}
+      {praia.features && praia.features.length > 0 && (
+        <section className="px-6 pt-6 max-w-screen-md mx-auto">
+          <h2 className="font-display font-medium text-[14px] text-[var(--color-neutral-800)] mb-3">
+            Características
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {praia.features.map((f) => (
+              <span
+                key={f}
+                className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-neutral-100)] px-3 py-1.5 text-[12px] font-medium text-[var(--color-neutral-800)]"
+              >
+                {f}
+              </span>
+            ))}
+          </div>
         </section>
       )}
 

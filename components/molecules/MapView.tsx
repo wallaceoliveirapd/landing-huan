@@ -33,20 +33,21 @@ function buildMarkerElement(label?: string): HTMLDivElement {
   el.className = "mapbox-marker";
   el.style.cssText = `
     width:44px; height:44px; border-radius:50%;
-    background:#F9FD17;
-    border:3px solid #000;
+    background:#323439;
+    border:0px solid #fff;
     box-shadow: 0 4px 16px rgba(0,0,0,0.3);
     display:flex; align-items:center; justify-content:center;
     font-size:20px; cursor:pointer;
   `;
-  el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="color:#323439"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>`;
+  el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="color:#fff"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>`;
   if (label) {
     const tooltip = document.createElement("div");
     tooltip.style.cssText = `
       position:absolute; bottom:52px; left:50%; transform:translateX(-50%);
-      background:#000; color:#fff; padding:4px 10px; border-radius:99px;
-      font-size:12px; font-weight:600; white-space:nowrap;
-      font-family:sans-serif;
+      background:#fff; color:#323439; padding:4px 10px; border-radius:99px;
+      font-size:12px; font-weight:500; white-space:nowrap;
+      font-family:var(--font-display);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
     `;
     tooltip.textContent = label;
     el.appendChild(tooltip);

@@ -114,7 +114,7 @@ export function DicasPreview() {
       variants={staggerChildren(0.08, 0)}
       className="w-full bg-white"
     >
-      <div className="mx-auto flex w-full max-w-screen-md flex-col px-6 py-8 pb-28">
+      <div className="mx-auto flex w-full max-w-screen-md flex-col px-6 py-8 pb-32">
         <motion.div variants={fadeUp} className="flex flex-col gap-2 pb-6">
           <h2 className="font-display font-medium text-[24px] leading-tight text-[var(--color-neutral-800)]">
             Dicas de viagem

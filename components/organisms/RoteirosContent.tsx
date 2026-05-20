@@ -7,7 +7,9 @@ import { gtmViewItemList, gtmSearch, gtmFilterApplied } from "@/lib/gtm";
 import { RoteiroListCard } from "./RoteiroListCard";
 import { SectionSpacer } from "./SectionSpacer";
 import { EmptyState } from "./EmptyState";
-import { ListingSearch } from "@/components/molecules/ListingSearch";
+import { ListingFilterBar } from "@/components/molecules/ListingFilterBar";
+import type { FilterSection } from "@/components/molecules/ListingFiltersModal";
+import { buildCityOptions, parseCity } from "@/lib/locationFilter";
 import { useInfiniteList, InfiniteSentinel } from "@/components/molecules/InfiniteList";
 import type { Itinerary } from "@/lib/mock-data";
 
@@ -16,6 +18,7 @@ export function RoteirosContent() {
 
   const [search, setSearch] = useState("");
   const [activeCity, setActiveCity] = useState<string | null>(null);
+  const [activeState, setActiveState] = useState<string | null>(null);
   const [activeDuration, setActiveDuration] = useState<string | null>(null);
 
   // GTM: fire view_item_list once when data first loads
@@ -49,16 +52,28 @@ export function RoteirosContent() {
     [convexItineraries],
   );
 
-  const cities = useMemo(
-    () => [...new Set(allItems.map((it) => it.city).filter(Boolean) as string[])].sort(),
+  const cityOptions = useMemo(
+    () => buildCityOptions(allItems.map((it) => it.city)),
     [allItems],
   );
+  const stateOptions = useMemo(() => {
+    const seen = new Set<string>();
+    for (const c of cityOptions) if (c.state) seen.add(c.state);
+    return [...seen].sort();
+  }, [cityOptions]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     return allItems.filter((it) => {
       if (q && !it.title.toLowerCase().includes(q) && !it.subtitle.toLowerCase().includes(q)) return false;
-      if (activeCity && it.city !== activeCity) return false;
+      if (activeCity) {
+        const ic = parseCity(it.city ?? "");
+        const ac = parseCity(activeCity);
+        if (ic.name.toLowerCase() !== ac.name.toLowerCase()) return false;
+      } else if (activeState) {
+        const ic = parseCity(it.city ?? "");
+        if (ic.state !== activeState) return false;
+      }
       if (activeDuration) {
         if (activeDuration === "1" && it.durationDays !== 1) return false;
         if (activeDuration === "2-3" && (it.durationDays < 2 || it.durationDays > 3)) return false;
@@ -67,20 +82,54 @@ export function RoteirosContent() {
       }
       return true;
     });
-  }, [allItems, search, activeCity, activeDuration]);
+  }, [allItems, search, activeCity, activeState, activeDuration]);
 
-  const chips = [
-    { key: "dur-1", label: "1 dia", active: activeDuration === "1", onToggle: () => { const next = activeDuration === "1" ? null : "1"; setActiveDuration(next); if (next) gtmFilterApplied("duracao", "1 dia", "roteiros"); } },
-    { key: "dur-23", label: "2–3 dias", active: activeDuration === "2-3", onToggle: () => { const next = activeDuration === "2-3" ? null : "2-3"; setActiveDuration(next); if (next) gtmFilterApplied("duracao", "2–3 dias", "roteiros"); } },
-    { key: "dur-47", label: "4–7 dias", active: activeDuration === "4-7", onToggle: () => { const next = activeDuration === "4-7" ? null : "4-7"; setActiveDuration(next); if (next) gtmFilterApplied("duracao", "4–7 dias", "roteiros"); } },
-    { key: "dur-7+", label: "7+ dias", active: activeDuration === "7+", onToggle: () => { const next = activeDuration === "7+" ? null : "7+"; setActiveDuration(next); if (next) gtmFilterApplied("duracao", "7+ dias", "roteiros"); } },
-    ...cities.map((c) => ({
-      key: `city-${c}`,
-      label: c.split(",")[0],
-      active: activeCity === c,
-      onToggle: () => { const next = activeCity === c ? null : c; setActiveCity(next); if (next) gtmFilterApplied("cidade", c.split(",")[0], "roteiros"); },
-    })),
+  const filterSections: FilterSection[] = [
+    {
+      key: "location",
+      label: "Localização",
+      icon: "map-pin",
+      type: "location",
+      cityOptions,
+      stateOptions,
+      activeCity,
+      activeState,
+      onChangeCity: (v) => {
+        setActiveCity(v);
+        if (v) gtmFilterApplied("cidade", v.split(",")[0], "roteiros");
+      },
+      onChangeState: (v) => {
+        setActiveState(v);
+        if (v) gtmFilterApplied("estado", v, "roteiros");
+      },
+    },
+    {
+      key: "duration",
+      label: "Duração",
+      icon: "clock",
+      type: "single",
+      value: activeDuration,
+      onChange: (v) => {
+        setActiveDuration(v);
+        if (v) {
+          const labels: Record<string, string> = { "1": "1 dia", "2-3": "2–3 dias", "4-7": "4–7 dias", "7+": "7+ dias" };
+          gtmFilterApplied("duracao", labels[v] ?? v, "roteiros");
+        }
+      },
+      options: [
+        { value: "1", label: "1 dia" },
+        { value: "2-3", label: "2–3 dias" },
+        { value: "4-7", label: "4–7 dias" },
+        { value: "7+", label: "7+ dias" },
+      ],
+    },
   ];
+
+  const clearAllFilters = () => {
+    setActiveCity(null);
+    setActiveState(null);
+    setActiveDuration(null);
+  };
 
   const { visible, sentinelRef, hasMore } = useInfiniteList(filtered, { initial: 6, step: 6 });
 
@@ -113,11 +162,12 @@ export function RoteirosContent() {
 
   return (
     <div className="pb-20">
-      <ListingSearch
+      <ListingFilterBar
         search={search}
         onSearch={setSearch}
         placeholder="Buscar roteiros..."
-        chips={chips}
+        filterSections={filterSections}
+        onClearAll={clearAllFilters}
         resultCount={filtered.length}
         totalCount={allItems.length}
       />

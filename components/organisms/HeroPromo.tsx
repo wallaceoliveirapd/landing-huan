@@ -3,6 +3,7 @@
 import { motion } from "motion/react";
 import { SearchBar } from "@/components/molecules/SearchBar";
 import { CategoryGrid } from "./CategoryGrid";
+import { StoriesRing } from "./StoriesRing";
 import { fadeUp, staggerChildren } from "@/lib/motion-presets";
 import { useChat } from "@/components/providers/ChatProvider";
 import { trackChatOpen } from "@/lib/analytics";
@@ -41,8 +42,13 @@ export function HeroPromo({
           <SearchBar placeholder={searchPlaceholder} onClick={handleSearchOpen} />
         </motion.div>
 
+        {/* Stories ring (Huan) */}
+        <motion.div variants={fadeUp} className="pt-5 flex items-start">
+          <StoriesRing />
+        </motion.div>
+
         {/* Headline + subtitle */}
-        <motion.div variants={fadeUp} className="flex flex-col gap-2 pt-8">
+        <motion.div variants={fadeUp} className="flex flex-col gap-2 pt-6">
           <h1 className="font-display font-medium text-[32px] leading-[1.3] text-[var(--color-neutral-800)] tracking-[-0.01em]">
             {title}
           </h1>

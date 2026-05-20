@@ -305,8 +305,10 @@ export const search = query({
     /** Optional city filter (e.g. "Natal"). Compared on the first comma
      *  segment, accent-insensitive. */
     city: v.optional(v.string()),
+    /** Card IDs already shown in this conversation — skip them. */
+    excludeIds: v.optional(v.array(v.string())),
   },
-  handler: async (ctx, { q, type, city }) => {
+  handler: async (ctx, { q, type, city, excludeIds }) => {
     let tokens = tokenize(q);
 
     // When a city filter is active, remove city-name tokens from scoring.
@@ -335,18 +337,21 @@ export const search = query({
      *  search returns 0 so the user always sees the closest available items. */
     const nearMiss: { score: number; item: Record<string, unknown> }[] = [];
 
-    function passesCity(rawCity: string | undefined): boolean {
+    function passesCity(rawCity: string | undefined, kind?: string): boolean {
       if (!city) return true;
-      return matchesCity(rawCity, city);
+      return matchesCity(rawCity, city, kind);
     }
 
     function pushScored(
       item: Record<string, unknown>,
       raw: Record<string, unknown>,
     ) {
-      const rawCity =
-        typeof raw.city === "string" ? raw.city : undefined;
-      if (!passesCity(rawCity)) return;
+      const rawCity = typeof raw.city === "string" ? raw.city : undefined;
+      const kind = typeof item.kind === "string" ? item.kind : undefined;
+      if (!passesCity(rawCity, kind)) return;
+      // Skip cards already shown in this conversation.
+      const itemId = typeof item.id === "string" ? item.id : String(raw._id ?? "");
+      if (itemId && excludeIds?.includes(itemId)) return;
       if (isBrowseQuery) {
         results.push({ score: 1, item });
         return;
@@ -354,10 +359,10 @@ export const search = query({
       const score = scoreItem(raw, tokens);
       if (score >= 1.5) {
         results.push({ score, item });
-      } else {
-        // Keep weakly-matching items so we can fall back to "closest" results
-        // when no strong match exists in this category.
-        nearMiss.push({ score: score + 0.01, item });
+      } else if (score > 0) {
+        // Only add to nearMiss if the item had SOME relevance.
+        // Items with score=0 have zero semantic match — don't surface them.
+        nearMiss.push({ score, item });
       }
     }
 

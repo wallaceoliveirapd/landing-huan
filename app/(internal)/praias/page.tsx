@@ -8,7 +8,11 @@ export const metadata: Metadata = {
   description:
     "As melhores praias de João Pessoa e arredores: Cabo Branco, Tambaú, Coqueirinho e outras joias do litoral paraibano.",
   alternates: { canonical: "https://huanfalcao.com.br/praias" },
-  openGraph: { url: "https://huanfalcao.com.br/praias", type: "website" },
+  openGraph: {
+    url: "https://huanfalcao.com.br/praias",
+    type: "website",
+    images: [{ url: "/images/meta/img-meta.png", width: 1200, height: 630, alt: "NordestAI - By Huan Falcão" }],
+  },
 };
 
 export default function PraiasPage() {

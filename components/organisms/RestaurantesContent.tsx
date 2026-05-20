@@ -6,7 +6,9 @@ import { api } from "@/convex/_generated/api";
 import { gtmViewItemList, gtmSearch, gtmFilterApplied } from "@/lib/gtm";
 import { RestaurantCardLarge } from "./RestaurantCardLarge";
 import { SectionSpacer } from "./SectionSpacer";
-import { ListingSearch } from "@/components/molecules/ListingSearch";
+import { ListingFilterBar } from "@/components/molecules/ListingFilterBar";
+import type { FilterSection } from "@/components/molecules/ListingFiltersModal";
+import { buildCityOptions, parseCity } from "@/lib/locationFilter";
 import { useInfiniteList, InfiniteSentinel } from "@/components/molecules/InfiniteList";
 import { EmptyState } from "./EmptyState";
 import type { Restaurant } from "@/lib/mock-data";
@@ -16,6 +18,7 @@ export function RestaurantesContent() {
 
   const [search, setSearch] = useState("");
   const [activeCity, setActiveCity] = useState<string | null>(null);
+  const [activeState, setActiveState] = useState<string | null>(null);
   const [activePriceRange, setActivePriceRange] = useState<string | null>(null);
   const [activeCuisine, setActiveCuisine] = useState<string | null>(null);
 
@@ -60,10 +63,15 @@ export function RestaurantesContent() {
     [convexRestaurants],
   );
 
-  const cities = useMemo(
-    () => [...new Set(allRestaurants.map((r) => r.data.city).filter(Boolean) as string[])].sort(),
+  const cityOptions = useMemo(
+    () => buildCityOptions(allRestaurants.map((r) => r.data.city)),
     [allRestaurants],
   );
+  const stateOptions = useMemo(() => {
+    const seen = new Set<string>();
+    for (const c of cityOptions) if (c.state) seen.add(c.state);
+    return [...seen].sort();
+  }, [cityOptions]);
   const cuisines = useMemo(
     () => [...new Set(allRestaurants.map((r) => r.data.cuisine).filter(Boolean))].sort(),
     [allRestaurants],
@@ -73,30 +81,78 @@ export function RestaurantesContent() {
     const q = search.toLowerCase().trim();
     return allRestaurants.filter(({ data }) => {
       if (q && !data.name.toLowerCase().includes(q) && !data.cuisine.toLowerCase().includes(q)) return false;
-      if (activeCity && data.city !== activeCity) return false;
+      if (activeCity) {
+        const dc = parseCity(data.city ?? "");
+        const ac = parseCity(activeCity);
+        if (dc.name.toLowerCase() !== ac.name.toLowerCase()) return false;
+      } else if (activeState) {
+        const dc = parseCity(data.city ?? "");
+        if (dc.state !== activeState) return false;
+      }
       if (activePriceRange && data.priceRange !== activePriceRange) return false;
       if (activeCuisine && data.cuisine !== activeCuisine) return false;
       return true;
     });
-  }, [allRestaurants, search, activeCity, activePriceRange, activeCuisine]);
+  }, [allRestaurants, search, activeCity, activeState, activePriceRange, activeCuisine]);
 
-  const chips = [
-    { key: "$", label: "$ Econômico", active: activePriceRange === "$", onToggle: () => { const next = activePriceRange === "$" ? null : "$"; setActivePriceRange(next); if (next) gtmFilterApplied("preco", "$ Econômico", "restaurantes"); } },
-    { key: "$$", label: "$$ Moderado", active: activePriceRange === "$$", onToggle: () => { const next = activePriceRange === "$$" ? null : "$$"; setActivePriceRange(next); if (next) gtmFilterApplied("preco", "$$ Moderado", "restaurantes"); } },
-    { key: "$$$", label: "$$$ Premium", active: activePriceRange === "$$$", onToggle: () => { const next = activePriceRange === "$$$" ? null : "$$$"; setActivePriceRange(next); if (next) gtmFilterApplied("preco", "$$$ Premium", "restaurantes"); } },
-    ...cuisines.map((c) => ({
-      key: `cuisine-${c}`,
-      label: c,
-      active: activeCuisine === c,
-      onToggle: () => { const next = activeCuisine === c ? null : c; setActiveCuisine(next); if (next) gtmFilterApplied("culinaria", c, "restaurantes"); },
-    })),
-    ...cities.map((c) => ({
-      key: `city-${c}`,
-      label: c.split(",")[0],
-      active: activeCity === c,
-      onToggle: () => { const next = activeCity === c ? null : c; setActiveCity(next); if (next) gtmFilterApplied("cidade", c.split(",")[0], "restaurantes"); },
-    })),
+  const filterSections: FilterSection[] = [
+    {
+      key: "location",
+      label: "Localização",
+      icon: "map-pin",
+      type: "location",
+      cityOptions,
+      stateOptions,
+      activeCity,
+      activeState,
+      onChangeCity: (v) => {
+        setActiveCity(v);
+        if (v) gtmFilterApplied("cidade", v.split(",")[0], "restaurantes");
+      },
+      onChangeState: (v) => {
+        setActiveState(v);
+        if (v) gtmFilterApplied("estado", v, "restaurantes");
+      },
+    },
+    {
+      key: "price",
+      label: "Faixa de preço",
+      icon: "tag",
+      type: "single",
+      value: activePriceRange,
+      onChange: (v) => {
+        setActivePriceRange(v);
+        if (v) {
+          const labels: Record<string, string> = { "$": "$ Econômico", "$$": "$$ Moderado", "$$$": "$$$ Premium" };
+          gtmFilterApplied("preco", labels[v] ?? v, "restaurantes");
+        }
+      },
+      options: [
+        { value: "$", label: "$ Econômico" },
+        { value: "$$", label: "$$ Moderado" },
+        { value: "$$$", label: "$$$ Premium" },
+      ],
+    },
+    {
+      key: "cuisine",
+      label: "Culinária",
+      icon: "chef-hat",
+      type: "single",
+      value: activeCuisine,
+      onChange: (v) => {
+        setActiveCuisine(v);
+        if (v) gtmFilterApplied("culinaria", v, "restaurantes");
+      },
+      options: cuisines.map((c) => ({ value: c, label: c })),
+    },
   ];
+
+  const clearAllFilters = () => {
+    setActiveCity(null);
+    setActiveState(null);
+    setActivePriceRange(null);
+    setActiveCuisine(null);
+  };
 
   const { visible, sentinelRef, hasMore } = useInfiniteList(filtered, { initial: 6, step: 6 });
 
@@ -117,11 +173,12 @@ export function RestaurantesContent() {
 
   return (
     <div className="pb-20">
-      <ListingSearch
+      <ListingFilterBar
         search={search}
         onSearch={setSearch}
         placeholder="Buscar restaurantes..."
-        chips={chips}
+        filterSections={filterSections}
+        onClearAll={clearAllFilters}
         resultCount={filtered.length}
         totalCount={allRestaurants.length}
       />

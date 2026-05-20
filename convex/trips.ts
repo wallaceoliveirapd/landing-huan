@@ -179,18 +179,22 @@ export const create = mutation({
 export const updateBasics = mutation({
   args: {
     id: v.id("trips"),
+    title: v.optional(v.string()),
+    type: v.optional(v.string()),
     duration: v.optional(v.number()),
     groupSize: v.optional(v.number()),
     budget: v.optional(v.string()),
     startDate: v.optional(v.number()),
   },
-  handler: async (ctx, { id, duration, groupSize, budget, startDate }) => {
+  handler: async (ctx, { id, title, type, duration, groupSize, budget, startDate }) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) throw new Error("Unauthorized");
     const trip = await ctx.db.get(id);
     if (!trip || trip.userId !== userId) throw new Error("Not found");
 
     const patch: Record<string, unknown> = {};
+    if (title !== undefined) patch.title = title;
+    if (type !== undefined) patch.type = type;
     if (duration !== undefined) patch.duration = duration;
     if (groupSize !== undefined) patch.groupSize = groupSize;
     if (budget !== undefined) patch.budget = budget;
@@ -210,7 +214,27 @@ export const updateBasics = mutation({
       }
     }
 
-    return ctx.db.patch(id, patch);
+    // If startDate or duration changed, the cached weather window is stale.
+    // Clear the snapshot + notification flag and re-fetch in the background
+    // so the next page render shows the right forecast/historical range.
+    const datesChanged =
+      (startDate !== undefined && startDate !== trip.startDate) ||
+      (duration !== undefined && duration !== trip.duration);
+    if (datesChanged) {
+      patch.weatherSnapshot = undefined;
+      patch.weatherNotifiedAt = undefined;
+    }
+
+    await ctx.db.patch(id, patch);
+
+    if (datesChanged) {
+      const effectiveStart = startDate !== undefined ? startDate : trip.startDate;
+      if (typeof effectiveStart === "number") {
+        await ctx.scheduler.runAfter(0, internal.weather.refreshForTrip, {
+          tripId: id,
+        });
+      }
+    }
   },
 });
 
@@ -245,6 +269,133 @@ export const remove = mutation({
   },
 });
 
+/**
+ * Generate (or reuse) a public share token for the trip so the owner can
+ * send a read-only link to anyone. Token is URL-safe random.
+ */
+const checklistItemValidator = v.object({
+  id: v.string(),
+  text: v.string(),
+  done: v.boolean(),
+});
+
+export const setChecklist = mutation({
+  args: {
+    id: v.id("trips"),
+    items: v.array(checklistItemValidator),
+  },
+  handler: async (ctx, { id, items }) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+    const trip = await ctx.db.get(id);
+    if (!trip || trip.userId !== userId) throw new Error("Not found");
+    // Hard cap to prevent abuse.
+    if (items.length > 200) throw new Error("Too many items");
+    await ctx.db.patch(id, { checklist: items });
+  },
+});
+
+export const enableSharing = mutation({
+  args: { id: v.id("trips") },
+  handler: async (ctx, { id }) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+    const trip = await ctx.db.get(id);
+    if (!trip || trip.userId !== userId) throw new Error("Not found");
+    if (trip.shareToken) return trip.shareToken;
+    // 16-byte URL-safe token (server-side Math.random is fine here).
+    const token = Array.from({ length: 22 }, () =>
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"[
+        Math.floor(Math.random() * 62)
+      ],
+    ).join("");
+    await ctx.db.patch(id, { shareToken: token });
+    return token;
+  },
+});
+
+export const disableSharing = mutation({
+  args: { id: v.id("trips") },
+  handler: async (ctx, { id }) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+    const trip = await ctx.db.get(id);
+    if (!trip || trip.userId !== userId) throw new Error("Not found");
+    await ctx.db.patch(id, { shareToken: undefined });
+  },
+});
+
+/**
+ * Public, unauthenticated lookup for a shared trip. Returns ONLY the
+ * fields safe to expose (no userId, no notes). Token must be exact.
+ */
+export const getByShareToken = query({
+  args: { token: v.string() },
+  handler: async (ctx, { token }) => {
+    if (!token || token.length < 10) return null;
+    const trip = await ctx.db
+      .query("trips")
+      .withIndex("by_share_token", (q) => q.eq("shareToken", token))
+      .unique();
+    if (!trip) return null;
+    // Resolve referenced DB items so the shared page can render real images
+    // and titles instead of plain text.
+    const ids = new Set<string>();
+    for (const day of trip.itinerary ?? []) {
+      for (const a of day.activities ?? []) {
+        if (a.source === "db" && a.itemId) ids.add(a.itemId);
+      }
+    }
+    const itemMap: Record<
+      string,
+      {
+        image?: string;
+        title?: string;
+        name?: string;
+        slug?: string;
+        shortDesc?: string;
+        url?: string;
+      }
+    > = {};
+    for (const idStr of ids) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const doc = await ctx.db.get(idStr as any);
+        if (doc) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const d = doc as any;
+          itemMap[idStr] = {
+            image: typeof d.image === "string" ? d.image : (typeof d.cover === "string" ? d.cover : undefined),
+            title: typeof d.title === "string" ? d.title : undefined,
+            name: typeof d.name === "string" ? d.name : undefined,
+            slug: typeof d.slug === "string" ? d.slug : undefined,
+            shortDesc: typeof d.shortDesc === "string" ? d.shortDesc : (typeof d.excerpt === "string" ? d.excerpt : undefined),
+            url: typeof d.url === "string" ? d.url : (typeof d.affiliateUrl === "string" ? d.affiliateUrl : undefined),
+          };
+        }
+      } catch {
+        /* skip invalid */
+      }
+    }
+    return {
+      _id: trip._id,
+      title: trip.title,
+      destination: trip.destination,
+      lat: trip.lat,
+      lng: trip.lng,
+      type: trip.type,
+      duration: trip.duration,
+      groupSize: trip.groupSize,
+      budget: trip.budget,
+      startDate: trip.startDate,
+      status: trip.status,
+      itinerary: trip.itinerary ?? [],
+      weatherSnapshot: trip.weatherSnapshot,
+      items: itemMap,
+    };
+  },
+});
+
 const activityShape = v.object({
   source: v.string(),
   kind: v.string(),
@@ -259,7 +410,25 @@ const activityShape = v.object({
   osmLng: v.optional(v.number()),
   osmAddress: v.optional(v.string()),
   osmWebsite: v.optional(v.string()),
+  addedBy: v.optional(v.string()),
 });
+
+/**
+ * Returns the trip if the current user has edit permission (owner OR
+ * collaborator with role="edit"). View-only collaborators are rejected.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function loadEditable(ctx: any, tripId: string): Promise<{ trip: any; userId: string }> {
+  const userId = await getAuthUserId(ctx);
+  if (!userId) throw new Error("Unauthorized");
+  const trip = await ctx.db.get(tripId);
+  if (!trip) throw new Error("Not found");
+  if (trip.userId === userId) return { trip, userId };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const collab = (trip.collaborators ?? []).find((c: any) => c.userId === userId);
+  if (collab && collab.role === "edit") return { trip, userId };
+  throw new Error("Sem permissão para editar essa viagem.");
+}
 
 /** Append a new activity to a specific day in the trip itinerary. */
 export const addActivity = mutation({
@@ -269,18 +438,20 @@ export const addActivity = mutation({
     activity: activityShape,
   },
   handler: async (ctx, { tripId, day, activity }) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Unauthorized");
-    const trip = await ctx.db.get(tripId);
-    if (!trip || trip.userId !== userId) throw new Error("Not found");
-    const itinerary = (trip.itinerary ?? []).map((d) => ({ ...d }));
-    let target = itinerary.find((d) => d.day === day);
+    const { trip, userId } = await loadEditable(ctx, tripId);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const itinerary: any[] = (trip.itinerary ?? []).map((d: any) => ({ ...d }));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let target = itinerary.find((d: any) => d.day === day);
     if (!target) {
       target = { day, theme: "", activities: [] };
       itinerary.push(target);
     }
-    target.activities = [...target.activities, activity];
-    itinerary.sort((a, b) => a.day - b.day);
+    // Stamp who added this activity so the UI can render an avatar.
+    const stamped = { ...activity, addedBy: activity.addedBy ?? userId };
+    target.activities = [...target.activities, stamped];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    itinerary.sort((a: any, b: any) => a.day - b.day);
     await ctx.db.patch(tripId, { itinerary });
     return null;
   },
@@ -294,15 +465,14 @@ export const removeActivity = mutation({
     index: v.number(),
   },
   handler: async (ctx, { tripId, day, index }) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Unauthorized");
-    const trip = await ctx.db.get(tripId);
-    if (!trip || trip.userId !== userId) throw new Error("Not found");
-    const itinerary = (trip.itinerary ?? []).map((d) => ({
+    const { trip } = await loadEditable(ctx, tripId);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const itinerary: any[] = (trip.itinerary ?? []).map((d: any) => ({
       ...d,
       activities: [...d.activities],
     }));
-    const target = itinerary.find((d) => d.day === day);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const target = itinerary.find((d: any) => d.day === day);
     if (!target) return null;
     target.activities.splice(index, 1);
     await ctx.db.patch(tripId, { itinerary });
@@ -318,12 +488,11 @@ export const reorderActivities = mutation({
     activities: v.array(activityShape),
   },
   handler: async (ctx, { tripId, day, activities }) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Unauthorized");
-    const trip = await ctx.db.get(tripId);
-    if (!trip || trip.userId !== userId) throw new Error("Not found");
-    const itinerary = (trip.itinerary ?? []).map((d) => ({ ...d }));
-    const target = itinerary.find((d) => d.day === day);
+    const { trip } = await loadEditable(ctx, tripId);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const itinerary: any[] = (trip.itinerary ?? []).map((d: any) => ({ ...d }));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const target = itinerary.find((d: any) => d.day === day);
     if (!target) return null;
     target.activities = activities;
     await ctx.db.patch(tripId, { itinerary });
@@ -340,15 +509,15 @@ export const setActivityTime = mutation({
     time: v.string(),
   },
   handler: async (ctx, { tripId, day, index, time }) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Unauthorized");
-    const trip = await ctx.db.get(tripId);
-    if (!trip || trip.userId !== userId) throw new Error("Not found");
-    const itinerary = (trip.itinerary ?? []).map((d) => ({
+    const { trip } = await loadEditable(ctx, tripId);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const itinerary: any[] = (trip.itinerary ?? []).map((d: any) => ({
       ...d,
-      activities: d.activities.map((a) => ({ ...a })),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      activities: d.activities.map((a: any) => ({ ...a })),
     }));
-    const target = itinerary.find((d) => d.day === day);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const target = itinerary.find((d: any) => d.day === day);
     if (!target || !target.activities[index]) return null;
     if (time) target.activities[index].time = time;
     else delete target.activities[index].time;

@@ -77,7 +77,7 @@ export function BottomNav() {
     };
   }, []);
 
-  if (pathname.startsWith("/minha-viagem/criar")) return null;
+  if (pathname.startsWith("/minha-viagem/")) return null;
   if (pathname.startsWith("/admin")) return null;
   if (pathname === "/offline") return null;
   // Hide on detail pages (they have a back button in the hero).

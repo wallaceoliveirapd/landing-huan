@@ -51,6 +51,28 @@ body {
   font-variation-settings: "wdth" 100;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Clip horizontal overflow caused by bleed carousels (HorizontalCarousel
+     uses negative margin to peek past container) so the page itself
+     never scrolls sideways. `clip` (not `hidden`) keeps inner overflow-x
+     carousels swipe-able on iOS — `hidden` creates a scroll context that
+     swallows touch gestures meant for the inner element. */
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+/* Flex column children (main + body) default to min-width: auto and
+   align-items: stretch which together let wide content (e.g. a
+   HorizontalCarousel) push the column past the viewport. Force
+   min-width: 0 + max-width on the viewport so children stay constrained
+   and the carousel's own overflow-x: auto takes over for the scroll. */
+body > main,
+body > main > *,
+body > main > * > *,
+body > main > * > * > * {
+  min-width: 0;
+}
+body > main > * {
+  max-width: 100vw;
 }
 
 /* Block pinch-zoom + double-tap zoom across browsers + PWA.

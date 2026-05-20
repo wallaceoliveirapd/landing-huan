@@ -8,7 +8,11 @@ export const metadata: Metadata = {
   description:
     "Os melhores bares, clubs e opções de vida noturna no Nordeste, curados por Huan Falcão. Do forró ao cocktail bar.",
   alternates: { canonical: "https://huanfalcao.com.br/vida-noturna" },
-  openGraph: { url: "https://huanfalcao.com.br/vida-noturna", type: "website" },
+  openGraph: {
+    url: "https://huanfalcao.com.br/vida-noturna",
+    type: "website",
+    images: [{ url: "/images/meta/img-meta.png", width: 1200, height: 630, alt: "NordestAI - By Huan Falcão" }],
+  },
 };
 
 export default function VidaNoturnaPage() {

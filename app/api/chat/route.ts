@@ -93,8 +93,11 @@ CIDADES:
 - Se ele perguntar sobre cidade que o sistema marcou como "sem conteúdo", seja honesto: "ainda não tenho conteúdo de X cadastrado, mas posso te ajudar com dicas gerais."
 
 RELEVÂNCIA SEMÂNTICA (crítico):
-- "passeio de barco" significa marítimo. NUNCA apresente City Tour ou caminhada como passeio de barco. Se cards aproximados aparecerem, diga claramente "não achei passeio de barco exato, mas separei o mais próximo".
+- "passeio de barco" = marítimo. NUNCA apresente City Tour como barco. Se contexto disser "APROXIMADO": diga "não achei [X] cadastrado, mas o mais próximo que tenho é [Y]."
+- "tour pela cidade" / "city tour" / "pontos turísticos" = tour cultural/urbano. NUNCA retorne passeio marítimo como city tour.
 - "frutos do mar" = restaurante de peixe/camarão. "balada" = casa noturna. Respeite a intenção.
+- Se contexto disser "AVISO: único disponível": diga "só tenho [X] cadastrado em [cidade] por enquanto, mas é uma boa pedida."
+- NUNCA apresente um resultado aproximado como se fosse exatamente o que o usuário pediu.
 
 FERRAMENTAS:
 - buscar_conteudo: passeios/restaurantes/praias/vida noturna/dicas/cupons/hospedagem.
@@ -123,6 +126,8 @@ type SearchResult = {
   items: Record<string, unknown>[];
   /** True when the result came from the near-miss fallback (no strict hit). */
   partial: boolean;
+  /** True when the query had no specific tokens (browse, not a targeted search). */
+  wasGenericBrowse?: boolean;
 };
 
 function shuffle<T>(arr: T[]): T[] {
@@ -134,12 +139,98 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+// ─── Synonym map for query expansion ─────────────────────────────────────
+const SYNONYMS: Record<string, string[]> = {
+  // city / cultural tour — inject specific tokens so chatSearch won't treat as browse
+  "tour por": ["cultural", "historico", "urbano", "centro", "patrimonio"],
+  "tour pela cidade": ["cultural", "historico", "urbano", "centro", "pontos"],
+  "city tour": ["cultural", "historico", "urbano", "tour-cultural", "centro"],
+  "pontos turisticos": ["cultural", "historico", "monumento", "patrimonio", "centro"],
+  "pontos turísticos": ["cultural", "historico", "monumento", "patrimonio", "centro"],
+  "centro historico": ["cultural", "historico", "colonial", "patrimonio", "monumento"],
+  "centro histórico": ["cultural", "historico", "colonial", "patrimonio", "monumento"],
+  "tour cultural": ["historico", "cultural", "monumento", "patrimonio", "centro"],
+  barco: ["catamara", "lancha", "veleiro", "jangada", "escuna", "embarcacao", "maritimo"],
+  catamara: ["barco", "lancha", "veleiro", "escuna"],
+  lancha: ["barco", "catamara", "iate", "voadeira"],
+  veleiro: ["barco", "velejar", "catamara"],
+  jangada: ["barco", "jangadeiro", "vela"],
+  comer: ["restaurante", "comida", "gastronomia", "almoco", "jantar", "frutos do mar"],
+  comida: ["restaurante", "culinaria", "gastronomia", "refeicao"],
+  restaurante: ["comer", "comida", "gastronomia", "quiosque", "bar de praia"],
+  gastronomia: ["culinaria", "restaurante", "cardapio", "cozinha nordestina"],
+  "frutos do mar": ["peixe", "camarao", "lagosta", "caranguejo", "moqueca", "marisco"],
+  "culinaria local": ["tapioca", "acaraje", "cuscuz", "carne de sol", "baiao de dois"],
+  noite: ["bar", "balada", "show", "vida noturna", "luau", "musica ao vivo", "festa"],
+  bar: ["boteco", "pub", "quiosque", "drinks", "cerveja", "botequim"],
+  balada: ["festa", "night", "noite", "vida noturna", "luau"],
+  show: ["musica ao vivo", "concerto", "forro", "reggae", "banda", "axe", "samba"],
+  hospedagem: ["hotel", "pousada", "airbnb", "hostel", "resort", "chale", "onde ficar"],
+  hotel: ["pousada", "hospedagem", "resort", "estadia"],
+  pousada: ["hotel", "hospedagem", "chale", "estalagem"],
+  resort: ["hotel", "all inclusive", "hospedagem de luxo", "spa"],
+  cupom: ["desconto", "oferta", "promocao", "voucher", "off"],
+  desconto: ["cupom", "oferta", "promocao", "barato"],
+  promocao: ["cupom", "desconto", "oferta", "especial"],
+  buggy: ["dunas", "areia", "4x4", "aventura", "bugueiro"],
+  trilha: ["ecologica", "natureza", "caminhada", "trekking", "hiking", "ecoturismo"],
+  mergulho: ["snorkel", "scuba", "subaquatico", "corais", "recifes", "apneia"],
+  snorkel: ["mergulho", "aguas cristalinas", "piscinas naturais", "peixes"],
+  surf: ["prancha", "ondas", "bodyboard", "surfista"],
+  kitesurf: ["kite", "windsurf", "vento", "prancha a vela", "kiteboard"],
+  "stand up paddle": ["sup", "remar", "caiaque", "paddleboard"],
+  "mar calmo": ["mar manso", "piscina", "lagoa", "aguas calmas", "piscininha"],
+  "mar aberto": ["ondas", "surf", "mar bravo", "ondas fortes"],
+  "aguas cristalinas": ["agua limpa", "transparente", "azul turquesa", "caribe"],
+  "praia deserta": ["isolada", "selvagem", "vazia", "pouca gente", "sossego"],
+  falesias: ["paredoes", "barreiras", "areias coloridas", "rochas"],
+  dunas: ["montanhas de areia", "areia branca", "bugg", "lencois"],
+  sossego: ["paz", "tranquilidade", "relaxar", "descanso", "calmo"],
+  badalada: ["vibrante", "movimentada", "agitada", "popular", "famosa"],
+  "por do sol": ["entardecer", "sunset", "crepusculo", "golden hour"],
+  instagramavel: ["fotos", "fotografia", "vista", "mirante", "cartao postal"],
+  acessivel: ["rampa", "cadeirante", "acessibilidade", "passarela"],
+  petfriendly: ["cachorro", "pet", "animal de estimacao"],
+  // cidades e praias
+  natal: ["ponta negra", "morro do careca", "via costeira", "natal rn"],
+  pipa: ["praia da pipa", "tibau do sul", "madeiro", "baia dos golfinhos"],
+  fortaleza: ["praia do futuro", "meireles", "iracema", "mucuripe"],
+  jericoacoara: ["jeri", "lagoa do paraiso", "pedra furada", "prea"],
+  "canoa quebrada": ["canoa", "aracati", "falesias canoa"],
+  maragogi: ["antunes", "barra grande", "gales"],
+  "porto de galinhas": ["ipojuca", "maracaipe", "muro alto", "cupe"],
+  "fernando de noronha": ["noronha", "sancho", "baia do sancho", "cacimba do padre"],
+  trancoso: ["quadrado", "praia dos coqueiros", "espelho"],
+  "porto seguro": ["arraial d ajuda", "taperapuan", "mucuge"],
+  salvador: ["porto da barra", "stella maris", "farol da barra", "itapua"],
+  recife: ["boa viagem", "pina", "piedade"],
+  maceio: ["pajucara", "ponta verde", "jatiuca", "ipioca"],
+  aracaju: ["atalaia", "aruana", "mosqueiro"],
+  "sao luis": ["calhau", "ponta d areia", "litoranea"],
+};
+
+function expandWithSynonyms(query: string): string {
+  if (!query.trim()) return query;
+  const nq = query.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  const extra: string[] = [];
+  for (const [key, syns] of Object.entries(SYNONYMS)) {
+    const nk = key.replace(/-/g, " ");
+    if (nq.includes(nk)) {
+      extra.push(...syns.slice(0, 4));
+    }
+  }
+  if (extra.length === 0) return query;
+  const unique = [...new Set(extra)].filter((s) => !nq.includes(s));
+  return unique.length > 0 ? `${query} ${unique.join(" ")}` : query;
+}
+
 // ─── Shared tool executor (no streaming) ──────────────────────────────────
 async function callTool(
   name: string,
   args: Record<string, string>,
   convexUrl: string,
   city?: string,
+  excludeIds?: string[],
 ): Promise<SearchResult> {
   try {
     if (name === "listar_lugares_para_roteiro") {
@@ -171,11 +262,26 @@ async function callTool(
       cleanQuery = cleanQuery.replace(/\s+/g, " ").trim();
     }
 
-    const primary = (await fetchQuery(
+    const expandedQuery = expandWithSynonyms(cleanQuery);
+    const wasGenericBrowse = !cleanQuery.trim();
+
+    let primary = (await fetchQuery(
       api.chatSearch.search,
-      { q: cleanQuery, type: searchType, city },
+      { q: expandedQuery, type: searchType, city, excludeIds },
       { url: convexUrl },
     )) as SearchResult;
+
+    // If dedup wiped the results AND we did exclude items, retry without dedup
+    // so the user gets a valid answer (even if showing a previously-seen card).
+    // Saying "nothing" when matching content exists is worse than a repeat.
+    if (primary.items.length === 0 && excludeIds && excludeIds.length > 0) {
+      const retry = (await fetchQuery(
+        api.chatSearch.search,
+        { q: expandedQuery, type: searchType, city },
+        { url: convexUrl },
+      )) as SearchResult;
+      if (retry.items.length > 0) primary = retry;
+    }
 
     if (primary.items.length === 0 && searchType !== "any") {
       // Last-resort browse within the same category + city, returns the
@@ -186,12 +292,15 @@ async function callTool(
         { url: convexUrl },
       )) as SearchResult;
       // Shuffle so repeated generic queries show different items.
-      return { items: shuffle(browse.items), partial: browse.items.length > 0 };
+      return { items: shuffle(browse.items), partial: browse.items.length > 0, wasGenericBrowse: true };
     }
 
-    // Shuffle the scored pool so repeated similar queries show variety
-    // while still surfacing only relevant items (Convex already ranked by score).
-    return { items: shuffle(primary.items), partial: primary.partial };
+    // Keep score order for specific queries so best match is always first.
+    // Only shuffle for browse (empty query) to give variety on generic asks.
+    const ordered = cleanQuery.trim()
+      ? primary.items
+      : shuffle(primary.items);
+    return { items: ordered, partial: primary.partial, wasGenericBrowse };
   } catch (err) {
     console.error(`Tool ${name} error:`, err);
     return { items: [], partial: false };
@@ -240,6 +349,7 @@ async function runGemini(
   messages: MsgInput[],
   convexUrl: string,
   city?: string,
+  excludeIds?: string[],
 ): Promise<AgentResult> {
   const model = genAI.getGenerativeModel({
     model: modelId,
@@ -247,13 +357,16 @@ async function runGemini(
     generationConfig: { maxOutputTokens: 1200, temperature: 0.75 },
   });
 
-  const history: Content[] = messages
+  // Gemini requires the first content to be from the user. Drop any leading
+  // assistant messages (e.g. the initial welcome greeting) before mapping.
+  const filtered = messages
     .slice(0, -1)
-    .filter((m) => m.role === "user" || m.role === "assistant")
-    .map((m) => ({
-      role: m.role === "assistant" ? "model" : "user",
-      parts: [{ text: m.content }],
-    }));
+    .filter((m) => m.role === "user" || m.role === "assistant");
+  while (filtered.length > 0 && filtered[0].role !== "user") filtered.shift();
+  const history: Content[] = filtered.map((m) => ({
+    role: m.role === "assistant" ? "model" : "user",
+    parts: [{ text: m.content }],
+  }));
 
   const lastUserMsg = messages[messages.length - 1]?.content ?? "";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -279,6 +392,7 @@ async function runGemini(
           fc.args as Record<string, string>,
           convexUrl,
           city,
+          excludeIds,
         );
         const limit = fc.name === "listar_lugares_para_roteiro" ? 12 : 8;
         cards.push(...results.slice(0, limit));
@@ -305,7 +419,7 @@ async function runGemini(
     if (leaked.length > 0 && turn < 3) {
       const fnResponses: Part[] = [];
       for (const call of leaked) {
-        const { items: results } = await callTool(call.name, call.args, convexUrl, city);
+        const { items: results } = await callTool(call.name, call.args, convexUrl, city, excludeIds);
         const limit = call.name === "listar_lugares_para_roteiro" ? 12 : 8;
         cards.push(...results.slice(0, limit));
         fnResponses.push({
@@ -369,6 +483,7 @@ async function runGroq(
   messages: MsgInput[],
   convexUrl: string,
   city?: string,
+  excludeIds?: string[],
 ): Promise<AgentResult> {
   const groqMessages: GroqMsg[] = [
     { role: "system", content: SYSTEM_PROMPT },
@@ -403,7 +518,7 @@ async function runGroq(
         let args: Record<string, string> = {};
         try { args = JSON.parse(tc.function.arguments); } catch { /* ignore */ }
 
-        const { items: results } = await callTool(tc.function.name, args, convexUrl, city);
+        const { items: results } = await callTool(tc.function.name, args, convexUrl, city, excludeIds);
         const limit = tc.function.name === "listar_lugares_para_roteiro" ? 12 : 8;
         cards.push(...results.slice(0, limit));
 
@@ -426,7 +541,7 @@ async function runGroq(
     if (leaked.length > 0 && turn < 3) {
       groqMessages.push({ role: "assistant", content: text } as GroqMsg);
       for (const call of leaked) {
-        const { items: results } = await callTool(call.name, call.args, convexUrl, city);
+        const { items: results } = await callTool(call.name, call.args, convexUrl, city, excludeIds);
         const limit = call.name === "listar_lugares_para_roteiro" ? 12 : 8;
         cards.push(...results.slice(0, limit));
         groqMessages.push({
@@ -504,7 +619,11 @@ type IntentRule = {
 const INTENT_RULES: IntentRule[] = [
   {
     type: "tour",
-    strong: ["passeio de barco", "passeio de catamara", "passeio de lancha", "passeio de buggy"],
+    strong: [
+      "passeio de barco", "passeio de catamara", "passeio de lancha", "passeio de buggy",
+      "tour pela cidade", "city tour", "pontos turisticos", "pontos turísticos",
+      "centro historico", "centro histórico", "tour cultural", "tour por",
+    ],
     weak: [
       "passeio", "passeios", "tour", "tours", "barco", "catamara", "catamarã",
       "lancha", "veleiro", "buggy", "trilha", "kitesurf", "windsurf",
@@ -559,6 +678,42 @@ const INTENT_RULES: IntentRule[] = [
   },
 ];
 
+// ─── Quantity detection per intent type ───────────────────────────────────────
+const NUM_MAP: [RegExp, number][] = [
+  [/\b(um|uma|1)\b/, 1],
+  [/\b(dois|duas|2)\b/, 2],
+  [/\b(tr[eê]s|3)\b/, 3],
+  [/\b(quatro|4)\b/, 4],
+  [/\b(cinco|5)\b/, 5],
+  [/\b(seis|6)\b/, 6],
+  [/\b(sete|7)\b/, 7],
+  [/\b(oito|8)\b/, 8],
+];
+
+const TYPE_KEYWORDS: Partial<Record<SearchType, string[]>> = {
+  tour: ["passeio", "tour", "passeios", "tours", "atividade", "atividades"],
+  praia: ["praia", "praias"],
+  restaurant: ["restaurante", "restaurantes", "comida", "lugar pra comer"],
+  nightlife: ["balada", "noturna", "show", "boate"],
+  hosting: ["hospedagem", "hotel", "hoteis", "pousada"],
+  coupon: ["cupom", "cupons", "desconto"],
+  dica: ["dica", "dicas"],
+};
+
+function detectIntentQuantity(text: string, type: SearchType): number {
+  const n = stripAccents(text);
+  const keywords = TYPE_KEYWORDS[type] ?? [];
+  for (const kw of keywords) {
+    const idx = n.indexOf(stripAccents(kw));
+    if (idx === -1) continue;
+    const context = n.substring(Math.max(0, idx - 35), idx + kw.length + 15);
+    for (const [re, num] of NUM_MAP) {
+      if (re.test(context)) return num;
+    }
+  }
+  return 8; // unspecified → default max
+}
+
 const stripAccents = (s: string) =>
   s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
@@ -567,15 +722,15 @@ const stripAccents = (s: string) =>
 // interested in. If they ask "passeio de barco" without context, we reply
 // with a question first.
 const CITY_NICKNAMES: { city: string; aliases: string[] }[] = [
-  { city: "João Pessoa", aliases: ["joao pessoa", "joão pessoa", "jampa", "jpa", "paraiba", "paraíba"] },
-  { city: "Recife", aliases: ["recife", "pernambuco"] },
+  { city: "João Pessoa", aliases: ["joao pessoa", "joão pessoa", "jampa", "jpa", "jp", "paraiba", "paraíba", "pb"] },
+  { city: "Recife", aliases: ["recife", "pernambuco", "pe"] },
   { city: "Olinda", aliases: ["olinda"] },
-  { city: "Fortaleza", aliases: ["fortaleza", "forta", "ceara", "ceará"] },
-  { city: "Salvador", aliases: ["salvador", "soterópolis", "soteropolis", "bahia"] },
-  { city: "Natal", aliases: ["natal", "rio grande do norte"] },
-  { city: "Maceió", aliases: ["maceio", "maceió", "alagoas"] },
-  { city: "Aracaju", aliases: ["aracaju", "sergipe"] },
-  { city: "São Luís", aliases: ["sao luis", "são luís", "maranhao", "maranhão"] },
+  { city: "Fortaleza", aliases: ["fortaleza", "forta", "ceara", "ceará", "ce"] },
+  { city: "Salvador", aliases: ["salvador", "soterópolis", "soteropolis", "bahia", "ba"] },
+  { city: "Natal", aliases: ["natal", "rio grande do norte", "rn"] },
+  { city: "Maceió", aliases: ["maceio", "maceió", "alagoas", "al"] },
+  { city: "Aracaju", aliases: ["aracaju", "sergipe", "se"] },
+  { city: "São Luís", aliases: ["sao luis", "são luís", "maranhao", "maranhão", "ma"] },
   { city: "Teresina", aliases: ["teresina", "piaui", "piauí"] },
   { city: "Fernando de Noronha", aliases: ["noronha", "fernando de noronha"] },
   { city: "Porto de Galinhas", aliases: ["porto de galinhas"] },
@@ -614,13 +769,16 @@ function findCityInText(text: string): string | null {
 }
 
 /**
- * Looks back through the whole conversation (latest first) for any mention
- * of a Northeast city. Returns the display name or null.
+ * Looks back through the last 8 messages for a Northeast city, but ONLY in
+ * user messages — never in assistant text. This prevents the bot's own
+ * city-mention ("separei o mais próximo que tenho em Natal") from ghosting
+ * that city into the next unrelated query.
  */
 function detectActiveCity(messages: MsgInput[]): string | null {
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const m = messages[i];
-    if (m.role !== "user" && m.role !== "assistant") continue;
+  const window = messages.slice(-4); // 2 turns; older city context is stale
+  for (let i = window.length - 1; i >= 0; i--) {
+    const m = window[i];
+    if (m.role !== "user") continue; // only user messages carry city intent
     const city = findCityInText(m.content);
     if (city) return city;
   }
@@ -677,7 +835,7 @@ function detectSearchIntents(
 
 // ─── Route handler ─────────────────────────────────────────────────────────
 export async function POST(req: Request) {
-  const { messages: rawMessages }: { messages: MsgInput[] } = await req.json();
+  const { messages: rawMessages, shownCardIds = [] }: { messages: MsgInput[]; shownCardIds?: string[] } = await req.json();
   const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL!;
 
   // Defensive: scrub any prior assistant turns that may have leaked
@@ -753,6 +911,7 @@ export async function POST(req: Request) {
   const preSearchCards: Record<string, unknown>[] = [];
   let cityHasContent = false;
   let anyPartial = false;
+  let anyGenericBrowseWithFewResults = false;
   if (activeCity) {
     try {
       cityHasContent = (await fetchQuery(
@@ -764,16 +923,23 @@ export async function POST(req: Request) {
       console.warn("[chat] cityHasContent failed:", err);
     }
   }
+  const requestedCounts: Partial<Record<SearchType, number>> = {};
   if (cityHasContent && activeCity) {
     for (const { type, query } of intents) {
+      const limit = detectIntentQuantity(lastUserMsg, type);
+      requestedCounts[type] = limit;
       const r = await callTool(
         "buscar_conteudo",
         { tipo: type, query },
         convexUrl,
         activeCity,
+        shownCardIds,
       );
-      preSearchCards.push(...r.items.slice(0, 8));
+      preSearchCards.push(...r.items.slice(0, limit));
       if (r.partial && r.items.length > 0) anyPartial = true;
+      if (r.wasGenericBrowse && r.items.length <= 1 && r.items.length > 0) {
+        anyGenericBrowseWithFewResults = true;
+      }
     }
   }
 
@@ -800,17 +966,42 @@ export async function POST(req: Request) {
       const parts = Object.entries(byKind)
         .map(([k, t]) => `${k}(${t.length}): ${t.join(" | ")}`)
         .join(" ; ");
+      const requestedKinds = new Set(intents.map((i) => i.type as string));
+      const foundKinds = new Set(preSearchCards.map((c) => String(c.kind ?? "")));
+      const allCategoriesPresent = [...requestedKinds].every((k) => foundKinds.has(k));
+
       if (anyPartial) {
-        // Strict search returned 0, showed nearest-miss items.
-        ctxBits.push(
-          `Cards mostrados (aproximados, não batem exato com o pedido): ${parts}. ` +
-          `Escreva 1 frase honesta: "não achei [pedido exato] cadastrado, mas separei o mais próximo que tenho em ${activeCity}". ` +
-          `Se você tiver termos mais precisos, pode chamar buscar_conteudo uma vez com a query refinada.`,
-        );
+        if (!allCategoriesPresent) {
+          // Category completely absent — be honest.
+          const missingKinds = [...requestedKinds].filter((k) => !foundKinds.has(k)).join(", ");
+          ctxBits.push(
+            `Cards mostrados (aproximados): ${parts}. ` +
+            `Categorias pedidas mas não encontradas: ${missingKinds}. ` +
+            `Escreva 1 frase honesta: "não achei [pedido exato] cadastrado, mas separei o mais próximo que tenho em ${activeCity}".`,
+          );
+        } else {
+          // Has results but they are nearMiss (approximate) — warn LLM.
+          ctxBits.push(
+            `Cards mostrados (APROXIMADOS, não é match exato do pedido): ${parts}. ` +
+            `A busca não encontrou correspondência precisa — estes são os mais parecidos disponíveis. ` +
+            `Diga 1 frase honesta: "não achei [pedido exato] cadastrado em ${activeCity}, mas o mais parecido que tenho é [nome do card]." ` +
+            `NÃO chame buscar_conteudo de novo.`,
+          );
+        }
       } else {
+        const countNote = Object.entries(requestedCounts)
+          .filter(([, n]) => n < 8)
+          .map(([k, n]) => `${n} ${k}`)
+          .join(", ");
+        // Fix 2: if browse returned only 1 item, tell LLM it's the only one available.
+        const singleItemNote = anyGenericBrowseWithFewResults
+          ? `AVISO: único resultado disponível (não há mais opções cadastradas). Avise em 1 frase que "só tenho este por enquanto". `
+          : "";
         ctxBits.push(
           `Cards mostrados ao usuário: ${parts}. ` +
-          `Escreva apenas 1 frase curta de apresentação. Se o usuário pediu um número específico e os cards mostrados são menos, diga honestamente quantos encontrou (ex: "só encontrei 2 praias de ${activeCity} cadastradas"). Caso contrário, não mencione números. NÃO descreva os cards individualmente. NÃO chame buscar_conteudo de novo.`,
+          (countNote ? `Usuário pediu exatamente: ${countNote} — os cards já respeitam isso. ` : "") +
+          singleItemNote +
+          `Escreva apenas 1 frase curta de apresentação. NÃO mencione cidade no texto — os cards já têm essa informação. NÃO descreva os cards individualmente. NÃO chame buscar_conteudo de novo.`,
         );
       }
     } else if (intents.length > 0 && cityHasContent) {
@@ -856,9 +1047,9 @@ export async function POST(req: Request) {
         try {
           console.log(`[chat] trying ${provider}/${id}`);
           if (provider === "gemini") {
-            result = await runGemini(id, messagesWithHint, convexUrl, activeCity ?? undefined);
+            result = await runGemini(id, messagesWithHint, convexUrl, activeCity ?? undefined, shownCardIds);
           } else {
-            result = await runGroq(id, messagesWithHint, convexUrl, activeCity ?? undefined);
+            result = await runGroq(id, messagesWithHint, convexUrl, activeCity ?? undefined, shownCardIds);
           }
           console.log(`[chat] success with ${provider}/${id}`);
           break;

@@ -182,8 +182,8 @@ export function TripWeatherCard({ tripId, startDate, snapshot }: Props) {
         <div className="flex items-center justify-between gap-3 px-4 pt-4 pb-3">
           <div className="flex items-center gap-3 min-w-0">
             {headline && (
-              <div className="grid size-11 place-items-center rounded-full bg-[var(--color-brand-yellow)] shrink-0">
-                <Icon name={headline.icon} size={22} className="text-[var(--color-neutral-800)]" />
+              <div className="grid size-11 place-items-center rounded-full bg-[var(--color-neutral-100)] shrink-0">
+                <Icon name={headline.icon} size={22} className="text-[var(--color-neutral-600)]" />
               </div>
             )}
             <div className="min-w-0">
@@ -196,11 +196,10 @@ export function TripWeatherCard({ tripId, startDate, snapshot }: Props) {
             </div>
           </div>
           <span
-            className={`text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 ${
-              isForecast
-                ? "bg-emerald-50 text-emerald-700"
-                : "bg-[var(--color-neutral-100)] text-[var(--color-neutral-700)]"
-            }`}
+            className={`text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 ${isForecast
+              ? "bg-emerald-50 text-emerald-700"
+              : "bg-[var(--color-neutral-100)] text-[var(--color-neutral-700)]"
+              }`}
           >
             {isForecast ? "Tempo real" : "Histórico 3 anos"}
           </span>

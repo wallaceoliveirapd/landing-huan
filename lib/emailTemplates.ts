@@ -428,6 +428,82 @@ export function tripWeatherUpdateEmail({
   };
 }
 
+export function tripInviteExistingEmail({
+  inviterName,
+  tripTitle,
+  destination,
+  acceptUrl,
+  role,
+}: {
+  inviterName: string;
+  tripTitle: string;
+  destination: string;
+  acceptUrl: string;
+  role: "edit" | "view";
+}) {
+  const inviter = firstNameOf(inviterName) || inviterName;
+  const perm =
+    role === "edit"
+      ? "Você pode editar o roteiro junto."
+      : "Você poderá ver tudo (sem editar).";
+  return {
+    subject: `${inviter} te chamou pra viajar pra ${destination}`,
+    html: baseLayout({
+      title: "Convite de viagem",
+      preview: `${inviter} te convidou pra colaborar em ${tripTitle}.`,
+      body: `
+        ${titleHtml(`${inviter} te chamou pra viajar`)}
+        ${paraHtml(`<strong>${inviter}</strong> tá montando uma viagem pra <strong>${destination}</strong> e quer você junto. ${perm}`)}
+        ${infoBoxHtml("Viagem", tripTitle)}
+        ${btnHtml("Ver convite", acceptUrl)}
+        ${paraHtml("Se você não conhece quem te convidou, é só ignorar este email.", `color:${C.muted};font-size:13px;`)}
+      `,
+      footerNote: `Você recebeu este email porque ${inviter} te convidou pra colaborar numa viagem no huanfalcao.com.br.`,
+    }),
+  };
+}
+
+export function tripInviteNewUserEmail({
+  inviterName,
+  tripTitle,
+  destination,
+  acceptUrl,
+  role,
+}: {
+  inviterName: string;
+  tripTitle: string;
+  destination: string;
+  acceptUrl: string;
+  role: "edit" | "view";
+}) {
+  const inviter = firstNameOf(inviterName) || inviterName;
+  const perm =
+    role === "edit"
+      ? "Vocês vão poder editar o roteiro juntos."
+      : "Você vai conseguir acompanhar todo o roteiro.";
+  return {
+    subject: `${inviter} te chamou pra viajar pra ${destination}`,
+    html: baseLayout({
+      title: "Convite de viagem",
+      preview: `${inviter} quer planejar ${destination} com você.`,
+      body: `
+        ${titleHtml(`${inviter} quer viajar com você`)}
+        ${paraHtml(`<strong>${inviter}</strong> tá organizando uma viagem pra <strong>${destination}</strong> e te chamou pra ir junto. ${perm}`)}
+        ${infoBoxHtml("Viagem", tripTitle)}
+        ${paraHtml("Aqui no huanfalcao.com.br a gente monta roteiros do Nordeste com IA + lugares que eu testei pessoalmente. Crie sua conta gratuita usando este email pra aceitar o convite:")}
+        ${btnHtml("Criar conta e aceitar", acceptUrl)}
+        ${benefitHtml("🗺️", "Roteiro montado pra você", "Cada minuto da viagem organizado, sem chat solto.")}
+        ${dividerHtml()}
+        ${benefitHtml("🏖️", "Lugares testados por mim", "Passeios, restaurantes e praias curados pessoalmente.")}
+        ${dividerHtml()}
+        ${benefitHtml("🎫", "Cupons exclusivos", "Descontos negociados com parceiros locais.")}
+        ${paraHtml("Se você não conhece quem te convidou, pode ignorar este email — nada vai ser criado pra você.", `color:${C.muted};font-size:13px;`)}
+      `,
+      footerNote: `Você recebeu este email porque ${inviter} te convidou pra planejar uma viagem no huanfalcao.com.br.`,
+    }),
+  };
+}
+
 export function tripChecklistEmail({
   name,
   tripTitle,

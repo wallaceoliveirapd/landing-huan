@@ -35,7 +35,11 @@ import { gtmTripViewed } from "@/lib/gtm";
 import { NORDESTE_CITIES } from "@/lib/nordeste-cities";
 import { AddActivitySheet } from "@/components/organisms/AddActivitySheet";
 import { EditTripSheet } from "@/components/organisms/EditTripSheet";
+import { ShareTripSheet } from "@/components/organisms/ShareTripSheet";
+import { CollabInviteSheet } from "@/components/organisms/CollabInviteSheet";
 import { TripWeatherCard } from "@/components/organisms/TripWeatherCard";
+import { TripChecklist } from "@/components/organisms/TripChecklist";
+import { TripTabs } from "@/components/molecules/TripTabs";
 
 /**
  * Some legacy trips were created before lat/lng were captured (or got
@@ -555,6 +559,8 @@ export default function TripDetailPage({
   const [deleting, setDeleting] = useState(false);
   const [addSheetDay, setAddSheetDay] = useState<number | null>(null);
   const [editSheetOpen, setEditSheetOpen] = useState(false);
+  const [shareSheetOpen, setShareSheetOpen] = useState(false);
+  const [collabSheetOpen, setCollabSheetOpen] = useState(false);
 
   useEffect(() => {
     if (!auth.isLoading && !auth.isAuthenticated) auth.openAuthModal();
@@ -630,7 +636,7 @@ export default function TripDetailPage({
     >
       {/* ── Header ─────────────────────────────────────────── */}
       <div
-        className="flex items-center gap-3 px-5 pb-2"
+        className="flex items-center gap-3 px-4 pb-2"
         style={{ paddingTop: "max(env(safe-area-inset-top), 1rem)" }}
       >
         <button
@@ -642,13 +648,29 @@ export default function TripDetailPage({
           <Icon name="arrow-left" size={18} className="text-[var(--color-neutral-800)]" />
         </button>
         <span className="font-display font-medium text-[16px] text-[var(--color-neutral-800)]">
-          Detalhes da viagem
+
         </span>
+        <button
+          type="button"
+          onClick={() => setCollabSheetOpen(true)}
+          aria-label="Convidar para viagem"
+          className="ml-auto grid size-10 place-items-center rounded-full bg-[var(--color-neutral-100)]"
+        >
+          <Icon name="users" size={16} className="text-[var(--color-neutral-800)]" />
+        </button>
+        <button
+          type="button"
+          onClick={() => setShareSheetOpen(true)}
+          aria-label="Compartilhar viagem"
+          className="grid size-10 place-items-center rounded-full bg-[var(--color-neutral-100)]"
+        >
+          <Icon name="share-2" size={16} className="text-[var(--color-neutral-800)]" />
+        </button>
         <button
           type="button"
           onClick={() => setEditSheetOpen(true)}
           aria-label="Editar viagem"
-          className="ml-auto grid size-10 place-items-center rounded-full bg-[var(--color-neutral-100)]"
+          className="grid size-10 place-items-center rounded-full bg-[var(--color-neutral-100)]"
         >
           <Icon name="pencil" size={16} className="text-[var(--color-neutral-800)]" />
         </button>
@@ -663,71 +685,80 @@ export default function TripDetailPage({
         </button>
       </div>
 
-      {/* ── Map preview ────────────────────────────────────── */}
-      <motion.div variants={fadeUp} className="px-5 pt-2">
-        <div className="rounded-[20px] overflow-hidden bg-[var(--color-neutral-100)]">
-          {(() => {
-            const coords = resolveCoords(trip.destination, trip.lat, trip.lng);
-            return (
-              <MapView
-                lat={coords.lat}
-                lng={coords.lng}
-                zoom={11}
-                label={trip.destination.split(",")[0]}
-                staticView
-                className="h-[200px] !rounded-none"
-              />
-            );
-          })()}
-        </div>
-      </motion.div>
+      <TripTabs />
 
-      {/* ── Title + meta ───────────────────────────────────── */}
-      <motion.div variants={fadeUp} className="px-5 pt-5 flex flex-col gap-1.5">
-        <h1 className="font-display font-medium text-[24px] leading-[1.2] text-[var(--color-neutral-800)]">
-          {trip.title}
-        </h1>
-        <p className="text-[13px] text-[var(--color-neutral-600)] inline-flex items-center gap-1.5">
-          <Icon name="map-pin" size={14} className="text-[var(--color-neutral-500)]" />
-          {trip.destination}
-        </p>
-      </motion.div>
+      {/* ── Section: Dados (wraps map+title+pills+weather) ── */}
+      <div id="trip-dados" className="scroll-mt-20">
+        {/* ── Map preview ────────────────────────────────────── */}
+        <motion.div variants={fadeUp} className="px-0 pt-2">
+          <div className="rounded-[0px] overflow-hidden bg-[var(--color-neutral-100)]">
+            {(() => {
+              const coords = resolveCoords(trip.destination, trip.lat, trip.lng);
+              return (
+                <MapView
+                  lat={coords.lat}
+                  lng={coords.lng}
+                  zoom={11}
+                  label={trip.destination.split(",")[0]}
+                  staticView
+                  className="h-[200px] !rounded-none"
+                />
+              );
+            })()}
+          </div>
+        </motion.div>
 
-      {/* ── Quick info pills ───────────────────────────────── */}
-      <motion.div variants={fadeUp} className="px-5 pt-4">
-        <div className="flex flex-wrap gap-2">
-          <InfoPill icon="compass" label={TRIP_TYPE_LABEL[trip.type] ?? trip.type} />
-          <InfoPill
-            icon="calendar-days"
-            label={`${trip.duration ?? 3} ${(trip.duration ?? 3) === 1 ? "dia" : "dias"}`}
-          />
-          <InfoPill
-            icon="users"
-            label={`${trip.groupSize ?? 2} ${(trip.groupSize ?? 2) === 1 ? "pessoa" : "pessoas"}`}
-          />
-          {trip.budget && (
+        {/* ── Title + meta ───────────────────────────────────── */}
+        <motion.div variants={fadeUp} className="px-5 pt-5 flex flex-col gap-1.5">
+          <h1 className="font-display font-medium text-[24px] leading-[1.2] text-[var(--color-neutral-800)]">
+            {trip.title}
+          </h1>
+          <p className="text-[13px] text-[var(--color-neutral-600)] inline-flex items-center gap-1.5">
+            <Icon name="map-pin" size={14} className="text-[var(--color-neutral-500)]" />
+            {trip.destination}
+          </p>
+        </motion.div>
+
+        {/* ── Quick info pills ───────────────────────────────── */}
+        <motion.div variants={fadeUp} className="px-5 pt-4">
+          <div className="flex flex-wrap gap-2">
+            <InfoPill icon="compass" label={TRIP_TYPE_LABEL[trip.type] ?? trip.type} />
             <InfoPill
-              icon="wallet"
-              label={
-                trip.budget === "baixo"
-                  ? "Econômico"
-                  : trip.budget === "alto"
-                    ? "Confortável"
-                    : "Moderado"
-              }
+              icon="calendar-days"
+              label={`${trip.duration ?? 3} ${(trip.duration ?? 3) === 1 ? "dia" : "dias"}`}
             />
-          )}
-        </div>
-      </motion.div>
+            <InfoPill
+              icon="users"
+              label={`${trip.groupSize ?? 2} ${(trip.groupSize ?? 2) === 1 ? "pessoa" : "pessoas"}`}
+            />
+            {trip.budget && (
+              <InfoPill
+                icon="wallet"
+                label={
+                  trip.budget === "baixo"
+                    ? "Econômico"
+                    : trip.budget === "alto"
+                      ? "Confortável"
+                      : "Moderado"
+                }
+              />
+            )}
+          </div>
+        </motion.div>
 
-      <TripWeatherCard
-        tripId={tripId}
-        startDate={trip.startDate}
-        snapshot={trip.weatherSnapshot ?? null}
-      />
+        <TripWeatherCard
+          tripId={tripId}
+          startDate={trip.startDate}
+          snapshot={trip.weatherSnapshot ?? null}
+        />
+      </div>{/* /trip-dados */}
 
-      {/* ── Itinerary section ──────────────────────────────── */}
-      <motion.div variants={fadeUp} className="px-5 pt-8">
+      {/* ── Section: Roteiro ───────────────────────────────── */}
+      <motion.div
+        id="trip-roteiro"
+        variants={fadeUp}
+        className="px-5 pt-8 scroll-mt-20"
+      >
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-display font-medium text-[22px] text-[var(--color-neutral-800)]">
             Seu roteiro
@@ -805,12 +836,39 @@ export default function TripDetailPage({
       <EditTripSheet
         open={editSheetOpen}
         tripId={tripId}
+        initialTitle={trip.title}
+        initialType={trip.type}
         initialDuration={trip.duration ?? 3}
         initialGroupSize={trip.groupSize ?? 2}
         initialBudget={trip.budget ?? "medio"}
         initialStartDate={trip.startDate}
         onClose={() => setEditSheetOpen(false)}
       />
+
+      <ShareTripSheet
+        open={shareSheetOpen}
+        tripId={tripId}
+        onClose={() => setShareSheetOpen(false)}
+      />
+
+      <CollabInviteSheet
+        open={collabSheetOpen}
+        tripId={tripId}
+        onClose={() => setCollabSheetOpen(false)}
+      />
+
+      {/* ── Section: Checklist ─────────────────────────────── */}
+      <motion.div
+        id="trip-checklist"
+        variants={fadeUp}
+        className="px-5 pt-8 scroll-mt-20"
+      >
+        <TripChecklist
+          tripId={tripId}
+          tripType={trip.type}
+          initialItems={trip.checklist}
+        />
+      </motion.div>
 
       {/* ── Notes section ──────────────────────────────────── */}
       {trip.notes && (

@@ -49,7 +49,7 @@ function formatDate(ts: number) {
  */
 function TicketSeparator() {
   return (
-    <div className="w-full h-[30px] relative -my-px">
+    <div className="w-full h-[30px] relative -my-1">
       <svg
         width="100%"
         height="30"
@@ -126,7 +126,7 @@ function CouponSheet({ coupon, onClose }: { coupon: CouponData; onClose: () => v
               </p>
             </div>
 
-            <div className="flex items-center gap-2 rounded-[8px] bg-[var(--color-neutral-100)] pl-3 pr-1 py-1">
+            <div className="flex items-center gap-2 rounded-[8px] bg-[var(--color-neutral-100)] pl-3 pr-1 py-2">
               <p className="flex-1 font-display font-medium text-[14px] text-[var(--color-neutral-800)] tracking-[0.014px]">
                 {coupon.code}
               </p>
@@ -222,7 +222,7 @@ export function CouponCard({ coupon, onSelect }: { coupon: CouponData; onSelect?
 
   return (
     <>
-      <div className="w-[min(90vw,347px)] flex-none flex flex-col select-none">
+      <div className="w-[min(82vw,347px)] flex-none flex flex-col select-none">
         {/* Header */}
         <div className="bg-white border-l border-r border-t border-[var(--color-neutral-300)] rounded-t-[16px] pt-4 pb-1 px-4 flex items-start">
           <div className="flex-1 flex flex-col gap-2 min-w-0">

@@ -8,7 +8,11 @@ export const metadata: Metadata = {
   description:
     "Dicas de viagem, curiosidades e guias sobre o Nordeste brasileiro, escritos por Huan Falcão. Tudo que você precisa saber antes de ir a João Pessoa.",
   alternates: { canonical: "https://huanfalcao.com.br/dicas" },
-  openGraph: { url: "https://huanfalcao.com.br/dicas", type: "website" },
+  openGraph: {
+    url: "https://huanfalcao.com.br/dicas",
+    type: "website",
+    images: [{ url: "/images/meta/img-meta.png", width: 1200, height: 630, alt: "NordestAI - By Huan Falcão" }],
+  },
 };
 
 export default function DicasPage() {

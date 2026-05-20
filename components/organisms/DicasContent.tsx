@@ -6,7 +6,8 @@ import { api } from "@/convex/_generated/api";
 import { gtmViewItemList, gtmSearch, gtmFilterApplied } from "@/lib/gtm";
 import { DicaCardLarge } from "./DicaCardLarge";
 import { SectionSpacer } from "./SectionSpacer";
-import { ListingSearch } from "@/components/molecules/ListingSearch";
+import { ListingFilterBar } from "@/components/molecules/ListingFilterBar";
+import type { FilterSection } from "@/components/molecules/ListingFiltersModal";
 import { useInfiniteList, InfiniteSentinel } from "@/components/molecules/InfiniteList";
 import { EmptyState } from "./EmptyState";
 import type { Dica } from "@/lib/mock-data";
@@ -70,16 +71,22 @@ export function DicasContent() {
     });
   }, [allDicas, search, activeCategory]);
 
-  const chips = categories.map((c) => ({
-    key: `cat-${c}`,
-    label: CATEGORY_LABELS[c] ?? c,
-    active: activeCategory === c,
-    onToggle: () => {
-      const next = activeCategory === c ? null : c;
-      setActiveCategory(next);
-      if (next) gtmFilterApplied("categoria", CATEGORY_LABELS[c] ?? c, "dicas");
+  const filterSections: FilterSection[] = [
+    {
+      key: "category",
+      label: "Categoria",
+      icon: "lightbulb",
+      type: "single",
+      value: activeCategory,
+      onChange: (v) => {
+        setActiveCategory(v);
+        if (v) gtmFilterApplied("categoria", CATEGORY_LABELS[v] ?? v, "dicas");
+      },
+      options: categories.map((c) => ({ value: c, label: CATEGORY_LABELS[c] ?? c })),
     },
-  }));
+  ];
+
+  const clearAllFilters = () => setActiveCategory(null);
 
   const { visible, sentinelRef, hasMore } = useInfiniteList(filtered, { initial: 6, step: 6 });
 
@@ -100,11 +107,12 @@ export function DicasContent() {
 
   return (
     <div className="pb-28">
-      <ListingSearch
+      <ListingFilterBar
         search={search}
         onSearch={setSearch}
         placeholder="Buscar dicas..."
-        chips={chips}
+        filterSections={filterSections}
+        onClearAll={clearAllFilters}
         resultCount={filtered.length}
         totalCount={allDicas.length}
       />

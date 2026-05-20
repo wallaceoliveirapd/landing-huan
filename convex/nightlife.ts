@@ -7,6 +7,14 @@ const hoursValidator = v.array(
   v.object({ day: v.string(), open: v.string(), close: v.string() })
 );
 
+const discountBannerValidator = v.optional(
+  v.object({
+    title: v.string(),
+    description: v.string(),
+    active: v.optional(v.boolean()),
+  }),
+);
+
 export const list = query({
   args: {
     activeOnly: v.optional(v.boolean()),
@@ -66,6 +74,8 @@ export const create = mutation({
     featured: v.boolean(),
     active: v.boolean(),
     order: v.optional(v.number()),
+    discountBanner: discountBannerValidator,
+    coupons: v.optional(v.array(v.id("coupons"))),
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
@@ -92,6 +102,8 @@ export const update = mutation({
     featured: v.optional(v.boolean()),
     active: v.optional(v.boolean()),
     order: v.optional(v.number()),
+    discountBanner: discountBannerValidator,
+    coupons: v.optional(v.array(v.id("coupons"))),
   },
   handler: async (ctx, { id, ...fields }) => {
     await requireAdmin(ctx);

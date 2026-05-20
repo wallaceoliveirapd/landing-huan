@@ -10,6 +10,8 @@ import { GtmViewItem } from "@/components/atoms/GtmViewItem";
 import { BackButton } from "@/components/atoms/BackButton";
 import { PlaceReviewsSection } from "@/components/organisms/PlaceReviewsSection";
 import { RichContent } from "@/components/atoms/RichContent";
+import { PromoBanner } from "@/components/molecules/PromoBanner";
+import { LinkedCoupons } from "@/components/organisms/LinkedCoupons";
 
 const BASE = "https://huanfalcao.com.br";
 
@@ -193,6 +195,21 @@ export default async function NightlifeDetailPage({ params }: PageProps) {
               </div>
             ))}
           </div>
+        </section>
+      )}
+
+      {place.discountBanner?.active &&
+        (place.discountBanner.title || place.discountBanner.description) && (
+          <section className="px-6 pt-6 max-w-screen-md mx-auto">
+            <PromoBanner
+              title={place.discountBanner.title}
+              description={place.discountBanner.description}
+            />
+          </section>
+        )}
+      {place.coupons && place.coupons.length > 0 && (
+        <section className="px-6 pt-6 max-w-screen-md mx-auto">
+          <LinkedCoupons ids={place.coupons} heading="Cupons para este lugar" />
         </section>
       )}
 

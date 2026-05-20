@@ -15,10 +15,11 @@ import { ChatInlineCard } from "@/components/molecules/ChatInlineCard";
 import { ChatTimeline } from "@/components/molecules/ChatTimeline";
 import {
   INITIAL_MESSAGES,
-  SUGGESTED_PROMPTS,
   type ChatMessage,
   type RawCardItem,
 } from "@/lib/chat-mocks";
+import { SuggestedPromptsRow } from "@/components/molecules/SuggestedPromptsRow";
+import { ChatLimitChip } from "@/components/molecules/ChatLimitChip";
 import { trackChatMessage, trackSuggestedPrompt } from "@/lib/analytics";
 import { gtmChatMessageSent, gtmChatResponseReceived } from "@/lib/gtm";
 
@@ -128,6 +129,12 @@ export function ChatPanel() {
       .filter((m) => m.kind === "text")
       .map((m) => ({ role: m.role, content: (m as { content: string }).content }));
 
+    // Collect IDs of cards already shown so the API can deduplicate.
+    const shownCardIds = messages
+      .filter((m) => m.kind === "cards")
+      .flatMap((m) => ((m as { items?: RawCardItem[] }).items ?? []).map((c) => String(c.id ?? "")))
+      .filter(Boolean);
+
     const assistantId = crypto.randomUUID();
     setMessages((prev) => [
       ...prev,
@@ -159,7 +166,7 @@ export function ChatPanel() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history }),
+        body: JSON.stringify({ messages: history, shownCardIds }),
       });
       if (!res.ok || !res.body) throw new Error("Chat API error");
 
@@ -417,23 +424,18 @@ export function ChatPanel() {
             )}
           </div>
 
-          {/* ── Suggested prompts (clean outline chips) ─────────── */}
-          <div className="flex gap-2 overflow-x-auto no-scrollbar shrink-0 px-5 py-2.5 bg-white">
-            {SUGGESTED_PROMPTS.map((p) => (
-              <button
-                key={p}
-                type="button"
-                onClick={() => {
-                  trackSuggestedPrompt(p);
-                  send(p);
-                }}
-                disabled={isTyping}
-                className="flex-none rounded-full bg-white border border-[var(--color-neutral-300)] text-[var(--color-neutral-800)] text-[13px] font-medium px-4 py-2 hover:border-[var(--color-neutral-800)] disabled:opacity-40 transition-colors whitespace-nowrap"
-              >
-                {p}
-              </button>
-            ))}
-          </div>
+          {/* ── Suggested prompts / limit chip ───────────────────── */}
+          {usage?.blocked && auth.isAuthenticated ? (
+            <ChatLimitChip />
+          ) : (
+            <SuggestedPromptsRow
+              disabled={isTyping}
+              onPick={(text) => {
+                trackSuggestedPrompt(text);
+                setInput(text);
+              }}
+            />
+          )}
 
           {/* ── Composer ────────────────────────────────────────── */}
           <form
@@ -443,18 +445,23 @@ export function ChatPanel() {
             }}
             className="flex items-center gap-2 px-4 pt-2 pb-4 bg-white shrink-0"
           >
-            <div className="flex-1 flex items-center h-12 rounded-full bg-[var(--color-neutral-100)] px-5 has-[:focus]:ring-2 has-[:focus]:ring-[var(--color-neutral-800)]/15 transition-shadow">
+            <div className={`flex-1 flex items-center h-12 rounded-full px-5 has-[:focus]:ring-2 has-[:focus]:ring-[var(--color-neutral-800)]/15 transition-shadow ${usage?.blocked ? "bg-red-50" : "bg-[var(--color-neutral-100)]"}`}>
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Pergunte sobre passeios, lugares, cupons..."
-                className="flex-1 bg-transparent text-[var(--color-neutral-800)] placeholder:text-[var(--color-neutral-500)] border-none outline-none"
+                disabled={!!usage?.blocked}
+                placeholder={
+                  usage?.blocked
+                    ? "Limite diário atingido — volte amanhã"
+                    : "Pergunte sobre passeios, lugares, cupons..."
+                }
+                className="flex-1 bg-transparent text-[var(--color-neutral-800)] placeholder:text-[var(--color-neutral-500)] border-none outline-none disabled:cursor-not-allowed"
                 style={{ fontSize: "16px" }}
               />
             </div>
             <button
               type="submit"
-              disabled={!input.trim() || isTyping}
+              disabled={!input.trim() || isTyping || !!usage?.blocked}
               aria-label="Enviar"
               className="grid size-12 place-items-center rounded-full bg-[var(--color-neutral-800)] text-white disabled:opacity-40 transition-all"
             >

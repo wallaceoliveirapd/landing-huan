@@ -23,12 +23,27 @@ const BUDGET_OPTIONS = [
   { value: "alto", label: "Confortável", desc: "Hotel, experiências premium" },
 ];
 
+const TRIP_TYPE_OPTIONS = [
+  { value: "praia", label: "Praia", icon: "waves" },
+  { value: "natureza", label: "Natureza", icon: "trees" },
+  { value: "historica", label: "Histórica", icon: "landmark" },
+  { value: "aventura", label: "Aventura", icon: "mountain" },
+  { value: "gastronomia", label: "Gastronomia", icon: "utensils" },
+  { value: "festa", label: "Festa", icon: "party-popper" },
+  { value: "familia", label: "Família", icon: "users" },
+  { value: "solo", label: "Solo", icon: "user" },
+  { value: "cultural", label: "Cultural", icon: "palette" },
+  { value: "roadtrip", label: "Road trip", icon: "car" },
+];
+
 interface Props {
   open: boolean;
   tripId: Id<"trips">;
   initialDuration: number;
   initialGroupSize: number;
   initialBudget: string;
+  initialTitle: string;
+  initialType: string;
   /** Timestamp (ms). Undefined if trip has no start date set. */
   initialStartDate?: number;
   onClose: () => void;
@@ -45,9 +60,13 @@ export function EditTripSheet({
   initialDuration,
   initialGroupSize,
   initialBudget,
+  initialTitle,
+  initialType,
   initialStartDate,
   onClose,
 }: Props) {
+  const [title, setTitle] = useState(initialTitle);
+  const [type, setType] = useState(initialType);
   const [duration, setDuration] = useState(initialDuration);
   const [groupSize, setGroupSize] = useState(initialGroupSize);
   const [budget, setBudget] = useState(initialBudget);
@@ -69,6 +88,8 @@ export function EditTripSheet({
   // Reset local state to current trip values each time sheet opens
   useEffect(() => {
     if (!open) return;
+    setTitle(initialTitle);
+    setType(initialType);
     setDuration(initialDuration);
     setGroupSize(initialGroupSize);
     setBudget(initialBudget);
@@ -83,7 +104,7 @@ export function EditTripSheet({
     setDurationOpen(false);
     setBudgetOpen(false);
     setCustomMode(false);
-  }, [open, initialDuration, initialGroupSize, initialBudget, initialStartDate]);
+  }, [open, initialTitle, initialType, initialDuration, initialGroupSize, initialBudget, initialStartDate]);
 
   // When duration changes, keep endDate in sync if start is set
   function applyDuration(days: number) {
@@ -114,6 +135,8 @@ export function EditTripSheet({
       const startTs = startDate ? new Date(startDate).getTime() : undefined;
       await updateBasics({
         id: tripId,
+        title: title.trim() || undefined,
+        type: type || undefined,
         duration,
         groupSize,
         budget,
@@ -178,6 +201,46 @@ export function EditTripSheet({
 
             {/* Scrollable content */}
             <div className="flex-1 min-h-0 overflow-y-auto px-5 pb-4 flex flex-col gap-3">
+              {/* Title */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[12px] font-medium text-[var(--color-neutral-600)]">
+                  Título da viagem
+                </label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Ex: Férias em João Pessoa"
+                  className="w-full h-11 px-3 rounded-[12px] border border-[var(--color-neutral-300)] text-[14px] outline-none focus:border-[var(--color-neutral-800)] bg-white"
+                />
+              </div>
+
+              {/* Trip type */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[12px] font-medium text-[var(--color-neutral-600)]">
+                  Tipo de viagem
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {TRIP_TYPE_OPTIONS.map((t) => {
+                    const sel = type === t.value;
+                    return (
+                      <button
+                        key={t.value}
+                        type="button"
+                        onClick={() => setType(t.value)}
+                        className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-full text-[13px] font-medium border transition-colors ${sel
+                          ? "bg-[var(--color-neutral-800)] text-white border-[var(--color-neutral-800)]"
+                          : "bg-white text-[var(--color-neutral-700)] border-[var(--color-neutral-300)] hover:border-[var(--color-neutral-600)]"
+                          }`}
+                      >
+                        <Icon name={t.icon} size={13} />
+                        {t.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* Duration */}
               <div>
                 <ConfigRow

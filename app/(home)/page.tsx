@@ -6,7 +6,11 @@ export const metadata: Metadata = {
   description:
     "Passeios, praias, restaurantes e dicas exclusivas do Nordeste, curados por Huan Falcão. Planeje sua viagem com IA e descubra João Pessoa como um local.",
   alternates: { canonical: "https://huanfalcao.com.br" },
-  openGraph: { url: "https://huanfalcao.com.br", type: "website" },
+  openGraph: {
+    url: "https://huanfalcao.com.br",
+    type: "website",
+    images: [{ url: "/images/meta/img-meta.png", width: 1200, height: 630, alt: "NordestAI - By Huan Falcão" }],
+  },
 };
 import { FeaturedHeroSection } from "@/components/organisms/FeaturedHeroSection";
 import { OffersSection } from "@/components/organisms/OffersSection";

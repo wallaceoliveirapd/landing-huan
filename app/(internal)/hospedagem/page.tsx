@@ -14,7 +14,11 @@ export const metadata: Metadata = {
   description:
     "Onde se hospedar no Nordeste: pousadas, hotéis e apartamentos indicados por Huan Falcão, do litoral ao sertão.",
   alternates: { canonical: "https://huanfalcao.com.br/hospedagem" },
-  openGraph: { url: "https://huanfalcao.com.br/hospedagem", type: "website" },
+  openGraph: {
+    url: "https://huanfalcao.com.br/hospedagem",
+    type: "website",
+    images: [{ url: "/images/meta/img-meta.png", width: 1200, height: 630, alt: "NordestAI - By Huan Falcão" }],
+  },
 };
 
 export default async function HospedagemPage() {

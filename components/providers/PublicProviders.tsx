@@ -11,6 +11,7 @@ import { BottomNav } from "@/components/organisms/BottomNav";
 import { PushPrompt } from "@/components/organisms/PushPrompt";
 import { PullToRefresh } from "@/components/organisms/PullToRefresh";
 import { WelcomeTour } from "@/components/organisms/WelcomeTour";
+import { PendingInviteAlert } from "@/components/organisms/PendingInviteAlert";
 import { ServiceWorkerRegister } from "./ServiceWorkerRegister";
 
 /**
@@ -33,6 +34,7 @@ export function PublicProviders({ children }: { children: ReactNode }) {
           <PushPrompt />
           <PullToRefresh />
           <WelcomeTour />
+          <PendingInviteAlert />
           <ServiceWorkerRegister />
         </ChatProvider>
       </CategoriesSheetProvider>

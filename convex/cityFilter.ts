@@ -29,11 +29,34 @@ const STATE_ABBR: Record<string, string> = {
   se: "sergipe",
 };
 
+/**
+ * Kinds that are genuinely location-agnostic (no city required).
+ * Tours, praias, restaurants, and nightlife without a city are incomplete
+ * data — they should only appear when the target is the DEFAULT_CONTENT_CITY.
+ */
+const GENERIC_KINDS = new Set(["dica", "coupon", "itinerary"]);
+
+/**
+ * Primary content city — items without `city` set are assumed to belong here.
+ * Legacy seed data (catamarã, etc.) was created before the city field was
+ * required, and all of it is João Pessoa content.
+ */
+const DEFAULT_CONTENT_CITY = "joao pessoa";
+
 export function matchesCity(
   itemCity: string | undefined | null,
   target: string,
+  kind?: string,
 ): boolean {
-  if (!itemCity) return true; // untagged items are city-agnostic
+  if (!itemCity) {
+    // Dicas/cupons/itineraries are genuinely city-agnostic.
+    if (!kind || GENERIC_KINDS.has(kind)) return true;
+    // Other kinds (tour/praia/restaurant/nightlife) without city: treat as
+    // belonging to the default content city so legacy data still surfaces
+    // for that city, but is hidden for other Northeast cities.
+    const normTarget = norm(target).split(",")[0].trim();
+    return normTarget === DEFAULT_CONTENT_CITY;
+  }
   const normTarget = norm(target).split(",")[0].trim();
   const parts = norm(itemCity).split(",");
   const cityPart = parts[0].trim();

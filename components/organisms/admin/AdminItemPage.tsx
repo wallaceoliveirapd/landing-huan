@@ -13,6 +13,7 @@ import { HoursBuilder } from "./HoursBuilder";
 import { DaysBuilder } from "./DaysBuilder";
 import { CityAutocompleteField } from "./CityAutocompleteField";
 import { RichTextEditor } from "./RichTextEditor";
+import { RefsField } from "./RefsField";
 import type { FunctionReference } from "convex/server";
 import type { Field } from "./AdminCrudPage";
 
@@ -149,13 +150,15 @@ function defaultValues(fields: Field[]): Record<string, unknown> {
         ? false
         : f.type === "number"
           ? 0
-          : f.type === "tags" || f.type === "photos"
+          : f.type === "tags" || f.type === "photos" || f.type === "refs"
             ? []
             : f.type === "hours" || f.type === "days"
               ? []
-              : f.type === "select" && f.options?.length
-                ? f.options[0].value
-                : "",
+              : f.type === "banner"
+                ? { title: "", description: "", active: false }
+                : f.type === "select" && f.options?.length
+                  ? f.options[0].value
+                  : "",
     ])
   );
 }
@@ -164,17 +167,78 @@ function initValues(fields: Field[], item: AnyDoc): Record<string, unknown> {
   const f: Record<string, unknown> = {};
   for (const field of fields) {
     const raw = item[field.key];
-    if (field.type === "tags" || field.type === "photos" || field.type === "hours" || field.type === "days") {
+    if (
+      field.type === "tags" ||
+      field.type === "photos" ||
+      field.type === "hours" ||
+      field.type === "days" ||
+      field.type === "refs"
+    ) {
       f[field.key] = Array.isArray(raw) ? raw : [];
     } else if (field.type === "boolean") {
       f[field.key] = !!raw;
     } else if (field.type === "number") {
       f[field.key] = typeof raw === "number" ? raw : 0;
+    } else if (field.type === "banner") {
+      const b =
+        raw && typeof raw === "object"
+          ? (raw as { title?: string; description?: string; active?: boolean })
+          : null;
+      f[field.key] = {
+        title: b?.title ?? "",
+        description: b?.description ?? "",
+        active: b?.active ?? false,
+      };
     } else {
       f[field.key] = raw ?? "";
     }
   }
   return f;
+}
+
+/**
+ * Normalize form state before sending to Convex.
+ * - banner: empty title+desc → undefined (matches v.optional(v.object(...)))
+ * - refs: non-array or empty array → undefined (matches v.optional(v.array(v.id(...))))
+ */
+function normalizeForSave(
+  fields: Field[],
+  form: Record<string, unknown>,
+): Record<string, unknown> {
+  const payload: Record<string, unknown> = { ...form };
+  for (const field of fields) {
+    if (field.type === "banner") {
+      const v = payload[field.key] as
+        | { title?: string; description?: string; active?: boolean }
+        | undefined
+        | string;
+      if (!v || typeof v !== "object") {
+        payload[field.key] = undefined;
+      } else if (!v.active) {
+        // Switch off → don't store banner. Title/desc kept across reloads via
+        // form state but never persisted while disabled.
+        payload[field.key] = undefined;
+      } else {
+        payload[field.key] = {
+          title: v.title?.trim() ?? "",
+          description: v.description?.trim() ?? "",
+          active: true,
+        };
+      }
+    }
+    if (field.type === "refs") {
+      const v = payload[field.key];
+      if (!Array.isArray(v)) {
+        payload[field.key] = undefined;
+      } else {
+        const filtered = v.filter(
+          (x): x is string => typeof x === "string" && x.length > 0,
+        );
+        payload[field.key] = filtered.length > 0 ? filtered : undefined;
+      }
+    }
+  }
+  return payload;
 }
 
 function FieldInput({
@@ -355,6 +419,67 @@ function FieldInput({
     );
   }
 
+  if (field.type === "banner") {
+    const v =
+      value && typeof value === "object"
+        ? (value as { title?: string; description?: string; active?: boolean })
+        : { title: "", description: "", active: false };
+    const active = v.active ?? false;
+    return (
+      <div className="rounded-2xl border border-[var(--color-neutral-300)] bg-[var(--color-neutral-100)]/40 p-3 flex flex-col gap-3">
+        <label className="flex items-center gap-3 cursor-pointer select-none">
+          <div
+            onClick={() => onChange({ title: v.title ?? "", description: v.description ?? "", active: !active })}
+            className={clsx(
+              "relative w-11 h-6 rounded-full transition-colors cursor-pointer shrink-0",
+              active ? "bg-[var(--color-brand-purple)]" : "bg-[var(--color-neutral-300)]",
+            )}
+          >
+            <div
+              className={clsx(
+                "absolute top-1 size-4 rounded-full bg-white shadow transition-transform",
+                active ? "translate-x-6" : "translate-x-1",
+              )}
+            />
+          </div>
+          <span className="text-sm text-[var(--color-neutral-700)]">
+            Banner ativo
+          </span>
+        </label>
+        <input
+          type="text"
+          className={base}
+          placeholder="Título (ex: 10% OFF na primeira reserva)"
+          value={v.title ?? ""}
+          onChange={(e) =>
+            onChange({ title: e.target.value, description: v.description ?? "", active })
+          }
+        />
+        <textarea
+          className={clsx(base, "min-h-[72px] resize-y")}
+          placeholder="Descrição curta (ex: Use o cupom NORDESTAI no checkout)"
+          value={v.description ?? ""}
+          onChange={(e) =>
+            onChange({ title: v.title ?? "", description: e.target.value, active })
+          }
+        />
+        <p className="text-[11px] text-[var(--color-neutral-600)]">
+          Use o switch para mostrar/esconder o banner no site.
+        </p>
+      </div>
+    );
+  }
+
+  if (field.type === "refs") {
+    return (
+      <RefsField
+        field={field}
+        value={Array.isArray(value) ? (value as string[]) : []}
+        onChange={onChange}
+      />
+    );
+  }
+
   // Slug field
   if (field.key === "slug") {
     const sourceKey = field.slugFrom ?? "";
@@ -472,7 +597,8 @@ export function AdminItemPage({
       savingRef.current = true;
       setAutosaveStatus("saving");
       try {
-        await update({ id: itemId, ...form } as never);
+        const payload = normalizeForSave(fields, form);
+        await update({ id: itemId, ...payload } as never);
         setAutosaveStatus("saved");
       } catch {
         setAutosaveStatus("error");
@@ -502,10 +628,11 @@ export function AdminItemPage({
     setSaving(true);
     setSaveError(null);
     try {
+      const payload = normalizeForSave(fields, form);
       if (isEdit) {
-        await update({ id: itemId, ...form } as never);
+        await update({ id: itemId, ...payload } as never);
       } else {
-        await create(form as never);
+        await create(payload as never);
       }
       router.push(backPath);
     } catch (err: unknown) {

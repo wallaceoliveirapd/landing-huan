@@ -8,7 +8,11 @@ export const metadata: Metadata = {
   description:
     "Os melhores passeios em João Pessoa e no Nordeste, testados e aprovados por Huan Falcão. Catamarã, mergulho, city tour e muito mais.",
   alternates: { canonical: "https://huanfalcao.com.br/passeios" },
-  openGraph: { url: "https://huanfalcao.com.br/passeios", type: "website" },
+  openGraph: {
+    url: "https://huanfalcao.com.br/passeios",
+    type: "website",
+    images: [{ url: "/images/meta/img-meta.png", width: 1200, height: 630, alt: "NordestAI - By Huan Falcão" }],
+  },
 };
 
 export default function PasseiosPage() {

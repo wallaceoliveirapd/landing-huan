@@ -6,7 +6,9 @@ import { api } from "@/convex/_generated/api";
 import { OfferCardLarge } from "./OfferCardLarge";
 import { SectionSpacer } from "./SectionSpacer";
 import { DiscountBanner } from "@/components/molecules/DiscountBanner";
-import { ListingSearch } from "@/components/molecules/ListingSearch";
+import { ListingFilterBar } from "@/components/molecules/ListingFilterBar";
+import type { FilterSection } from "@/components/molecules/ListingFiltersModal";
+import { buildCityOptions, parseCity } from "@/lib/locationFilter";
 import { useInfiniteList, InfiniteSentinel } from "@/components/molecules/InfiniteList";
 import { EmptyState } from "./EmptyState";
 import { SITE_CONTENT } from "@/lib/mock-data";
@@ -21,6 +23,7 @@ export function PasseiosContent() {
 
   const [search, setSearch] = useState("");
   const [activeCity, setActiveCity] = useState<string | null>(null);
+  const [activeState, setActiveState] = useState<string | null>(null);
   const [activePriceRange, setActivePriceRange] = useState<string | null>(null);
   const [activeDuration, setActiveDuration] = useState<string | null>(null);
 
@@ -63,16 +66,28 @@ export function PasseiosContent() {
     [convexTours],
   );
 
-  const cities = useMemo(
-    () => [...new Set(allTours.map((t) => t.city).filter(Boolean) as string[])].sort(),
+  const cityOptions = useMemo(
+    () => buildCityOptions(allTours.map((t) => t.city)),
     [allTours],
   );
+  const stateOptions = useMemo(() => {
+    const seen = new Set<string>();
+    for (const c of cityOptions) if (c.state) seen.add(c.state);
+    return [...seen].sort();
+  }, [cityOptions]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     return allTours.filter((t) => {
       if (q && !t.title.toLowerCase().includes(q)) return false;
-      if (activeCity && t.city !== activeCity) return false;
+      if (activeCity) {
+        const pc = parseCity(t.city ?? "");
+        const ac = parseCity(activeCity);
+        if (pc.name.toLowerCase() !== ac.name.toLowerCase()) return false;
+      } else if (activeState) {
+        const pc = parseCity(t.city ?? "");
+        if (pc.state !== activeState) return false;
+      }
       if (activePriceRange) {
         if (activePriceRange === "ate150" && t.price > 150) return false;
         if (activePriceRange === "150-300" && (t.price < 150 || t.price > 300)) return false;
@@ -86,22 +101,73 @@ export function PasseiosContent() {
       }
       return true;
     });
-  }, [allTours, search, activeCity, activePriceRange, activeDuration]);
+  }, [allTours, search, activeCity, activeState, activePriceRange, activeDuration]);
 
-  const chips = [
-    { key: "ate150", label: "Até R$150", active: activePriceRange === "ate150", onToggle: () => { const next = activePriceRange === "ate150" ? null : "ate150"; setActivePriceRange(next); if (next) gtmFilterApplied("preco", "Até R$150", "passeios"); } },
-    { key: "150-300", label: "R$150–300", active: activePriceRange === "150-300", onToggle: () => { const next = activePriceRange === "150-300" ? null : "150-300"; setActivePriceRange(next); if (next) gtmFilterApplied("preco", "R$150–300", "passeios"); } },
-    { key: "acima300", label: "Acima R$300", active: activePriceRange === "acima300", onToggle: () => { const next = activePriceRange === "acima300" ? null : "acima300"; setActivePriceRange(next); if (next) gtmFilterApplied("preco", "Acima R$300", "passeios"); } },
-    { key: "curto", label: "Até 3h", active: activeDuration === "curto", onToggle: () => { const next = activeDuration === "curto" ? null : "curto"; setActiveDuration(next); if (next) gtmFilterApplied("duracao", "Até 3h", "passeios"); } },
-    { key: "meio", label: "Meio período", active: activeDuration === "meio", onToggle: () => { const next = activeDuration === "meio" ? null : "meio"; setActiveDuration(next); if (next) gtmFilterApplied("duracao", "Meio período", "passeios"); } },
-    { key: "dia", label: "Dia inteiro", active: activeDuration === "dia", onToggle: () => { const next = activeDuration === "dia" ? null : "dia"; setActiveDuration(next); if (next) gtmFilterApplied("duracao", "Dia inteiro", "passeios"); } },
-    ...cities.map((c) => ({
-      key: `city-${c}`,
-      label: c.split(",")[0],
-      active: activeCity === c,
-      onToggle: () => { const next = activeCity === c ? null : c; setActiveCity(next); if (next) gtmFilterApplied("cidade", c.split(",")[0], "passeios"); },
-    })),
+  const filterSections: FilterSection[] = [
+    {
+      key: "location",
+      label: "Localização",
+      icon: "map-pin",
+      type: "location",
+      cityOptions,
+      stateOptions,
+      activeCity,
+      activeState,
+      onChangeCity: (v) => {
+        setActiveCity(v);
+        if (v) gtmFilterApplied("cidade", v.split(",")[0], "passeios");
+      },
+      onChangeState: (v) => {
+        setActiveState(v);
+        if (v) gtmFilterApplied("estado", v, "passeios");
+      },
+    },
+    {
+      key: "price",
+      label: "Faixa de preço",
+      icon: "tag",
+      type: "single",
+      value: activePriceRange,
+      onChange: (v) => {
+        setActivePriceRange(v);
+        if (v) {
+          const labels: Record<string, string> = { ate150: "Até R$150", "150-300": "R$150–300", acima300: "Acima R$300" };
+          gtmFilterApplied("preco", labels[v] ?? v, "passeios");
+        }
+      },
+      options: [
+        { value: "ate150", label: "Até R$150" },
+        { value: "150-300", label: "R$150–300" },
+        { value: "acima300", label: "Acima R$300" },
+      ],
+    },
+    {
+      key: "duration",
+      label: "Duração",
+      icon: "clock",
+      type: "single",
+      value: activeDuration,
+      onChange: (v) => {
+        setActiveDuration(v);
+        if (v) {
+          const labels: Record<string, string> = { curto: "Até 3h", meio: "Meio período", dia: "Dia inteiro" };
+          gtmFilterApplied("duracao", labels[v] ?? v, "passeios");
+        }
+      },
+      options: [
+        { value: "curto", label: "Até 3h" },
+        { value: "meio", label: "Meio período" },
+        { value: "dia", label: "Dia inteiro" },
+      ],
+    },
   ];
+
+  const clearAllFilters = () => {
+    setActiveCity(null);
+    setActiveState(null);
+    setActivePriceRange(null);
+    setActiveDuration(null);
+  };
 
   const { visible, sentinelRef, hasMore } = useInfiniteList(filtered, { initial: 6, step: 6 });
 
@@ -122,11 +188,12 @@ export function PasseiosContent() {
 
   return (
     <div className="pb-20">
-      <ListingSearch
+      <ListingFilterBar
         search={search}
         onSearch={setSearch}
         placeholder="Buscar passeios..."
-        chips={chips}
+        filterSections={filterSections}
+        onClearAll={clearAllFilters}
         resultCount={filtered.length}
         totalCount={allTours.length}
       />
@@ -146,16 +213,6 @@ export function PasseiosContent() {
             </div>
           ))}
           <InfiniteSentinel sentinelRef={sentinelRef} hasMore={hasMore} />
-          <SectionSpacer />
-          <section className="bg-white">
-            <div className="mx-auto w-full max-w-screen-md p-4">
-              <DiscountBanner
-                headline={couponHeadline ?? SITE_CONTENT.coupon.headline}
-                rest={couponRest ?? SITE_CONTENT.coupon.rest}
-                code={couponCode ?? SITE_CONTENT.coupon.code}
-              />
-            </div>
-          </section>
         </>
       )}
     </div>

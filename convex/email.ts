@@ -9,6 +9,8 @@ import {
   passwordResetRequestedEmail,
   tripCreatedEmail,
   broadcastEmail,
+  tripInviteExistingEmail,
+  tripInviteNewUserEmail,
 } from "../lib/emailTemplates";
 
 function getResend() {
@@ -187,6 +189,32 @@ export const sendTripChecklist = internalAction({
   handler: async (_ctx, args) => {
     const { tripChecklistEmail } = await import("../lib/emailTemplates");
     const tpl = tripChecklistEmail(args);
+    const resend = getResend();
+    await resend.emails.send({
+      from: getFrom(),
+      to: args.to,
+      subject: tpl.subject,
+      html: tpl.html,
+      replyTo: getReplyTo(),
+    });
+  },
+});
+
+// ─── Trip invite (collaborator) ──────────────────────────────────────────
+export const sendTripInvite = internalAction({
+  args: {
+    to: v.string(),
+    inviterName: v.string(),
+    tripTitle: v.string(),
+    destination: v.string(),
+    acceptUrl: v.string(),
+    role: v.union(v.literal("edit"), v.literal("view")),
+    isExistingUser: v.boolean(),
+  },
+  handler: async (_ctx, args) => {
+    const tpl = args.isExistingUser
+      ? tripInviteExistingEmail(args)
+      : tripInviteNewUserEmail(args);
     const resend = getResend();
     await resend.emails.send({
       from: getFrom(),

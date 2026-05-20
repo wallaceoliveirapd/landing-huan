@@ -9,6 +9,8 @@ import { OperatingHours } from "@/components/organisms/OperatingHours";
 import { SectionSpacer } from "@/components/organisms/SectionSpacer";
 import { PlaceReviewsSection } from "@/components/organisms/PlaceReviewsSection";
 import { GtmViewItem } from "@/components/atoms/GtmViewItem";
+import { PromoBanner } from "@/components/molecules/PromoBanner";
+import { LinkedCoupons } from "@/components/organisms/LinkedCoupons";
 
 const BASE = "https://huanfalcao.com.br";
 
@@ -109,6 +111,20 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
           <SectionSpacer />
           <OperatingHours hours={hours} />
         </>
+      )}
+      {restaurant.discountBanner?.active &&
+        (restaurant.discountBanner.title || restaurant.discountBanner.description) && (
+          <section className="px-6 pt-6 max-w-screen-md mx-auto">
+            <PromoBanner
+              title={restaurant.discountBanner.title}
+              description={restaurant.discountBanner.description}
+            />
+          </section>
+        )}
+      {restaurant.coupons && restaurant.coupons.length > 0 && (
+        <section className="px-6 pt-6 max-w-screen-md mx-auto">
+          <LinkedCoupons ids={restaurant.coupons} heading="Cupons para este restaurante" />
+        </section>
       )}
       <SectionSpacer />
       <PlaceReviewsSection kind="restaurant" itemId={restaurant._id} noun="este restaurante" />

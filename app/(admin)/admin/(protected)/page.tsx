@@ -131,6 +131,63 @@ function SectionCard({ href, label, icon, color, bg, query }: (typeof SECTIONS)[
   );
 }
 
+const STALE_KIND_LABEL: Record<string, string> = {
+  tour: "passeios",
+  restaurant: "restaurantes",
+  praia: "praias",
+  nightlife: "vida noturna",
+  dica: "dicas",
+  hosting: "hospedagens",
+  coupon: "cupons",
+};
+
+const STALE_KIND_HREF: Record<string, string> = {
+  tour: "/admin/passeios",
+  restaurant: "/admin/restaurantes",
+  praia: "/admin/praias",
+  nightlife: "/admin/vida-noturna",
+  dica: "/admin/dicas",
+  hosting: "/admin/hospedagem",
+  coupon: "/admin/cupons",
+};
+
+/**
+ * Surfaces items not touched in the last 6 months so admin remembers
+ * to refresh prices / photos / availability.
+ */
+function OutdatedBanner() {
+  const summary = useQuery(api.outdated.staleSummary, {});
+  if (!summary || summary.total === 0) return null;
+
+  return (
+    <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 flex items-start gap-3">
+      <span className="grid size-9 place-items-center rounded-xl bg-amber-100 text-amber-700 shrink-0">
+        <Icon name="lucide:alert-triangle" size={18} />
+      </span>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-amber-900">
+          {summary.total} item{summary.total !== 1 ? "s" : ""} sem atualização há mais de 6 meses
+        </p>
+        <p className="text-xs text-amber-800/80 mt-0.5">
+          Revise preços, fotos e disponibilidade pra manter o conteúdo confiável.
+        </p>
+        <div className="flex flex-wrap gap-2 mt-3">
+          {Object.entries(summary.byKind).map(([kind, n]) => (
+            <Link
+              key={kind}
+              href={STALE_KIND_HREF[kind] ?? "/admin"}
+              className="inline-flex items-center gap-1.5 rounded-full bg-white border border-amber-200 px-3 py-1 text-[12px] font-medium text-amber-900 hover:bg-amber-100 transition-colors"
+            >
+              <span className="font-semibold">{n}</span>
+              <span>{STALE_KIND_LABEL[kind] ?? kind}</span>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Dashboard ────────────────────────────────────────────────────
 export default function AdminDashboard() {
   const now = new Date();
@@ -169,6 +226,9 @@ export default function AdminDashboard() {
           </Link>
         </div>
       </div>
+
+      {/* Outdated content nudge */}
+      <OutdatedBanner />
 
       {/* Content stats */}
       <div>

@@ -18,6 +18,14 @@ export const featured = query({
     ctx.db.query("coupons").withIndex("by_featured", (q) => q.eq("featured", true)).collect(),
 });
 
+export const getByIds = query({
+  args: { ids: v.array(v.id("coupons")) },
+  handler: async (ctx, { ids }) => {
+    const items = await Promise.all(ids.map((id) => ctx.db.get(id)));
+    return items.filter((c): c is NonNullable<typeof c> => c !== null && c.active);
+  },
+});
+
 export const getById = query({
   args: { id: v.id("coupons") },
   handler: async (ctx, { id }) => ctx.db.get(id),

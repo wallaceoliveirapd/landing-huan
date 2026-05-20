@@ -11,6 +11,7 @@ import { HoursBuilder } from "./HoursBuilder";
 import { DaysBuilder } from "./DaysBuilder";
 import { CityAutocompleteField } from "./CityAutocompleteField";
 import { RichTextEditor } from "./RichTextEditor";
+import { RefsField } from "./RefsField";
 import type { FunctionReference } from "convex/server";
 
 export type FieldType =
@@ -26,7 +27,9 @@ export type FieldType =
   | "hours"
   | "days"
   | "select"
-  | "city";
+  | "city"
+  | "refs"
+  | "banner";
 
 export type Field = {
   key: string;
@@ -47,6 +50,14 @@ export type Field = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   /** For "tags" type: a Convex query that returns string[] of autocomplete suggestions */
   suggestionsQuery?: FunctionReference<"query", any, any, any>;
+  /**
+   * For "refs" type: a Convex query that returns the items to pick from.
+   * Each item must have `_id` and a display field (title or name).
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  optionsQuery?: FunctionReference<"query", any, any, any>;
+  /** For "refs" type: pass these args to the optionsQuery. Defaults to {}. */
+  optionsQueryArgs?: Record<string, unknown>;
 };
 
 type AnyDoc = Record<string, unknown> & { _id: string };
@@ -75,9 +86,11 @@ function defaultValues(fields: Field[]): Record<string, unknown> {
         ? false
         : f.type === "number"
           ? 0
-          : f.type === "tags" || f.type === "photos"
+          : f.type === "tags" || f.type === "photos" || f.type === "refs"
             ? []
-            : f.type === "hours"
+            : f.type === "banner"
+              ? { title: "", description: "", active: false }
+              : f.type === "hours"
               ? []
               : f.type === "days"
                 ? []
@@ -255,6 +268,61 @@ function FieldInput({
     );
   }
 
+  if (field.type === "banner") {
+    const v =
+      value && typeof value === "object"
+        ? (value as { title?: string; description?: string; active?: boolean })
+        : { title: "", description: "", active: false };
+    const active = v.active ?? false;
+    return (
+      <div className="rounded-2xl border border-[var(--color-neutral-300)] bg-[var(--color-neutral-100)]/40 p-3 flex flex-col gap-3">
+        <label className="flex items-center gap-3 cursor-pointer select-none">
+          <div
+            onClick={() => onChange({ title: v.title ?? "", description: v.description ?? "", active: !active })}
+            className={clsx(
+              "relative w-11 h-6 rounded-full transition-colors cursor-pointer shrink-0",
+              active ? "bg-[var(--color-brand-purple)]" : "bg-[var(--color-neutral-300)]",
+            )}
+          >
+            <div
+              className={clsx(
+                "absolute top-1 size-4 rounded-full bg-white shadow transition-transform",
+                active ? "translate-x-6" : "translate-x-1",
+              )}
+            />
+          </div>
+          <span className="text-sm text-[var(--color-neutral-700)]">Banner ativo</span>
+        </label>
+        <input
+          type="text"
+          className={base}
+          placeholder="Título do banner (ex: 10% OFF na primeira reserva)"
+          value={v.title ?? ""}
+          onChange={(e) => onChange({ title: e.target.value, description: v.description ?? "", active })}
+        />
+        <textarea
+          className={clsx(base, "min-h-[72px] resize-y")}
+          placeholder="Descrição curta (ex: Use o cupom NORDESTAI no checkout)"
+          value={v.description ?? ""}
+          onChange={(e) => onChange({ title: v.title ?? "", description: e.target.value, active })}
+        />
+        <p className="text-[11px] text-[var(--color-neutral-600)]">
+          Use o switch para mostrar/esconder o banner no site.
+        </p>
+      </div>
+    );
+  }
+
+  if (field.type === "refs") {
+    return (
+      <RefsField
+        field={field}
+        value={Array.isArray(value) ? (value as string[]) : []}
+        onChange={onChange}
+      />
+    );
+  }
+
   // Slug field: auto-generate + show derivation hint
   if (field.key === "slug" && field.slugFrom) {
     const sourceValue = String(allValues[field.slugFrom] ?? "");
@@ -346,7 +414,7 @@ export function AdminCrudPage({
     const f: Record<string, unknown> = {};
     for (const field of fields) {
       const raw = item[field.key];
-      if (field.type === "tags" || field.type === "photos") {
+      if (field.type === "tags" || field.type === "photos" || field.type === "refs") {
         f[field.key] = Array.isArray(raw) ? raw : [];
       } else if (field.type === "hours") {
         f[field.key] = Array.isArray(raw) ? raw : [];
@@ -356,6 +424,13 @@ export function AdminCrudPage({
         f[field.key] = !!raw;
       } else if (field.type === "number") {
         f[field.key] = typeof raw === "number" ? raw : 0;
+      } else if (field.type === "banner") {
+        const b = raw && typeof raw === "object" ? (raw as { title?: string; description?: string; active?: boolean }) : null;
+        f[field.key] = {
+          title: b?.title ?? "",
+          description: b?.description ?? "",
+          active: b?.active ?? false,
+        };
       } else {
         f[field.key] = raw ?? "";
       }
@@ -385,10 +460,40 @@ export function AdminCrudPage({
     setSaving(true);
     setSaveError(null);
     try {
+      // Normalize banner: empty title+description → undefined (optional in DB).
+      const payload: Record<string, unknown> = { ...form };
+      for (const field of fields) {
+        if (field.type === "banner") {
+          const v = payload[field.key] as { title?: string; description?: string; active?: boolean } | undefined | string;
+          if (!v || typeof v !== "object" || !v.active) {
+            payload[field.key] = undefined;
+          } else {
+            payload[field.key] = {
+              title: v.title?.trim() ?? "",
+              description: v.description?.trim() ?? "",
+              active: true,
+            };
+          }
+        }
+        if (field.type === "refs") {
+          const v = payload[field.key];
+          // Coerce any non-array (including stale "" from legacy form state)
+          // to undefined so the optional id-array validator accepts it.
+          if (!Array.isArray(v) || v.length === 0) {
+            payload[field.key] = undefined;
+          } else {
+            // Strip any falsy entries that could sneak in (empty strings).
+            const filtered = (v as unknown[]).filter(
+              (x) => typeof x === "string" && x.length > 0,
+            );
+            payload[field.key] = filtered.length > 0 ? filtered : undefined;
+          }
+        }
+      }
       if (open?.mode === "new") {
-        await create(form as never);
+        await create(payload as never);
       } else if (open?.mode === "edit") {
-        await update({ id: open.item._id, ...form } as never);
+        await update({ id: open.item._id, ...payload } as never);
       }
       setOpen(null);
     } catch (err: unknown) {

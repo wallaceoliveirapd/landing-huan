@@ -225,29 +225,44 @@ export const refreshForTrip = internalAction({
     const end = new Date(t.startDate + (duration - 1) * 86_400_000);
 
     let snapshot: Snapshot;
-    if (daysUntil <= FORECAST_HORIZON_DAYS) {
-      // Forecast covers up to 16 days. Clamp end date if needed.
+    // Forecast API only serves from 7 days ago up to 16 days ahead. When the
+    // trip starts before that window, fall back to historical averages.
+    const startTooOldForForecast = daysUntil < -6;
+    if (daysUntil <= FORECAST_HORIZON_DAYS && !startTooOldForForecast) {
+      // Forecast covers up to 16 days. Clamp end date if needed. Clamp start
+      // to today when slightly in the past so the API stays in range.
+      const clampedStart = new Date(Math.max(start.getTime(), now - 5 * 86_400_000));
       const clampedEnd = new Date(
         Math.min(
           end.getTime(),
           now + FORECAST_HORIZON_DAYS * 86_400_000,
         ),
       );
-      const days = await fetchForecast(
-        t.lat,
-        t.lng,
-        isoDay(start),
-        isoDay(clampedEnd),
-      );
-      snapshot = { mode: "forecast", fetchedAt: now, days };
+      try {
+        const days = await fetchForecast(
+          t.lat,
+          t.lng,
+          isoDay(clampedStart),
+          isoDay(clampedEnd),
+        );
+        snapshot = { mode: "forecast", fetchedAt: now, days };
+      } catch (err) {
+        console.warn("[weather] forecast failed, returning empty snapshot", err);
+        snapshot = { mode: "forecast", fetchedAt: now, days: [] };
+      }
     } else {
-      const { days, summary } = await fetchHistoricalAverage(
-        t.lat,
-        t.lng,
-        start,
-        duration,
-      );
-      snapshot = { mode: "historical", fetchedAt: now, days, summary };
+      try {
+        const { days, summary } = await fetchHistoricalAverage(
+          t.lat,
+          t.lng,
+          start,
+          duration,
+        );
+        snapshot = { mode: "historical", fetchedAt: now, days, summary };
+      } catch (err) {
+        console.warn("[weather] historical failed, returning empty snapshot", err);
+        snapshot = { mode: "historical", fetchedAt: now, days: [] };
+      }
     }
 
     const prevMode = t.weatherSnapshot?.mode;

@@ -38,15 +38,15 @@ function resolveTripCoords(
  */
 
 const STATUS_LABELS: Record<string, string> = {
-  planejando:  "Planejando",
-  confirmada:  "Confirmada",
-  realizada:   "Realizada",
+  planejando: "Planejando",
+  confirmada: "Confirmada",
+  realizada: "Realizada",
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  planejando:  "bg-[var(--color-brand-yellow)] text-black",
-  confirmada:  "bg-[var(--color-success-green)] text-white",
-  realizada:   "bg-[var(--color-neutral-600)] text-white",
+  planejando: "bg-[var(--color-brand-yellow)] text-black",
+  confirmada: "bg-[var(--color-success-green)] text-white",
+  realizada: "bg-[var(--color-neutral-600)] text-white",
 };
 
 function getCountdown(startDate?: number, duration?: number): string {
@@ -55,7 +55,7 @@ function getCountdown(startDate?: number, duration?: number): string {
   const diffMs = startDate - now;
   const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 
-  if (diffDays > 1)  return `Em ${diffDays} dias`;
+  if (diffDays > 1) return `Em ${diffDays} dias`;
   if (diffDays === 1) return "Amanhã!";
   if (diffDays === 0) return "Hoje! 🎉";
 
@@ -116,7 +116,7 @@ export function TripCard({ trip, className }: { trip: Trip; className?: string }
         <div className="relative flex-1 flex flex-col justify-between p-3">
           {/* Top-right: bell icon pill */}
           <div className="flex justify-end">
-            <div className="bg-white/90 backdrop-blur-sm rounded-full p-2.5 shadow-sm">
+            <div className="flex items-center justify-center w-10 h-10 bg-white backdrop-blur-sm rounded-full p-2 shadow-sm">
               <Icon
                 name={trip.status === "planejando" ? "bell" : trip.status === "confirmada" ? "plane" : "check"}
                 size={18}

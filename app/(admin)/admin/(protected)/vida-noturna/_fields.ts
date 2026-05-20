@@ -1,4 +1,5 @@
 import type { Field } from "@/components/organisms/admin/AdminCrudPage";
+import { api } from "@/convex/_generated/api";
 
 export const FIELDS: Field[] = [
   { key: "name", label: "Nome", type: "text", required: true },
@@ -26,6 +27,14 @@ export const FIELDS: Field[] = [
   { key: "hours", label: "Horário de funcionamento", type: "hours" },
   { key: "tags", label: "Tags", type: "tags" },
   { key: "city", label: "Cidade (Nordeste)", type: "city" },
+  { key: "discountBanner", label: "Banner de desconto", type: "banner" },
+  {
+    key: "coupons",
+    label: "Cupons vinculados",
+    type: "refs",
+    optionsQuery: api.coupons.list,
+    optionsQueryArgs: { activeOnly: false },
+  },
   { key: "featured", label: "Destaque", type: "boolean" },
   { key: "active", label: "Ativo", type: "boolean" },
   { key: "order", label: "Ordem", type: "number" },

@@ -45,6 +45,18 @@ export default defineSchema({
     featured: v.boolean(),
     active: v.boolean(),
     order: v.optional(v.number()),
+    // Promo banner shown on the detail page so the user knows the
+    // discount is real — admin sets a short title + description + active.
+    discountBanner: v.optional(
+      v.object({
+        title: v.string(),
+        description: v.string(),
+        active: v.optional(v.boolean()),
+      }),
+    ),
+    // Coupons linked to this tour. Rendered as a list of usable cards
+    // on the detail page so the user knows how to apply them.
+    coupons: v.optional(v.array(v.id("coupons"))),
   })
     .index("by_slug", ["slug"])
     .index("by_featured", ["featured"])
@@ -76,6 +88,14 @@ export default defineSchema({
     order: v.optional(v.number()),
     // TripAdvisor import
     tripAdvisorUrl: v.optional(v.string()),
+    discountBanner: v.optional(
+      v.object({
+        title: v.string(),
+        description: v.string(),
+        active: v.optional(v.boolean()),
+      }),
+    ),
+    coupons: v.optional(v.array(v.id("coupons"))),
   })
     .index("by_slug", ["slug"])
     .index("by_featured", ["featured"])
@@ -141,6 +161,14 @@ export default defineSchema({
     featured: v.boolean(),
     active: v.boolean(),
     order: v.optional(v.number()),
+    discountBanner: v.optional(
+      v.object({
+        title: v.string(),
+        description: v.string(),
+        active: v.optional(v.boolean()),
+      }),
+    ),
+    coupons: v.optional(v.array(v.id("coupons"))),
   })
     .index("by_slug", ["slug"])
     .index("by_featured", ["featured"])
@@ -199,6 +227,14 @@ export default defineSchema({
     featured: v.boolean(),
     active: v.boolean(),
     order: v.optional(v.number()),
+    discountBanner: v.optional(
+      v.object({
+        title: v.string(),
+        description: v.string(),
+        active: v.optional(v.boolean()),
+      }),
+    ),
+    coupons: v.optional(v.array(v.id("coupons"))),
   })
     .index("by_slug", ["slug"])
     .index("by_featured", ["featured"])
@@ -272,6 +308,9 @@ export default defineSchema({
               osmLng: v.optional(v.number()),
               osmAddress: v.optional(v.string()),
               osmWebsite: v.optional(v.string()),
+              // User who added this activity. Defaults to trip creator
+              // for AI-generated cards; later additions track who added.
+              addedBy: v.optional(v.string()),
             }),
           ),
         }),
@@ -309,9 +348,50 @@ export default defineSchema({
     // Timestamp of the one-shot push+email fired when the snapshot
     // first transitions from historical to forecast. Idempotency flag.
     weatherNotifiedAt: v.optional(v.number()),
+    // Public sharing: when set, /v/{shareToken} renders a read-only view
+    // of the trip. Generated lazily on first share action.
+    shareToken: v.optional(v.string()),
+    // Accepted collaborators on this trip. Owner (userId) is not in this
+    // list — they have implicit edit + admin perms.
+    collaborators: v.optional(
+      v.array(
+        v.object({
+          userId: v.string(),
+          role: v.string(), // "edit" | "view"
+          joinedAt: v.number(),
+        }),
+      ),
+    ),
+    // Outstanding invites awaiting response. When accepted, the entry is
+    // moved into `collaborators` and removed from this list.
+    pendingInvites: v.optional(
+      v.array(
+        v.object({
+          email: v.string(),
+          // Filled in if a user with this email already exists at invite
+          // creation time. Helps show name/avatar in the pending list.
+          resolvedUserId: v.optional(v.string()),
+          role: v.string(), // "edit" | "view"
+          token: v.string(), // URL-safe token shared via link
+          createdAt: v.number(),
+        }),
+      ),
+    ),
+    // Packing/preparation checklist. Seeded with defaults based on trip
+    // type on first open; users can add custom items and toggle done.
+    checklist: v.optional(
+      v.array(
+        v.object({
+          id: v.string(),
+          text: v.string(),
+          done: v.boolean(),
+        }),
+      ),
+    ),
   })
     .index("by_user", ["userId"])
-    .index("by_status", ["status"]),
+    .index("by_status", ["status"])
+    .index("by_share_token", ["shareToken"]),
 
   // ── Favoritos dos usuários ───────────────────────────────────
   favorites: defineTable({
@@ -539,4 +619,58 @@ export default defineSchema({
     .index("by_timestamp", ["timestamp"])
     .index("by_itemType", ["itemType"])
     .index("by_itemType_timestamp", ["itemType", "timestamp"]),
+
+  // ── Stories (Huan-only, expire in 24h) ──────────────────────
+  // Admin uploads photo/video to R2 and inserts a story row. Cron
+  // (every 30 min) deletes rows + the R2 object once expiresAt < now.
+  // Public listing query filters to non-expired only.
+  stories: defineTable({
+    mediaType: v.string(), // "image" | "video"
+    r2Key: v.string(), // R2 object key — used to delete on expiry
+    url: v.string(), // public-served URL (via /api/img/...)
+    durationMs: v.optional(v.number()), // video duration if applicable
+    caption: v.optional(v.string()), // overlay text shown on the story
+    captionStyle: v.optional(
+      v.object({
+        color: v.optional(v.string()), // hex
+        bg: v.optional(v.string()), // hex
+        align: v.optional(v.string()), // "top" | "center" | "bottom"
+      }),
+    ),
+    createdAt: v.number(),
+    expiresAt: v.number(),
+    publishedBy: v.string(), // admin userId
+    // Counters; reactions break down per emoji.
+    viewCount: v.optional(v.number()),
+    // Convex field names must be ASCII so we store reactions as a list of
+    // { emoji, count } instead of a record keyed by the emoji itself.
+    // Union accepts legacy `{}` rows during transition.
+    reactionCounts: v.optional(
+      v.union(
+        v.array(v.object({ emoji: v.string(), count: v.number() })),
+        v.record(v.string(), v.number()),
+      ),
+    ),
+  })
+    .index("by_expires", ["expiresAt"])
+    .index("by_created", ["createdAt"]),
+
+  // Per-user view tracker so we can show seen/unseen rings + once-per-user
+  // view counts on the admin side.
+  storyViews: defineTable({
+    storyId: v.id("stories"),
+    userId: v.string(),
+    viewedAt: v.number(),
+  })
+    .index("by_story_user", ["storyId", "userId"])
+    .index("by_user", ["userId"]),
+
+  // Aggregated per-user reactions (one emoji per user per story).
+  storyReactions: defineTable({
+    storyId: v.id("stories"),
+    userId: v.string(),
+    emoji: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_story_user", ["storyId", "userId"]),
 });
