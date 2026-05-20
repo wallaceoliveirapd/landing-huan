@@ -81,7 +81,7 @@ export function Header() {
         ) : (
           <button
             type="button"
-            onClick={auth.openAuthModal}
+            onClick={() => auth.openAuthModal()}
             className="grid size-[42px] flex-none place-items-center rounded-full bg-[var(--color-neutral-100)]"
             aria-label="Entrar"
           >
@@ -103,7 +103,7 @@ export function Header() {
           ) : (
             <button
               type="button"
-              onClick={auth.openAuthModal}
+              onClick={() => auth.openAuthModal()}
               className="font-display font-medium text-[14px] text-[var(--color-neutral-800)] text-left"
             >
               Entre ou crie sua conta grátis

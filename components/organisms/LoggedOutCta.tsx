@@ -48,7 +48,7 @@ export function LoggedOutCta() {
               <button
                 key={b.label}
                 type="button"
-                onClick={auth.openAuthModal}
+                onClick={() => auth.openAuthModal()}
                 className="w-[180px] flex-none p-6 rounded-[24px] border border-[var(--color-neutral-300)] bg-white text-left flex flex-col gap-4 transition-colors hover:border-[var(--color-neutral-800)]"
               >
                 <Icon

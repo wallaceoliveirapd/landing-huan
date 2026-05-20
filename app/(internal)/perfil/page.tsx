@@ -42,7 +42,7 @@ export default function PerfilPage() {
         </p>
         <button
           type="button"
-          onClick={auth.openAuthModal}
+          onClick={() => auth.openAuthModal()}
           className="rounded-full bg-[var(--color-neutral-800)] px-6 py-3 font-medium text-[14px] text-white"
         >
           Entrar / Criar conta

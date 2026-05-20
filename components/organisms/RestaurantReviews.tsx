@@ -175,7 +175,7 @@ export function RestaurantReviews({ restaurantId }: Props) {
           </p>
           <button
             type="button"
-            onClick={auth.openAuthModal}
+            onClick={() => auth.openAuthModal()}
             className="shrink-0 rounded-full bg-[var(--color-neutral-800)] text-white text-[13px] font-medium px-4 py-2"
           >
             Entrar
