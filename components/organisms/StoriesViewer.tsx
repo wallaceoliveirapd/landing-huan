@@ -205,9 +205,16 @@ export function StoriesViewer({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.22, ease: "easeOut" }}
-        className="fixed inset-0 z-[120] bg-black flex flex-col"
+        className="fixed inset-0 z-[120] bg-black flex flex-col select-none"
+        style={{
+          WebkitTouchCallout: "none",
+          WebkitUserSelect: "none",
+          userSelect: "none",
+          WebkitTapHighlightColor: "transparent",
+        }}
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
+        onContextMenu={(e) => e.preventDefault()}
       >
         {/* Top bar: progress dots + close. While the video is buffering we
             only render the close button so the user can still escape. */}
@@ -302,10 +309,26 @@ export function StoriesViewer({
               src={toProxyUrl(current.url)}
               autoPlay
               playsInline
-              muted={false}
+              // iOS older Safari needs this exact attr
+              // @ts-expect-error — non-standard but harmless
+              webkit-playsinline="true"
               preload="auto"
               className="absolute inset-0 w-full h-full object-cover"
-              onCanPlay={() => setLoading(false)}
+              onCanPlay={(e) => {
+                setLoading(false);
+                if (!paused) {
+                  const v = e.currentTarget;
+                  v.play().catch(() => {
+                    // Autoplay with sound blocked → fall back to muted so
+                    // playback never stalls on the native play overlay.
+                    v.muted = true;
+                    v.play().catch(() => {});
+                  });
+                }
+              }}
+              onLoadedData={(e) => {
+                if (!paused) e.currentTarget.play().catch(() => {});
+              }}
               onWaiting={() => setLoading(true)}
               onEnded={goNext}
             />
@@ -331,7 +354,14 @@ export function StoriesViewer({
           const linkBg = linkBlur ? linkRawBg : stripHexAlpha(linkRawBg);
           return (
             <div
-              className={`absolute inset-x-0 ${align === "top" ? "top-24" : align === "center" ? "top-1/2 -translate-y-1/2" : "bottom-32"} z-10 flex flex-col items-center gap-2 px-6 pointer-events-none`}
+              className={`absolute inset-x-0 ${align === "center" ? "top-1/2 -translate-y-1/2" : ""} z-10 flex flex-col items-center gap-2 px-6 pointer-events-none`}
+              style={
+                align === "top"
+                  ? { top: "calc(env(safe-area-inset-top) + 96px)" }
+                  : align === "bottom"
+                    ? { bottom: "calc(env(safe-area-inset-bottom) + 112px)" }
+                    : undefined
+              }
             >
               {current.caption && (
                 <span
@@ -346,7 +376,7 @@ export function StoriesViewer({
               )}
               {current.link && (
                 <a
-                  href={current.link.url}
+                  href={normalizeExternalUrl(current.link.url)}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => {
@@ -494,4 +524,16 @@ function stripHexAlpha(bg: string): string {
   if (s.length === 9) return s.slice(0, 7);
   if (s.length === 5) return s.slice(0, 4);
   return s;
+}
+
+/**
+ * Ensure URLs typed without a protocol (e.g. `google.com`, `www.google.com`)
+ * are treated as external links instead of being resolved against the current
+ * origin. http(s):// and other valid schemes pass through untouched.
+ */
+function normalizeExternalUrl(url: string): string {
+  const s = url.trim();
+  if (!s) return s;
+  if (/^[a-z][a-z0-9+\-.]*:/i.test(s)) return s;
+  return `https://${s.replace(/^\/+/, "")}`;
 }

@@ -6,6 +6,13 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Icon } from "@/components/atoms/Icon";
 
+function normalizeExternalUrl(url: string): string {
+  const s = url.trim();
+  if (!s) return s;
+  if (/^[a-z][a-z0-9+\-.]*:/i.test(s)) return s;
+  return `https://${s.replace(/^\/+/, "")}`;
+}
+
 const TYPE_LABELS: Record<string, string> = {
   tour: "Passeio",
   coupon: "Cupom",
@@ -511,7 +518,7 @@ function StoryLinksReport() {
                       </td>
                       <td className="px-4 py-3">
                         <a
-                          href={s.link!.url}
+                          href={normalizeExternalUrl(s.link!.url)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-[var(--color-brand-purple)] hover:underline truncate inline-block max-w-[260px] align-bottom"
