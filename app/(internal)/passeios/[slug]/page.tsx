@@ -96,7 +96,7 @@ export default async function TourDetailPage({ params }: PageProps) {
       />
       {tour.discountBanner?.active &&
         (tour.discountBanner.title || tour.discountBanner.description) && (
-          <section className="px-6 pt-0 w-full max-w-screen-md mx-auto">
+          <section className="px-6 pt-5 w-full max-w-screen-md mx-auto">
             <PromoBanner
               title={tour.discountBanner.title}
               description={tour.discountBanner.description}

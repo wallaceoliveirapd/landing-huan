@@ -6,6 +6,7 @@ import { fetchQuery } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
 import { Icon } from "@/components/atoms/Icon";
 import { toProxyUrl } from "@/lib/imageUpload";
+import { PraiaPhotosGrid } from "@/components/organisms/PraiaPhotosGrid";
 import { affiliateUrl } from "@/lib/affiliateUrl";
 import { GtmViewItem } from "@/components/atoms/GtmViewItem";
 import { BackButton } from "@/components/atoms/BackButton";
@@ -150,10 +151,10 @@ export default async function HospedagemDetailPage({ params }: PageProps) {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[11px] text-[var(--color-neutral-600)] uppercase tracking-wide">
-              Preço
+              Diárias a partir de
             </p>
-            <p className="font-display font-medium text-[14px] text-[var(--color-neutral-800)]">
-              A partir de R$ {place.priceFrom.toFixed(0)} / noite
+            <p className="font-display font-medium text-[22px] text-[var(--color-neutral-800)]">
+              R$ {place.priceFrom.toFixed(0)}
             </p>
           </div>
         </div>
@@ -172,7 +173,7 @@ export default async function HospedagemDetailPage({ params }: PageProps) {
       {/* ── Promo banner (admin-configured) ────────────────────── */}
       {place.discountBanner?.active &&
         (place.discountBanner.title || place.discountBanner.description) && (
-          <section className="px-6 pt-0 max-w-screen-md mx-auto">
+          <section className="px-6 pt-5 max-w-screen-md mx-auto">
             <PromoBanner
               title={place.discountBanner.title}
               description={place.discountBanner.description}
@@ -219,28 +220,13 @@ export default async function HospedagemDetailPage({ params }: PageProps) {
         </section>
       )}
 
-      {/* ── Photo gallery ──────────────────────────────────────── */}
+      {/* ── Photo gallery (tap → full-screen lightbox) ─────────── */}
       {place.photos && place.photos.length > 0 && (
         <section className="px-6 pt-8 max-w-screen-md mx-auto">
           <h2 className="font-display font-medium text-[14px] text-[var(--color-neutral-800)] mb-3">
             Fotos
           </h2>
-          <div className="grid grid-cols-2 gap-2">
-            {place.photos.slice(0, 6).map((src) => (
-              <div
-                key={src}
-                className="relative aspect-square overflow-hidden rounded-[16px] bg-[var(--color-neutral-100)]"
-              >
-                <Image
-                  src={toProxyUrl(src)}
-                  alt={`Foto de ${place.name}`}
-                  fill
-                  sizes="(min-width: 768px) 350px, 50vw"
-                  className="object-cover"
-                />
-              </div>
-            ))}
-          </div>
+          <PraiaPhotosGrid photos={place.photos} alt={`Foto de ${place.name}`} />
         </section>
       )}
 
