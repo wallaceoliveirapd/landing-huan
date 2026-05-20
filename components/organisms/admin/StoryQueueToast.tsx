@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Icon } from "@/components/atoms/Icon";
 import { useStoryQueue, type StoryJob } from "@/components/providers/StoryQueueProvider";
@@ -36,10 +37,14 @@ function phaseRatio(j: StoryJob): number | undefined {
 
 export function StoryQueueToast() {
   const { jobs, dismiss, clearDone } = useStoryQueue();
+  const [collapsed, setCollapsed] = useState(false);
   if (jobs.length === 0) return null;
 
   const active = jobs.filter((j) => j.phase !== "done" && j.phase !== "error").length;
   const finished = jobs.length - active;
+  // Average ratio for the collapsed pill progress bar.
+  const avgRatio =
+    jobs.reduce((sum, j) => sum + (phaseRatio(j) ?? 0), 0) / jobs.length;
 
   return (
     <div
@@ -47,28 +52,72 @@ export function StoryQueueToast() {
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <motion.div
+        layout
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2 }}
         className="rounded-2xl bg-white shadow-xl border border-[var(--color-neutral-200)] overflow-hidden flex flex-col"
       >
-        <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-[var(--color-neutral-100)]">
+        <button
+          type="button"
+          onClick={() => setCollapsed((c) => !c)}
+          className="flex items-center justify-between gap-2 px-4 py-3 border-b border-[var(--color-neutral-100)] hover:bg-[var(--color-neutral-50)] text-left"
+        >
           <span className="text-[12px] font-medium text-[var(--color-neutral-800)] flex items-center gap-2">
             <Icon name="lucide:upload-cloud" size={14} className="text-[var(--color-brand-purple)]" />
             Fila de stories ({active}/{jobs.length})
           </span>
-          {finished > 0 && (
-            <button
-              type="button"
-              onClick={clearDone}
-              className="text-[11px] text-[var(--color-neutral-500)] hover:text-[var(--color-neutral-800)]"
-            >
-              Limpar
-            </button>
-          )}
-        </div>
+          <span className="flex items-center gap-2">
+            {finished > 0 && !collapsed && (
+              <span
+                role="button"
+                tabIndex={0}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  clearDone();
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.stopPropagation();
+                    clearDone();
+                  }
+                }}
+                className="text-[11px] text-[var(--color-neutral-500)] hover:text-[var(--color-neutral-800)] cursor-pointer"
+              >
+                Limpar
+              </span>
+            )}
+            <Icon
+              name="lucide:chevron-down"
+              size={14}
+              className={`text-[var(--color-neutral-500)] transition-transform ${
+                collapsed ? "-rotate-90" : "rotate-0"
+              }`}
+            />
+          </span>
+        </button>
 
-        <div className="flex flex-col gap-1.5 p-3 max-h-[320px] overflow-y-auto">
+        {collapsed && active > 0 && (
+          <div className="h-1 bg-[var(--color-neutral-100)]">
+            <motion.div
+              className="h-full bg-[var(--color-brand-purple)]"
+              animate={{ width: `${avgRatio * 100}%` }}
+              transition={{ duration: 0.25 }}
+            />
+          </div>
+        )}
+
+        <AnimatePresence initial={false}>
+          {!collapsed && (
+            <motion.div
+              key="body"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              className="overflow-hidden"
+            >
+              <div className="flex flex-col gap-1.5 p-3 max-h-[320px] overflow-y-auto">
           <AnimatePresence initial={false}>
             {jobs.map((j) => {
               const ratio = phaseRatio(j);
@@ -142,7 +191,10 @@ export function StoryQueueToast() {
               );
             })}
           </AnimatePresence>
-        </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </div>
   );
