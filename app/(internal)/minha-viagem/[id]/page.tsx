@@ -394,6 +394,7 @@ type Activity = {
   osmLng?: number;
   osmAddress?: string;
   osmWebsite?: string;
+  addedBy?: string;
 };
 
 function SortableActivityCard({
