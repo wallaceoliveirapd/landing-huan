@@ -303,9 +303,6 @@ export function StoriesViewer({
               src={toProxyUrl(current.url)}
               autoPlay
               playsInline
-              // iOS older Safari needs this exact attr
-              // @ts-expect-error — non-standard but harmless
-              webkit-playsinline="true"
               preload="auto"
               className="absolute inset-0 w-full h-full object-cover"
               onCanPlay={(e) => {
