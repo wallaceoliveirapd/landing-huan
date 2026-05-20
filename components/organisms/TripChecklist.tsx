@@ -24,10 +24,14 @@ export function TripChecklist({
   tripId,
   tripType,
   initialItems,
+  canEdit = true,
 }: {
   tripId: Id<"trips">;
   tripType: string;
   initialItems?: Item[];
+  /** View-only collaborators see the progress + items but no edit / seed
+   *  controls. When the trip has no checklist yet, the entire block hides. */
+  canEdit?: boolean;
 }) {
   const setChecklist = useMutation(api.trips.setChecklist);
   const [items, setItems] = useState<Item[]>(initialItems ?? []);
@@ -84,6 +88,10 @@ export function TripChecklist({
     setDraft("");
   }
 
+  // Hide the whole block for view-only collaborators when the owner has
+  // never created a checklist — nothing useful to show.
+  if (!canEdit && items.length === 0) return null;
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -137,7 +145,7 @@ export function TripChecklist({
                 </div>
               )}
 
-              {!seeded && items.length === 0 ? (
+              {canEdit && !seeded && items.length === 0 ? (
                 <div className="flex flex-col gap-2 py-3">
                   <p className="text-[13px] text-[var(--color-neutral-600)]">
                     Comece com uma sugestão automática baseada no tipo da viagem
@@ -163,7 +171,7 @@ export function TripChecklist({
                 </div>
               ) : (
                 <>
-                  {items.length === 0 && (
+                  {canEdit && items.length === 0 && (
                     <div className="flex flex-col gap-2 py-2">
                       <p className="text-[13px] text-[var(--color-neutral-600)]">
                         Checklist vazio. Quer recuperar a sugestão automática
@@ -187,12 +195,13 @@ export function TripChecklist({
                       >
                         <button
                           type="button"
-                          onClick={() => toggleItem(item.id)}
+                          onClick={() => canEdit && toggleItem(item.id)}
                           aria-label={item.done ? "Desmarcar" : "Marcar"}
+                          disabled={!canEdit}
                           className={`grid size-5 place-items-center rounded-full border transition-colors shrink-0 ${item.done
                             ? "bg-[var(--color-neutral-800)] border-[var(--color-neutral-800)] text-white"
                             : "border-[var(--color-neutral-400)]"
-                            }`}
+                            } ${canEdit ? "" : "cursor-default"}`}
                         >
                           {item.done && <Icon name="check" size={12} />}
                         </button>
@@ -204,42 +213,46 @@ export function TripChecklist({
                         >
                           {item.text}
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => removeItem(item.id)}
-                          aria-label="Remover"
-                          className="grid size-7 place-items-center rounded-full hover:bg-[var(--color-neutral-100)] text-[var(--color-neutral-500)]"
-                        >
-                          <Icon name="x" size={12} />
-                        </button>
+                        {canEdit && (
+                          <button
+                            type="button"
+                            onClick={() => removeItem(item.id)}
+                            aria-label="Remover"
+                            className="grid size-7 place-items-center rounded-full hover:bg-[var(--color-neutral-100)] text-[var(--color-neutral-500)]"
+                          >
+                            <Icon name="x" size={12} />
+                          </button>
+                        )}
                       </li>
                     ))}
                   </ul>
 
-                  {/* Add row */}
-                  <div className="flex gap-2 pt-2">
-                    <input
-                      type="text"
-                      value={draft}
-                      onChange={(e) => setDraft(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          addItem();
-                        }
-                      }}
-                      placeholder="Adicionar item ao checklist..."
-                      className="flex-1 h-10 px-3 rounded-full border border-[var(--color-neutral-300)] text-[13px] outline-none focus:border-[var(--color-neutral-800)] bg-white"
-                    />
-                    <button
-                      type="button"
-                      onClick={addItem}
-                      disabled={!draft.trim()}
-                      className="grid size-10 place-items-center rounded-full bg-[var(--color-neutral-800)] text-white disabled:opacity-40"
-                    >
-                      <Icon name="plus" size={14} />
-                    </button>
-                  </div>
+                  {/* Add row — owner / edit-role only. */}
+                  {canEdit && (
+                    <div className="flex gap-2 pt-2">
+                      <input
+                        type="text"
+                        value={draft}
+                        onChange={(e) => setDraft(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            addItem();
+                          }
+                        }}
+                        placeholder="Adicionar item ao checklist..."
+                        className="flex-1 h-10 px-3 rounded-full border border-[var(--color-neutral-300)] text-[13px] outline-none focus:border-[var(--color-neutral-800)] bg-white"
+                      />
+                      <button
+                        type="button"
+                        onClick={addItem}
+                        disabled={!draft.trim()}
+                        className="grid size-10 place-items-center rounded-full bg-[var(--color-neutral-800)] text-white disabled:opacity-40"
+                      >
+                        <Icon name="plus" size={14} />
+                      </button>
+                    </div>
+                  )}
                 </>
               )}
             </div>

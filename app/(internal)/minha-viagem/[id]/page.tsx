@@ -142,6 +142,7 @@ type ActivityCardProps = {
   osmAddress?: string;
   osmWebsite?: string;
   addedByPerson?: { name: string | null; image: string | null };
+  canEdit?: boolean;
   dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
 };
 
@@ -163,6 +164,7 @@ function ActivityCard({
   osmAddress,
   osmWebsite,
   addedByPerson,
+  canEdit = true,
   dragHandleProps,
 }: ActivityCardProps) {
   const router = useRouter();
@@ -326,39 +328,52 @@ function ActivityCard({
             <Icon name="grip-vertical" size={14} />
           </div>
         )}
-        <label
-          title={time ? "Mudar horário" : "Definir horário"}
-          className="relative inline-flex items-center gap-1 h-7 px-2 rounded-full bg-white border-[1px] border-neutral-200 cursor-pointer hover:brightness-95 transition"
-        >
-          <Icon name="clock" size={11} className="text-[var(--color-neutral-800)]" />
-          <span className="text-[10px] font-medium text-[var(--color-neutral-800)]">
-            {time ? time : "Horário"}
-          </span>
-          <input
-            type="time"
-            value={time ?? ""}
-            onChange={(e) => {
-              setActivityTime({ tripId, day, index, time: e.target.value });
-            }}
-            className="absolute inset-0 opacity-0 cursor-pointer"
-          />
-        </label>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            title="Remover do roteiro"
-            onClick={async () => {
-              if (!confirm(`Remover "${displayTitle}" do roteiro? Essa ação não pode ser desfeita.`)) return;
-              try {
-                await removeActivity({ tripId, day, index });
-              } catch (err) {
-                console.error(err);
-              }
-            }}
-            className="inline-flex items-center justify-center size-7 rounded-full bg-white border border-[var(--color-neutral-300)] hover:border-red-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+        {canEdit ? (
+          <label
+            title={time ? "Mudar horário" : "Definir horário"}
+            className="relative inline-flex items-center gap-1 h-7 px-2 rounded-full bg-white border-[1px] border-neutral-200 cursor-pointer hover:brightness-95 transition"
           >
-            <Icon name="trash-2" size={11} />
-          </button>
+            <Icon name="clock" size={11} className="text-[var(--color-neutral-800)]" />
+            <span className="text-[10px] font-medium text-[var(--color-neutral-800)]">
+              {time ? time : "Horário"}
+            </span>
+            <input
+              type="time"
+              value={time ?? ""}
+              onChange={(e) => {
+                setActivityTime({ tripId, day, index, time: e.target.value });
+              }}
+              className="absolute inset-0 opacity-0 cursor-pointer"
+            />
+          </label>
+        ) : (
+          time && (
+            <span className="inline-flex items-center gap-1 h-7 px-2 rounded-full bg-white border-[1px] border-neutral-200">
+              <Icon name="clock" size={11} className="text-[var(--color-neutral-800)]" />
+              <span className="text-[10px] font-medium text-[var(--color-neutral-800)]">
+                {time}
+              </span>
+            </span>
+          )
+        )}
+        <div className="flex items-center gap-1">
+          {canEdit && (
+            <button
+              type="button"
+              title="Remover do roteiro"
+              onClick={async () => {
+                if (!confirm(`Remover "${displayTitle}" do roteiro? Essa ação não pode ser desfeita.`)) return;
+                try {
+                  await removeActivity({ tripId, day, index });
+                } catch (err) {
+                  console.error(err);
+                }
+              }}
+              className="inline-flex items-center justify-center size-7 rounded-full bg-white border border-[var(--color-neutral-300)] hover:border-red-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+            >
+              <Icon name="trash-2" size={11} />
+            </button>
+          )}
           {linkHref && (
             <button
               type="button"
@@ -405,6 +420,7 @@ function SortableActivityCard({
   activity,
   dbItem,
   addedByPerson,
+  canEdit,
 }: {
   id: number;
   tripId: Id<"trips">;
@@ -413,8 +429,9 @@ function SortableActivityCard({
   activity: Activity;
   dbItem?: Record<string, unknown>;
   addedByPerson?: { name: string | null; image: string | null };
+  canEdit: boolean;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, disabled: !canEdit });
   return (
     <div
       ref={setNodeRef}
@@ -449,7 +466,8 @@ function SortableActivityCard({
         osmAddress={activity.osmAddress}
         osmWebsite={activity.osmWebsite}
         addedByPerson={addedByPerson}
-        dragHandleProps={{ ...attributes, ...listeners } as React.HTMLAttributes<HTMLDivElement>}
+        canEdit={canEdit}
+        dragHandleProps={canEdit ? ({ ...attributes, ...listeners } as React.HTMLAttributes<HTMLDivElement>) : undefined}
       />
     </div>
   );
@@ -461,6 +479,7 @@ function DayActivities({
   initialActivities,
   resolvedItems,
   peopleById,
+  canEdit,
   onAddSheet,
 }: {
   tripId: Id<"trips">;
@@ -468,6 +487,7 @@ function DayActivities({
   initialActivities: Activity[];
   resolvedItems: Record<string, Record<string, unknown>> | undefined;
   peopleById: Record<string, { name: string | null; image: string | null }>;
+  canEdit: boolean;
   onAddSheet: () => void;
 }) {
   const reorderActivities = useMutation(api.trips.reorderActivities);
@@ -483,6 +503,7 @@ function DayActivities({
   );
 
   function handleDragEnd(event: DragEndEvent) {
+    if (!canEdit) return;
     const { active, over } = event;
     if (!over || active.id === over.id) return;
     const oldIndex = active.id as number;
@@ -540,18 +561,21 @@ function DayActivities({
                   : undefined
               }
               addedByPerson={a.addedBy ? peopleById[a.addedBy] : undefined}
+              canEdit={canEdit}
             />
           ))}
         </SortableContext>
       </DndContext>
-      <button
-        type="button"
-        onClick={onAddSheet}
-        className="self-start inline-flex items-center gap-1.5 rounded-full border border-dashed border-[var(--color-neutral-300)] px-3 py-1.5 text-[12px] font-medium text-[var(--color-neutral-700)] hover:border-[var(--color-neutral-800)] hover:text-[var(--color-neutral-800)] transition-colors"
-      >
-        <Icon name="plus" size={12} />
-        Adicionar ao dia {dayNum}
-      </button>
+      {canEdit && (
+        <button
+          type="button"
+          onClick={onAddSheet}
+          className="self-start inline-flex items-center gap-1.5 rounded-full border border-dashed border-[var(--color-neutral-300)] px-3 py-1.5 text-[12px] font-medium text-[var(--color-neutral-700)] hover:border-[var(--color-neutral-800)] hover:text-[var(--color-neutral-800)] transition-colors"
+        >
+          <Icon name="plus" size={12} />
+          Adicionar ao dia {dayNum}
+        </button>
+      )}
     </div>
   );
 }
@@ -584,6 +608,15 @@ export default function TripDetailPage({
   }, [people]);
   const generateItinerary = useAction(api.itineraryGen.generate);
   const removeTrip = useMutation(api.trips.remove);
+
+  // Permission flags driven by peopleForTrip. Owner can do anything; an
+  // invited collaborator with role="edit" can mutate everything except
+  // delete / share-token toggles; "view" collaborators see read-only UI.
+  const isOwner = people?.isOwner === true;
+  const myRole = (people?.collaborators ?? []).find(
+    (c) => c.userId === people?.currentUserId,
+  )?.role;
+  const canEdit = isOwner || myRole === "edit";
 
   const [regenerating, setRegenerating] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -680,39 +713,49 @@ export default function TripDetailPage({
         <span className="font-display font-medium text-[16px] text-[var(--color-neutral-800)]">
 
         </span>
-        <button
-          type="button"
-          onClick={() => setCollabSheetOpen(true)}
-          aria-label="Convidar para viagem"
-          className="ml-auto grid size-10 place-items-center rounded-full bg-[var(--color-neutral-100)]"
-        >
-          <Icon name="users" size={16} className="text-[var(--color-neutral-800)]" />
-        </button>
-        <button
-          type="button"
-          onClick={() => setShareSheetOpen(true)}
-          aria-label="Compartilhar viagem"
-          className="grid size-10 place-items-center rounded-full bg-[var(--color-neutral-100)]"
-        >
-          <Icon name="share-2" size={16} className="text-[var(--color-neutral-800)]" />
-        </button>
-        <button
-          type="button"
-          onClick={() => setEditSheetOpen(true)}
-          aria-label="Editar viagem"
-          className="grid size-10 place-items-center rounded-full bg-[var(--color-neutral-100)]"
-        >
-          <Icon name="pencil" size={16} className="text-[var(--color-neutral-800)]" />
-        </button>
-        <button
-          type="button"
-          onClick={handleDelete}
-          aria-label="Excluir viagem"
-          className="grid size-10 place-items-center rounded-full bg-[var(--color-neutral-100)] disabled:opacity-50"
-          disabled={deleting}
-        >
-          <Icon name="trash-2" size={16} className="text-[var(--color-neutral-800)]" />
-        </button>
+        {/* Collab + share are owner-only (they manage who has access). */}
+        {isOwner && (
+          <button
+            type="button"
+            onClick={() => setCollabSheetOpen(true)}
+            aria-label="Convidar para viagem"
+            className="ml-auto grid size-10 place-items-center rounded-full bg-[var(--color-neutral-100)]"
+          >
+            <Icon name="users" size={16} className="text-[var(--color-neutral-800)]" />
+          </button>
+        )}
+        {isOwner && (
+          <button
+            type="button"
+            onClick={() => setShareSheetOpen(true)}
+            aria-label="Compartilhar viagem"
+            className="grid size-10 place-items-center rounded-full bg-[var(--color-neutral-100)]"
+          >
+            <Icon name="share-2" size={16} className="text-[var(--color-neutral-800)]" />
+          </button>
+        )}
+        {canEdit && (
+          <button
+            type="button"
+            onClick={() => setEditSheetOpen(true)}
+            aria-label="Editar viagem"
+            className={`${isOwner ? "" : "ml-auto "}grid size-10 place-items-center rounded-full bg-[var(--color-neutral-100)]`}
+          >
+            <Icon name="pencil" size={16} className="text-[var(--color-neutral-800)]" />
+          </button>
+        )}
+        {/* Delete is destructive and owner-only. */}
+        {isOwner && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            aria-label="Excluir viagem"
+            className="grid size-10 place-items-center rounded-full bg-[var(--color-neutral-100)] disabled:opacity-50"
+            disabled={deleting}
+          >
+            <Icon name="trash-2" size={16} className="text-[var(--color-neutral-800)]" />
+          </button>
+        )}
       </div>
 
       <TripTabs />
@@ -844,6 +887,7 @@ export default function TripDetailPage({
                       initialActivities={day.activities}
                       resolvedItems={resolvedItems as Record<string, Record<string, unknown>> | undefined}
                       peopleById={peopleById}
+                      canEdit={canEdit}
                       onAddSheet={() => setAddSheetDay(day.day)}
                     />
                   </div>
@@ -898,6 +942,7 @@ export default function TripDetailPage({
           tripId={tripId}
           tripType={trip.type}
           initialItems={trip.checklist}
+          canEdit={canEdit}
         />
       </motion.div>
 
