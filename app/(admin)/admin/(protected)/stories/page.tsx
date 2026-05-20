@@ -32,6 +32,10 @@ export default function StoriesAdminPage() {
   const [align, setAlign] = useState<CaptionAlign>("bottom");
   const [color, setColor] = useState("#FFFFFF");
   const [bg, setBg] = useState("#00000080");
+  const [linkUrl, setLinkUrl] = useState("");
+  const [linkLabel, setLinkLabel] = useState("");
+  const [linkColor, setLinkColor] = useState("#FFFFFF");
+  const [linkBg, setLinkBg] = useState("#6c47ff");
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   function handleSubmit() {
@@ -39,14 +43,30 @@ export default function StoriesAdminPage() {
       toast.error("Escolha um arquivo");
       return;
     }
+    const trimmedUrl = linkUrl.trim();
+    const trimmedLabel = linkLabel.trim();
+    if (trimmedUrl && !trimmedLabel) {
+      toast.error("Coloca um label pro link");
+      return;
+    }
+    if (trimmedLabel && !trimmedUrl) {
+      toast.error("Coloca a URL do link");
+      return;
+    }
     enqueue({
       file,
       caption: caption.trim() || undefined,
       captionStyle: caption.trim() ? { color, bg, align } : undefined,
+      link:
+        trimmedUrl && trimmedLabel
+          ? { url: trimmedUrl, label: trimmedLabel, color: linkColor, bg: linkBg }
+          : undefined,
     });
     toast.success("Adicionado à fila");
     setFile(null);
     setCaption("");
+    setLinkUrl("");
+    setLinkLabel("");
     if (fileRef.current) fileRef.current.value = "";
   }
 
@@ -185,6 +205,52 @@ export default function StoriesAdminPage() {
           </div>
         )}
 
+        {/* Optional CTA link */}
+        <div className="flex flex-col gap-2 pt-2 border-t border-[var(--color-neutral-100)]">
+          <span className="text-[12px] font-medium text-[var(--color-neutral-600)]">
+            Link (opcional)
+          </span>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="url"
+              value={linkUrl}
+              onChange={(e) => setLinkUrl(e.target.value)}
+              placeholder="https://exemplo.com"
+              className="flex-1 h-10 rounded-[12px] border border-[var(--color-neutral-300)] px-3 text-[14px] outline-none focus:border-[var(--color-neutral-800)] bg-white"
+            />
+            <input
+              type="text"
+              value={linkLabel}
+              onChange={(e) => setLinkLabel(e.target.value)}
+              placeholder="Label (ex: Reservar)"
+              maxLength={40}
+              className="flex-1 h-10 rounded-[12px] border border-[var(--color-neutral-300)] px-3 text-[14px] outline-none focus:border-[var(--color-neutral-800)] bg-white"
+            />
+          </div>
+          {linkUrl.trim() && linkLabel.trim() && (
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] text-[var(--color-neutral-500)]">Texto</span>
+                <input
+                  type="color"
+                  value={linkColor}
+                  onChange={(e) => setLinkColor(e.target.value)}
+                  className="h-8 w-12 rounded cursor-pointer border border-[var(--color-neutral-300)]"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] text-[var(--color-neutral-500)]">Fundo</span>
+                <input
+                  type="color"
+                  value={linkBg}
+                  onChange={(e) => setLinkBg(e.target.value)}
+                  className="h-8 w-12 rounded cursor-pointer border border-[var(--color-neutral-300)]"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
         <button
           type="button"
           onClick={handleSubmit}
@@ -238,6 +304,11 @@ export default function StoriesAdminPage() {
                         <div className="flex items-center justify-between gap-2">
                           <span>👁 {s.viewCount ?? 0}</span>
                           <span>💬 {total}</span>
+                          {s.link && (
+                            <span title="Cliques no link">
+                              🔗 {s.linkClickCount ?? 0}
+                            </span>
+                          )}
                         </div>
                         {reactions.length > 0 && (
                           <div className="flex flex-wrap gap-1">

@@ -15,8 +15,12 @@ import { StoriesViewer } from "./StoriesViewer";
  */
 export function StoriesRing({
   size = 64,
+  inline = false,
 }: {
   size?: number;
+  /** When true, render the bubbles inline (no own scroller) so the parent
+   *  controls horizontal layout / overflow. */
+  inline?: boolean;
 }) {
   const auth = useAuth();
   const stories = useQuery(api.stories.listActive, {});
@@ -30,10 +34,7 @@ export function StoriesRing({
 
   const viewedSet = new Set(viewed ?? []);
 
-  return (
-    <>
-      <div className="flex gap-3 overflow-x-auto no-scrollbar">
-        {stories.map((s, i) => {
+  const bubbles = stories.map((s, i) => {
           const seen = viewedSet.has(s._id);
           const isVideo = s.mediaType === "video";
           const url = toProxyUrl(s.url);
@@ -49,19 +50,22 @@ export function StoriesRing({
                 initial={{ scale: 0.92, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 280, damping: 20, delay: i * 0.04 }}
-                className="relative grid place-items-center rounded-full overflow-hidden"
-                style={{
-                  width: size,
-                  height: size,
-                  padding: 3,
-                  background: seen
-                    ? "var(--color-neutral-300)"
-                    : "conic-gradient(from 180deg, #F9FD17, #6c47ff, #028574, #F9FD17)",
-                }}
+                className="relative rounded-full"
+                style={{ width: size, height: size }}
               >
+                {/* Spinning gradient ring (only for unseen stories) */}
+                <div
+                  className={`absolute inset-0 rounded-full ${seen ? "" : "story-ring-spin"}`}
+                  style={{
+                    background: seen
+                      ? "var(--color-neutral-300)"
+                      : "conic-gradient(from 180deg, #F9FD17, #6c47ff, #028574, #F9FD17)",
+                  }}
+                />
+                {/* Thumb (stays still on top of the ring) */}
                 <span
-                  className="grid place-items-center rounded-full bg-white overflow-hidden"
-                  style={{ width: "100%", height: "100%", padding: 2 }}
+                  className="absolute rounded-full bg-white grid place-items-center"
+                  style={{ inset: 3, padding: 2 }}
                 >
                   <span className="rounded-full overflow-hidden size-full block bg-[var(--color-neutral-200)]">
                     {isVideo ? (
@@ -89,8 +93,17 @@ export function StoriesRing({
               </span>
             </button>
           );
-        })}
-      </div>
+        });
+
+  return (
+    <>
+      {inline ? (
+        bubbles
+      ) : (
+        <div className="flex items-start gap-3 overflow-x-auto no-scrollbar -mx-5 px-5">
+          {bubbles}
+        </div>
+      )}
 
       {openIndex !== null && (
         <StoriesViewer

@@ -453,6 +453,84 @@ export default function RelatoriosPage() {
           onClose={() => setDetailClickId(null)}
         />
       )}
+
+      <StoryLinksReport />
     </div>
+  );
+}
+
+// ── Stories link-click report ───────────────────────────────────────────────
+function StoryLinksReport() {
+  const stories = useQuery(api.stories.adminListAll, {});
+  if (stories === undefined) {
+    return (
+      <div className="mt-12">
+        <SkeletonCard />
+      </div>
+    );
+  }
+  const withLinks = stories.filter((s) => s.link);
+  const total = withLinks.reduce((sum, s) => sum + (s.linkClickCount ?? 0), 0);
+  return (
+    <section className="mt-12">
+      <h2 className="font-display font-bold text-xl text-[var(--color-neutral-800)] mb-1">
+        Cliques em links de Stories
+      </h2>
+      <p className="text-sm text-[var(--color-neutral-600)] mb-4">
+        {withLinks.length} story{withLinks.length === 1 ? "" : "s"} com link •{" "}
+        {total} clique{total === 1 ? "" : "s"} no total.
+      </p>
+      {withLinks.length === 0 ? (
+        <div className="bg-white border border-[var(--color-neutral-300)] rounded-2xl p-5 text-sm text-[var(--color-neutral-500)]">
+          Nenhum story com link cadastrado.
+        </div>
+      ) : (
+        <div className="bg-white border border-[var(--color-neutral-300)] rounded-2xl overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-[var(--color-neutral-100)] text-[var(--color-neutral-700)]">
+              <tr>
+                <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wide">Story</th>
+                <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wide">Link</th>
+                <th className="px-4 py-2 text-right text-xs font-medium uppercase tracking-wide">Views</th>
+                <th className="px-4 py-2 text-right text-xs font-medium uppercase tracking-wide">Cliques</th>
+                <th className="px-4 py-2 text-right text-xs font-medium uppercase tracking-wide">CTR</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[var(--color-neutral-100)]">
+              {withLinks
+                .slice()
+                .sort((a, b) => (b.linkClickCount ?? 0) - (a.linkClickCount ?? 0))
+                .map((s) => {
+                  const views = s.viewCount ?? 0;
+                  const clicks = s.linkClickCount ?? 0;
+                  const ctr = views > 0 ? Math.round((clicks / views) * 100) : 0;
+                  return (
+                    <tr key={s._id}>
+                      <td className="px-4 py-3 text-[var(--color-neutral-700)] max-w-[200px] truncate">
+                        {s.caption ?? "(sem legenda)"}
+                      </td>
+                      <td className="px-4 py-3">
+                        <a
+                          href={s.link!.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[var(--color-brand-purple)] hover:underline truncate inline-block max-w-[260px] align-bottom"
+                        >
+                          {s.link!.label}
+                        </a>
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums">{views}</td>
+                      <td className="px-4 py-3 text-right font-medium tabular-nums">{clicks}</td>
+                      <td className="px-4 py-3 text-right text-[var(--color-neutral-600)] tabular-nums">
+                        {ctr}%
+                      </td>
+                    </tr>
+                  );
+                })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
   );
 }

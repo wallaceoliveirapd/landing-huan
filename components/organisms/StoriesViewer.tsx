@@ -20,9 +20,16 @@ type Story = {
     bg?: string;
     align?: string;
   };
+  link?: {
+    url: string;
+    label: string;
+    color?: string;
+    bg?: string;
+  };
   createdAt: number;
   expiresAt: number;
   viewCount?: number;
+  linkClickCount?: number;
   reactionCounts?: Array<{ emoji: string; count: number }>;
 };
 
@@ -51,6 +58,7 @@ export function StoriesViewer({
   const auth = useAuth();
   const recordView = useMutation(api.stories.recordView);
   const reactMut = useMutation(api.stories.reactToStory);
+  const recordLinkClick = useMutation(api.stories.recordLinkClick);
 
   const [index, setIndex] = useState(startIndex);
   const [progress, setProgress] = useState(0); // 0..1 for current story
@@ -70,7 +78,7 @@ export function StoriesViewer({
   useEffect(() => {
     if (!current || !auth.isAuthenticated) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    recordView({ id: current._id as any }).catch(() => {});
+    recordView({ id: current._id as any }).catch(() => { });
   }, [current?._id, auth.isAuthenticated, recordView]);
 
   // ── Auto-advance ─────────────────────────────────────────────────
@@ -96,7 +104,7 @@ export function StoriesViewer({
     if (paused || loading) {
       v.pause();
     } else {
-      v.play().catch(() => {});
+      v.play().catch(() => { });
     }
   }, [paused, loading, isVideo]);
 
@@ -149,7 +157,7 @@ export function StoriesViewer({
     if (v) {
       try {
         v.currentTime = 0;
-        v.play().catch(() => {});
+        v.play().catch(() => { });
       } catch {
         /* ignore */
       }
@@ -203,6 +211,9 @@ export function StoriesViewer({
       >
         {/* Top bar: progress dots + close. While the video is buffering we
             only render the close button so the user can still escape. */}
+        <div className="absolute z-1 top-0 h-120 bg-gradient-to-b from-black/80 via-black/5 to-transparent w-full pointer-events-none">
+
+        </div>
         <div
           className="absolute inset-x-0 top-0 z-20 px-3"
           style={{ paddingTop: "calc(env(safe-area-inset-top) + 16px)" }}
@@ -234,13 +245,13 @@ export function StoriesViewer({
             className={`flex items-center ${showChrome ? "justify-between mt-3" : "justify-end"} px-1`}
           >
             {showChrome && (
-              <div className="flex items-center gap-2">
-                <div className="relative size-8 rounded-full overflow-hidden bg-white/20 ring-2 ring-white">
+              <div className="relative z-10 flex items-center gap-2">
+                <div className="relative size-8 rounded-full overflow-hidden bg-white/20">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src="/images/avatar.png"
                     alt=""
-                    className="absolute inset-0 size-full object-cover"
+                    className="absolute inset-0 size-full object-cover bg-[var(--color-yellow-300)]"
                   />
                 </div>
                 <div className="flex flex-col leading-tight">
@@ -308,22 +319,56 @@ export function StoriesViewer({
           )}
         </div>
 
-        {/* Caption overlay */}
-        {showChrome && current.caption && (
-          <div
-            className={`absolute inset-x-0 ${align === "top" ? "top-24" : align === "center" ? "top-1/2 -translate-y-1/2" : "bottom-32"} z-10 flex justify-center px-6 pointer-events-none`}
-          >
-            <span
-              className="inline-block font-display font-medium text-center px-3 py-1.5 rounded-lg backdrop-blur-sm max-w-[80%] leading-snug text-[18px]"
-              style={{
-                color: current.captionStyle?.color ?? "#FFFFFF",
-                backgroundColor: current.captionStyle?.bg ?? "rgba(0,0,0,0.5)",
-              }}
+        {/* Caption + optional link chip. Colored backgrounds render chapados.
+            Preto / branco mantêm o look translúcido + backdrop-blur. The
+            link sits right below the caption, sharing the same alignment. */}
+        {showChrome && (current.caption || current.link) && (() => {
+          const captionRawBg = current.captionStyle?.bg ?? "rgba(0,0,0,0.5)";
+          const captionBlur = isBlackOrWhiteBg(captionRawBg);
+          const captionBg = captionBlur ? captionRawBg : stripHexAlpha(captionRawBg);
+          const linkRawBg = current.link?.bg ?? "rgba(0,0,0,0.5)";
+          const linkBlur = isBlackOrWhiteBg(linkRawBg);
+          const linkBg = linkBlur ? linkRawBg : stripHexAlpha(linkRawBg);
+          return (
+            <div
+              className={`absolute inset-x-0 ${align === "top" ? "top-24" : align === "center" ? "top-1/2 -translate-y-1/2" : "bottom-32"} z-10 flex flex-col items-center gap-2 px-6 pointer-events-none`}
             >
-              {current.caption}
-            </span>
-          </div>
-        )}
+              {current.caption && (
+                <span
+                  className={`inline-block font-display font-medium text-center px-3 py-1.5 rounded-lg max-w-[80%] leading-snug text-[18px] ${captionBlur ? "backdrop-blur-sm" : ""}`}
+                  style={{
+                    color: current.captionStyle?.color ?? "#FFFFFF",
+                    backgroundColor: captionBg,
+                  }}
+                >
+                  {current.caption}
+                </span>
+              )}
+              {current.link && (
+                <a
+                  href={current.link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    recordLinkClick({ id: current._id as any }).catch(() => {});
+                  }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onPointerUp={(e) => e.stopPropagation()}
+                  className={`pointer-events-auto inline-flex items-center gap-2 max-w-[80%] font-display font-medium px-3 py-1.5 rounded-full text-[15px] ${linkBlur ? "backdrop-blur-sm" : ""}`}
+                  style={{
+                    color: current.link.color ?? "#FFFFFF",
+                    backgroundColor: linkBg,
+                  }}
+                >
+                  <Icon name="link" size={14} />
+                  <span className="truncate">{current.link.label}</span>
+                </a>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Reactions row at bottom */}
         <div
@@ -415,4 +460,38 @@ function EmojiBurst({
       ))}
     </div>
   );
+}
+
+/**
+ * Returns true when the bg value resolves to pure black or pure white,
+ * regardless of optional alpha. `#000`, `#000000`, `#00000080`,
+ * `rgba(0,0,0,0.5)` and the white equivalents all match.
+ */
+function isBlackOrWhiteBg(bg: string): boolean {
+  const s = bg.trim().toLowerCase();
+  if (s.startsWith("#")) {
+    const hex = s.replace("#", "");
+    const base =
+      hex.length === 3 || hex.length === 4
+        ? hex.slice(0, 3).split("").map((c) => c + c).join("")
+        : hex.slice(0, 6);
+    return base === "000000" || base === "ffffff";
+  }
+  // rgb(a)
+  const m = s.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+  if (!m) return false;
+  const r = +m[1], g = +m[2], b = +m[3];
+  return (r === 0 && g === 0 && b === 0) || (r === 255 && g === 255 && b === 255);
+}
+
+/**
+ * Strip the optional alpha from a hex color so the user-picked color
+ * renders chapado (e.g. `#FF5733A0` → `#FF5733`). Non-hex inputs pass through.
+ */
+function stripHexAlpha(bg: string): string {
+  const s = bg.trim();
+  if (!s.startsWith("#")) return s;
+  if (s.length === 9) return s.slice(0, 7);
+  if (s.length === 5) return s.slice(0, 4);
+  return s;
 }

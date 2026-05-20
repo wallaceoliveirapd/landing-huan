@@ -637,11 +637,21 @@ export default defineSchema({
         align: v.optional(v.string()), // "top" | "center" | "bottom"
       }),
     ),
+    // Optional CTA link rendered as a chip under the caption.
+    link: v.optional(
+      v.object({
+        url: v.string(),
+        label: v.string(),
+        color: v.optional(v.string()),
+        bg: v.optional(v.string()),
+      }),
+    ),
     createdAt: v.number(),
     expiresAt: v.number(),
     publishedBy: v.string(), // admin userId
     // Counters; reactions break down per emoji.
     viewCount: v.optional(v.number()),
+    linkClickCount: v.optional(v.number()),
     // Convex field names must be ASCII so we store reactions as a list of
     // { emoji, count } instead of a record keyed by the emoji itself.
     // Union accepts legacy `{}` rows during transition.

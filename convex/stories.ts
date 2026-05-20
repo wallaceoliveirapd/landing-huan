@@ -38,7 +38,7 @@ export const listActive = query({
     const rows = await ctx.db
       .query("stories")
       .withIndex("by_expires", (q) => q.gt("expiresAt", now))
-      .order("asc")
+      .order("desc")
       .collect();
     return rows.map((s) => ({
       _id: s._id,
@@ -47,9 +47,11 @@ export const listActive = query({
       durationMs: s.durationMs,
       caption: s.caption,
       captionStyle: s.captionStyle,
+      link: s.link,
       createdAt: s.createdAt,
       expiresAt: s.expiresAt,
       viewCount: s.viewCount ?? 0,
+      linkClickCount: s.linkClickCount ?? 0,
       reactionCounts: normalizeReactions(s.reactionCounts),
     }));
   },
@@ -102,6 +104,14 @@ export const adminCreate = mutation({
         align: v.optional(v.string()),
       }),
     ),
+    link: v.optional(
+      v.object({
+        url: v.string(),
+        label: v.string(),
+        color: v.optional(v.string()),
+        bg: v.optional(v.string()),
+      }),
+    ),
   },
   handler: async (ctx, args) => {
     const adminUserId = await requireAdmin(ctx);
@@ -113,6 +123,7 @@ export const adminCreate = mutation({
       durationMs: args.durationMs,
       caption: args.caption?.trim() || undefined,
       captionStyle: args.captionStyle,
+      link: args.link,
       createdAt: now,
       expiresAt: now + TWENTY_FOUR_HOURS_MS,
       publishedBy: adminUserId as string,
@@ -161,6 +172,21 @@ export const recordView = mutation({
     if (story) {
       await ctx.db.patch(id, { viewCount: (story.viewCount ?? 0) + 1 });
     }
+  },
+});
+
+/**
+ * Anonymous: bump the link-click counter on a story. No auth required so
+ * even logged-out viewers count toward the metric.
+ */
+export const recordLinkClick = mutation({
+  args: { id: v.id("stories") },
+  handler: async (ctx, { id }) => {
+    const story = await ctx.db.get(id);
+    if (!story) return;
+    await ctx.db.patch(id, {
+      linkClickCount: (story.linkClickCount ?? 0) + 1,
+    });
   },
 });
 

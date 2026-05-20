@@ -22,11 +22,14 @@ type Phase =
   | "done"
   | "error";
 
+type LinkInput = { url: string; label: string; color?: string; bg?: string };
+
 export type StoryJob = {
   id: string;
   file: File;
   caption?: string;
   captionStyle?: { color?: string; bg?: string; align?: string };
+  link?: LinkInput;
   phase: Phase;
   ratio?: number; // 0..1
   attempt?: number;
@@ -40,6 +43,7 @@ type Ctx = {
     file: File;
     caption?: string;
     captionStyle?: { color?: string; bg?: string; align?: string };
+    link?: LinkInput;
   }) => string;
   dismiss: (id: string) => void;
   clearDone: () => void;
@@ -227,6 +231,7 @@ export function StoryQueueProvider({ children }: { children: React.ReactNode }) 
         durationMs,
         caption: job.caption?.trim() || undefined,
         captionStyle: job.caption?.trim() ? job.captionStyle : undefined,
+        link: job.link,
       });
       update(job.id, { phase: "done" });
       toast.success("Story publicado!");
@@ -265,6 +270,7 @@ export function StoryQueueProvider({ children }: { children: React.ReactNode }) 
       file: File;
       caption?: string;
       captionStyle?: { color?: string; bg?: string; align?: string };
+      link?: LinkInput;
     }) => {
       const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const job: StoryJob = {
@@ -272,6 +278,7 @@ export function StoryQueueProvider({ children }: { children: React.ReactNode }) 
         file: input.file,
         caption: input.caption,
         captionStyle: input.captionStyle,
+        link: input.link,
         phase: "queued",
         createdAt: Date.now(),
       };

@@ -42,9 +42,12 @@ export function HeroPromo({
           <SearchBar placeholder={searchPlaceholder} onClick={handleSearchOpen} />
         </motion.div>
 
-        {/* Stories ring (Huan) */}
-        <motion.div variants={fadeUp} className="pt-5 flex items-start">
-          <StoriesRing />
+        {/* Stories ring (Huan). Extends past the section padding so the
+            last bubble bleeds to the edge — gives a "more to see" feel. */}
+        <motion.div variants={fadeUp} className="pt-5 -mx-6">
+          <div className="flex items-start gap-3 overflow-x-auto no-scrollbar px-6">
+            <StoriesRing inline />
+          </div>
         </motion.div>
 
         {/* Headline + subtitle */}
