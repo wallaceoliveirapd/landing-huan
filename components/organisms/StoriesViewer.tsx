@@ -225,52 +225,46 @@ export function StoriesViewer({
           className="absolute inset-x-0 top-0 z-20 px-3"
           style={{ paddingTop: "calc(env(safe-area-inset-top) + 16px)" }}
         >
-          {showChrome && (
-            <div className="flex gap-1">
-              {stories.map((_, i) => (
+          <div className="flex gap-1">
+            {stories.map((_, i) => (
+              <div
+                key={i}
+                className="flex-1 h-0.5 bg-white/30 rounded-full overflow-hidden"
+              >
                 <div
-                  key={i}
-                  className="flex-1 h-0.5 bg-white/30 rounded-full overflow-hidden"
-                >
-                  <div
-                    className="h-full bg-white"
-                    style={{
-                      width:
-                        i < index
-                          ? "100%"
-                          : i === index
-                            ? `${progress * 100}%`
-                            : "0%",
-                      transition: i === index ? "none" : "width 0.15s",
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-          <div
-            className={`flex items-center ${showChrome ? "justify-between mt-3" : "justify-end"} px-1`}
-          >
-            {showChrome && (
-              <div className="relative z-10 flex items-center gap-2">
-                <div className="relative size-8 rounded-full overflow-hidden bg-white/20">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/images/avatar.png"
-                    alt=""
-                    className="absolute inset-0 size-full object-cover bg-[var(--color-yellow-300)]"
-                  />
-                </div>
-                <div className="flex flex-col leading-tight">
-                  <span className="font-display font-medium text-[13px] text-white">
-                    Huan
-                  </span>
-                  <span className="text-[11px] text-white/70">
-                    {timeAgo(current.createdAt)}
-                  </span>
-                </div>
+                  className="h-full bg-white"
+                  style={{
+                    width:
+                      i < index
+                        ? "100%"
+                        : i === index
+                          ? `${progress * 100}%`
+                          : "0%",
+                    transition: i === index ? "none" : "width 0.15s",
+                  }}
+                />
               </div>
-            )}
+            ))}
+          </div>
+          <div className="flex items-center justify-between mt-3 px-1">
+            <div className="relative z-10 flex items-center gap-2">
+              <div className="relative size-8 rounded-full overflow-hidden bg-white/20">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/images/avatar.png"
+                  alt=""
+                  className="absolute inset-0 size-full object-cover bg-[var(--color-yellow-300)]"
+                />
+              </div>
+              <div className="flex flex-col leading-tight">
+                <span className="font-display font-medium text-[13px] text-white">
+                  Huan
+                </span>
+                <span className="text-[11px] text-white/70">
+                  {timeAgo(current.createdAt)}
+                </span>
+              </div>
+            </div>
             <button
               type="button"
               onClick={onClose}
