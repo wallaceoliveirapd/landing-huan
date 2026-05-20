@@ -9,13 +9,25 @@ const SITE_URL = "https://huanfalcao.com.br";
 const TRIP_LIMIT = 3;
 
 // Single trip by ID, only returns if user owns it.
+// True when the current user can read this trip (owner OR collaborator).
+function hasReadAccess(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  trip: any,
+  userId: string,
+): boolean {
+  if (!trip) return false;
+  if (trip.userId === userId) return true;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (trip.collaborators ?? []).some((c: any) => c.userId === userId);
+}
+
 export const getById = query({
   args: { id: v.id("trips") },
   handler: async (ctx, { id }) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) return null;
     const trip = await ctx.db.get(id);
-    if (!trip || trip.userId !== userId) return null;
+    if (!hasReadAccess(trip, userId)) return null;
     return trip;
   },
 });
@@ -27,7 +39,7 @@ export const resolveItineraryItems = query({
     const userId = await getAuthUserId(ctx);
     if (!userId) return [];
     const trip = await ctx.db.get(tripId);
-    if (!trip || trip.userId !== userId) return [];
+    if (!trip || !hasReadAccess(trip, userId)) return [];
 
     const ids = new Set<string>();
     for (const day of trip.itinerary ?? []) {
