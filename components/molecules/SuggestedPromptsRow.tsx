@@ -83,7 +83,7 @@ export function SuggestedPromptsRow({
           : [p.template, ""];
 
         return (
-          <button
+          <motion.button
             key={idx}
             type="button"
             disabled={disabled}
@@ -92,6 +92,10 @@ export function SuggestedPromptsRow({
             onMouseLeave={() => { pausedRef.current = false; }}
             onFocus={() => { pausedRef.current = true; }}
             onBlur={() => { pausedRef.current = false; }}
+            whileTap={{ scale: 0.95 }}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.22, delay: idx * 0.04, ease: [0.22, 1, 0.36, 1] }}
             className="flex-none rounded-full bg-white border border-[var(--color-neutral-300)] text-[var(--color-neutral-800)] text-[13px] font-medium px-4 py-2 hover:border-[var(--color-neutral-800)] disabled:opacity-40 transition-colors whitespace-nowrap inline-flex items-center"
           >
             {hasToken ? (
@@ -116,7 +120,7 @@ export function SuggestedPromptsRow({
             ) : (
               <span>{p.template}</span>
             )}
-          </button>
+          </motion.button>
         );
       })}
     </div>

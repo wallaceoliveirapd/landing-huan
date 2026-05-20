@@ -358,60 +358,80 @@ export function ChatPanel() {
             ref={scrollRef}
             className="flex-1 overflow-y-auto overscroll-contain px-5 pt-2 pb-4 flex flex-col gap-3 bg-white"
           >
-            {messages.map((m) => {
-              if (m.kind === "text") {
-                if (m.role === "assistant" && !m.content) return null;
-                return (
-                  <ChatBubble key={m.id} role={m.role}>
-                    <ChatMarkdown text={m.content} isUser={m.role === "user"} />
-                  </ChatBubble>
-                );
-              }
-              if (m.kind === "cards") {
-                return (
-                  <div key={m.id} className="w-full">
-                    <ChatCarousel items={m.items} />
-                  </div>
-                );
-              }
-              if (m.kind === "card") {
-                return (
-                  <div
-                    key={m.id}
-                    className="ml-0 mr-auto max-w-[88%] w-full"
-                  >
-                    {m.card.type === "tour" && (
-                      <ChatInlineCard
-                        type="tour"
-                        title={m.card.tour.title}
-                        image={m.card.tour.image}
-                        rating={m.card.tour.rating}
-                        meta={m.card.tour.duration}
-                        href={`/passeios/${m.card.tour.slug}`}
-                      />
-                    )}
-                    {m.card.type === "restaurant" && (
-                      <ChatInlineCard
-                        type="restaurant"
-                        title={m.card.restaurant.name}
-                        image={m.card.restaurant.image}
-                        rating={m.card.restaurant.rating}
-                        meta={m.card.restaurant.address.split(",")[0]}
-                        href={`/restaurantes/${m.card.restaurant.slug}`}
-                      />
-                    )}
-                  </div>
-                );
-              }
-              if (m.kind === "timeline") {
-                return (
-                  <div key={m.id} className="mr-auto w-full">
-                    <ChatTimeline itinerary={m.itinerary} />
-                  </div>
-                );
-              }
-              return null;
-            })}
+            <AnimatePresence initial={false}>
+              {messages.map((m) => {
+                if (m.kind === "text") {
+                  if (m.role === "assistant" && !m.content) return null;
+                  return (
+                    <ChatBubble key={m.id} role={m.role}>
+                      <ChatMarkdown text={m.content} isUser={m.role === "user"} />
+                    </ChatBubble>
+                  );
+                }
+                if (m.kind === "cards") {
+                  return (
+                    <motion.div
+                      key={m.id}
+                      layout
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                      className="w-full"
+                    >
+                      <ChatCarousel items={m.items} />
+                    </motion.div>
+                  );
+                }
+                if (m.kind === "card") {
+                  return (
+                    <motion.div
+                      key={m.id}
+                      layout
+                      initial={{ opacity: 0, y: 10, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                      className="ml-0 mr-auto max-w-[88%] w-full"
+                    >
+                      {m.card.type === "tour" && (
+                        <ChatInlineCard
+                          type="tour"
+                          title={m.card.tour.title}
+                          image={m.card.tour.image}
+                          rating={m.card.tour.rating}
+                          meta={m.card.tour.duration}
+                          href={`/passeios/${m.card.tour.slug}`}
+                        />
+                      )}
+                      {m.card.type === "restaurant" && (
+                        <ChatInlineCard
+                          type="restaurant"
+                          title={m.card.restaurant.name}
+                          image={m.card.restaurant.image}
+                          rating={m.card.restaurant.rating}
+                          meta={m.card.restaurant.address.split(",")[0]}
+                          href={`/restaurantes/${m.card.restaurant.slug}`}
+                        />
+                      )}
+                    </motion.div>
+                  );
+                }
+                if (m.kind === "timeline") {
+                  return (
+                    <motion.div
+                      key={m.id}
+                      layout
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                      className="mr-auto w-full"
+                    >
+                      <ChatTimeline itinerary={m.itinerary} />
+                    </motion.div>
+                  );
+                }
+                return null;
+              })}
+            </AnimatePresence>
 
             {isTyping && (
               <ChatBubble role="assistant">
