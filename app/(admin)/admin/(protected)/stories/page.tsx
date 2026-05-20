@@ -5,7 +5,7 @@ import { useMutation, useQuery } from "convex/react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import { Icon } from "@/components/atoms/Icon";
-import { compressStoryFile, type CompressProgress } from "@/lib/storyCompress";
+import { useStoryQueue } from "@/components/providers/StoryQueueProvider";
 
 type CaptionAlign = "top" | "center" | "bottom";
 
@@ -24,77 +24,30 @@ function normalizeReactions(rc: unknown): ReactionItem[] {
 
 export default function StoriesAdminPage() {
   const stories = useQuery(api.stories.adminListAll, {});
-  const createStory = useMutation(api.stories.adminCreate);
   const deleteStory = useMutation(api.stories.adminDelete);
+  const { enqueue } = useStoryQueue();
 
   const [file, setFile] = useState<File | null>(null);
   const [caption, setCaption] = useState("");
   const [align, setAlign] = useState<CaptionAlign>("bottom");
   const [color, setColor] = useState("#FFFFFF");
   const [bg, setBg] = useState("#00000080");
-  const [uploading, setUploading] = useState(false);
-  const [progress, setProgress] = useState<CompressProgress | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
-  async function handleSubmit() {
+  function handleSubmit() {
     if (!file) {
       toast.error("Escolha um arquivo");
       return;
     }
-    setUploading(true);
-    setProgress({ phase: "analyzing" });
-    try {
-      const compressed = await compressStoryFile(file, setProgress);
-      setProgress({ phase: "uploading" });
-      const fd = new FormData();
-      fd.append("file", compressed);
-      const res = await fetch("/api/upload-story", { method: "POST", body: fd });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error ?? "Falha ao enviar");
-      }
-      const json = (await res.json()) as {
-        key: string;
-        url: string;
-        mediaType: "image" | "video";
-      };
-      // For videos, optionally probe duration (best-effort via <video>).
-      let durationMs: number | undefined;
-      if (json.mediaType === "video") {
-        durationMs = await probeVideoDuration(URL.createObjectURL(compressed)).catch(() => undefined);
-      }
-      await createStory({
-        mediaType: json.mediaType,
-        r2Key: json.key,
-        url: json.url,
-        durationMs,
-        caption: caption.trim() || undefined,
-        captionStyle: caption.trim()
-          ? { color, bg, align }
-          : undefined,
-      });
-      toast.success("Story publicado!");
-      setFile(null);
-      setCaption("");
-      if (fileRef.current) fileRef.current.value = "";
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Falha";
-      toast.error(msg);
-    } finally {
-      setUploading(false);
-      setProgress(null);
-    }
-  }
-
-  function progressLabel(p: CompressProgress | null): string {
-    if (!p) return "Publicar";
-    if (p.phase === "analyzing") return "Analisando…";
-    if (p.phase === "compressing") {
-      const pct = p.ratio !== undefined ? ` ${Math.round(p.ratio * 100)}%` : "";
-      return `Comprimindo${pct}${p.attempt && p.attempt > 1 ? ` (passo ${p.attempt})` : ""}`;
-    }
-    if (p.phase === "uploading") return "Enviando…";
-    return "Publicar";
+    enqueue({
+      file,
+      caption: caption.trim() || undefined,
+      captionStyle: caption.trim() ? { color, bg, align } : undefined,
+    });
+    toast.success("Adicionado à fila");
+    setFile(null);
+    setCaption("");
+    if (fileRef.current) fileRef.current.value = "";
   }
 
   async function handleDelete(id: string) {
@@ -235,15 +188,11 @@ export default function StoriesAdminPage() {
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={uploading || !file}
+          disabled={!file}
           className="self-start inline-flex items-center gap-2 rounded-full bg-[var(--color-neutral-800)] text-white px-5 py-3 text-[13px] font-medium disabled:opacity-50"
         >
-          {uploading ? (
-            <Icon name="svg-spinners:ring-resize" size={14} />
-          ) : (
-            <Icon name="lucide:upload" size={14} />
-          )}
-          {progressLabel(progress)}
+          <Icon name="lucide:upload" size={14} />
+          Publicar
         </button>
       </div>
 
@@ -328,19 +277,3 @@ export default function StoriesAdminPage() {
   );
 }
 
-function probeVideoDuration(blobUrl: string): Promise<number> {
-  return new Promise((resolve, reject) => {
-    const v = document.createElement("video");
-    v.preload = "metadata";
-    v.onloadedmetadata = () => {
-      const ms = Math.round((v.duration || 0) * 1000);
-      URL.revokeObjectURL(blobUrl);
-      resolve(ms);
-    };
-    v.onerror = () => {
-      URL.revokeObjectURL(blobUrl);
-      reject(new Error("probe failed"));
-    };
-    v.src = blobUrl;
-  });
-}
