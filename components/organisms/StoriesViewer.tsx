@@ -185,64 +185,74 @@ export function StoriesViewer({
   if (typeof document === "undefined" || !current) return null;
 
   const align = current.captionStyle?.align ?? "bottom";
+  // Hide all chrome (progress dots, avatar, caption, reactions) while the
+  // video is buffering — only the loader + close button stay visible.
+  const showChrome = !(loading && isVideo);
 
   return createPortal(
     <AnimatePresence>
       <motion.div
         key="viewer"
-        initial={{ opacity: 0, scale: 0.96 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.96 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
         transition={{ duration: 0.22, ease: "easeOut" }}
         className="fixed inset-0 z-[120] bg-black flex flex-col"
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
-        {/* Top bar: progress dots + close */}
+        {/* Top bar: progress dots + close. While the video is buffering we
+            only render the close button so the user can still escape. */}
         <div
           className="absolute inset-x-0 top-0 z-20 px-3"
           style={{ paddingTop: "calc(env(safe-area-inset-top) + 16px)" }}
         >
-          <div className="flex gap-1">
-            {stories.map((_, i) => (
-              <div
-                key={i}
-                className="flex-1 h-0.5 bg-white/30 rounded-full overflow-hidden"
-              >
+          {showChrome && (
+            <div className="flex gap-1">
+              {stories.map((_, i) => (
                 <div
-                  className="h-full bg-white"
-                  style={{
-                    width:
-                      i < index
-                        ? "100%"
-                        : i === index
-                          ? `${progress * 100}%`
-                          : "0%",
-                    transition: i === index ? "none" : "width 0.15s",
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-          <div className="flex items-center justify-between mt-3 px-1">
-            <div className="flex items-center gap-2">
-              <div className="relative size-8 rounded-full overflow-hidden bg-white/20 ring-2 ring-white">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/images/avatar.png"
-                  alt=""
-                  className="absolute inset-0 size-full object-cover"
-                />
-              </div>
-              <div className="flex flex-col leading-tight">
-                <span className="font-display font-medium text-[13px] text-white">
-                  Huan
-                </span>
-                <span className="text-[11px] text-white/70">
-                  {timeAgo(current.createdAt)}
-                </span>
-              </div>
+                  key={i}
+                  className="flex-1 h-0.5 bg-white/30 rounded-full overflow-hidden"
+                >
+                  <div
+                    className="h-full bg-white"
+                    style={{
+                      width:
+                        i < index
+                          ? "100%"
+                          : i === index
+                            ? `${progress * 100}%`
+                            : "0%",
+                      transition: i === index ? "none" : "width 0.15s",
+                    }}
+                  />
+                </div>
+              ))}
             </div>
+          )}
+          <div
+            className={`flex items-center ${showChrome ? "justify-between mt-3" : "justify-end"} px-1`}
+          >
+            {showChrome && (
+              <div className="flex items-center gap-2">
+                <div className="relative size-8 rounded-full overflow-hidden bg-white/20 ring-2 ring-white">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/images/avatar.png"
+                    alt=""
+                    className="absolute inset-0 size-full object-cover"
+                  />
+                </div>
+                <div className="flex flex-col leading-tight">
+                  <span className="font-display font-medium text-[13px] text-white">
+                    Huan
+                  </span>
+                  <span className="text-[11px] text-white/70">
+                    {timeAgo(current.createdAt)}
+                  </span>
+                </div>
+              </div>
+            )}
             <button
               type="button"
               onClick={onClose}
@@ -273,7 +283,7 @@ export function StoriesViewer({
             <img
               src={toProxyUrl(current.url)}
               alt=""
-              className="max-h-full max-w-full object-contain"
+              className="absolute inset-0 w-full h-full object-cover"
             />
           ) : (
             <video
@@ -283,7 +293,7 @@ export function StoriesViewer({
               playsInline
               muted={false}
               preload="auto"
-              className="max-h-full max-w-full object-contain"
+              className="absolute inset-0 w-full h-full object-cover"
               onCanPlay={() => setLoading(false)}
               onWaiting={() => setLoading(true)}
               onEnded={goNext}
@@ -299,7 +309,7 @@ export function StoriesViewer({
         </div>
 
         {/* Caption overlay */}
-        {current.caption && (
+        {showChrome && current.caption && (
           <div
             className={`absolute inset-x-0 ${align === "top" ? "top-24" : align === "center" ? "top-1/2 -translate-y-1/2" : "bottom-32"} z-10 flex justify-center px-6 pointer-events-none`}
           >
@@ -317,7 +327,7 @@ export function StoriesViewer({
 
         {/* Reactions row at bottom */}
         <div
-          className="absolute inset-x-0 bottom-0 z-20 px-5 pb-4"
+          className={`absolute inset-x-0 bottom-0 z-20 px-5 pb-4 ${showChrome ? "" : "hidden"}`}
           style={{ paddingBottom: "max(env(safe-area-inset-bottom), 16px)" }}
         >
           <div className="flex items-center justify-center gap-3 rounded-full bg-white/15 backdrop-blur-md px-3 py-2.5">

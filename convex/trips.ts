@@ -54,11 +54,27 @@ export const myTrips = query({
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) return [];
-    return ctx.db
+    // Owned trips (cheap via index)
+    const owned = await ctx.db
       .query("trips")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .order("desc")
       .collect();
+    // Trips where the user joined as a collaborator. No index on
+    // collaborators[], so we scan everything not already owned.
+    const collabRows = await ctx.db.query("trips").collect();
+    const ownedIds = new Set(owned.map((t) => t._id));
+    const shared = collabRows.filter(
+      (t) =>
+        !ownedIds.has(t._id) &&
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ((t.collaborators ?? []) as Array<{ userId: string }>).some(
+          (c) => c.userId === userId,
+        ),
+    );
+    return [...owned, ...shared].sort(
+      (a, b) => (b._creationTime ?? 0) - (a._creationTime ?? 0),
+    );
   },
 });
 

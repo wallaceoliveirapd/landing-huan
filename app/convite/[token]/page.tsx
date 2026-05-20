@@ -32,6 +32,17 @@ export default function ConvitePage({ params }: Props) {
   const [confettiOn, setConfettiOn] = useState(false);
   const [redirectId, setRedirectId] = useState<string | null>(null);
   const [autoAccept, setAutoAccept] = useState(false);
+  const [switchingAccount, setSwitchingAccount] = useState(false);
+
+  // True when the user is logged into a *different* account than the one
+  // the invite was sent to. Block accept + show a recovery flow.
+  const currentEmail = (me as { email?: string } | null)?.email?.toLowerCase() ?? null;
+  const inviteEmail = invite?.email?.toLowerCase() ?? null;
+  const wrongAccount =
+    auth.isAuthenticated &&
+    !!currentEmail &&
+    !!inviteEmail &&
+    currentEmail !== inviteEmail;
 
   // After confetti + delay, push to the trip detail page.
   useEffect(() => {
@@ -44,7 +55,7 @@ export default function ConvitePage({ params }: Props) {
 
   async function handleAccept() {
     if (accepting) return;
-    if (!auth.isAuthenticated) {
+    if (!auth.isAuthenticated || wrongAccount) {
       // Open the bottom sheet on Sign Up with the invite email prefilled
       // and locked — the invite was sent to that address, can't change it.
       setAutoAccept(true);
@@ -75,6 +86,26 @@ export default function ConvitePage({ params }: Props) {
     void handleAccept();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth.isAuthenticated, autoAccept]);
+
+  async function handleSwitchAccount() {
+    if (switchingAccount) return;
+    setSwitchingAccount(true);
+    try {
+      await auth.signOut();
+      // After signOut, open the auth modal on Sign Up locked to the
+      // invite email; autoAccept resumes the flow once they finish.
+      setAutoAccept(true);
+      auth.openAuthModal({
+        initialTab: "signUp",
+        initialEmail: invite?.email ?? undefined,
+        lockEmail: true,
+      });
+    } catch {
+      toast.error("Não consegui deslogar. Tenta de novo.");
+    } finally {
+      setSwitchingAccount(false);
+    }
+  }
 
   async function handleDecline() {
     try {
@@ -161,28 +192,65 @@ export default function ConvitePage({ params }: Props) {
               </p>
             </div>
 
-            <div className="flex flex-col gap-2 w-full">
-              <button
-                type="button"
-                onClick={handleAccept}
-                disabled={accepting}
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-neutral-800)] text-white py-3 text-[14px] font-medium disabled:opacity-60"
-              >
-                {accepting ? (
-                  <Icon name="svg-spinners:ring-resize" size={14} />
-                ) : (
-                  <Icon name="check" size={14} />
-                )}
-                {auth.isAuthenticated ? "Aceitar convite" : "Entrar e aceitar"}
-              </button>
-              <button
-                type="button"
-                onClick={handleDecline}
-                className="text-[13px] font-medium text-[var(--color-neutral-600)] hover:text-[var(--color-neutral-800)] py-2"
-              >
-                Recusar
-              </button>
-            </div>
+            {wrongAccount ? (
+              <div className="flex flex-col gap-3 w-full rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-left">
+                <p className="text-[13px] leading-[1.5] text-amber-900">
+                  Você está logado como{" "}
+                  <strong>{maskEmail(currentEmail)}</strong>. Pra aceitar,
+                  precisa estar com a conta de{" "}
+                  <strong className="break-all">{invite.email}</strong>.
+                </p>
+                <p className="text-[12px] leading-[1.5] text-amber-800">
+                  Esse e-mail ainda não tem cadastro. Crie a conta agora, ou
+                  peça pra{" "}
+                  <strong>{firstName(invite.owner.name) || "quem te convidou"}</strong>{" "}
+                  reenviar o convite pro e-mail certo.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleSwitchAccount}
+                  disabled={switchingAccount}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-neutral-800)] text-white py-3 text-[13px] font-medium disabled:opacity-60"
+                >
+                  {switchingAccount ? (
+                    <Icon name="svg-spinners:ring-resize" size={14} />
+                  ) : (
+                    <Icon name="log-out" size={14} />
+                  )}
+                  Sair e criar conta com {invite.email}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDecline}
+                  className="text-[12px] font-medium text-[var(--color-neutral-700)] hover:text-[var(--color-neutral-900)] py-1"
+                >
+                  Recusar este convite
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2 w-full">
+                <button
+                  type="button"
+                  onClick={handleAccept}
+                  disabled={accepting}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-neutral-800)] text-white py-3 text-[14px] font-medium disabled:opacity-60"
+                >
+                  {accepting ? (
+                    <Icon name="svg-spinners:ring-resize" size={14} />
+                  ) : (
+                    <Icon name="check" size={14} />
+                  )}
+                  {auth.isAuthenticated ? "Aceitar convite" : "Entrar e aceitar"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDecline}
+                  className="text-[13px] font-medium text-[var(--color-neutral-600)] hover:text-[var(--color-neutral-800)] py-2"
+                >
+                  Recusar
+                </button>
+              </div>
+            )}
           </motion.div>
         ) : (
           <motion.div
@@ -243,4 +311,16 @@ function firstName(full: string | null | undefined): string {
   if (!full) return "";
   const p = full.trim().split(/\s+/)[0];
   return p ?? "";
+}
+
+/**
+ * Mask an email like `wallaceoliveirapd@gmail.com` → `w****d@gmail.com`.
+ * Keeps the first + last char of the local part; full domain stays visible.
+ */
+function maskEmail(email: string | null | undefined): string {
+  if (!email) return "?";
+  const [local, domain] = email.split("@");
+  if (!local || !domain) return email;
+  if (local.length <= 2) return `${local[0] ?? ""}*@${domain}`;
+  return `${local[0]}${"*".repeat(Math.max(1, local.length - 2))}${local[local.length - 1]}@${domain}`;
 }
