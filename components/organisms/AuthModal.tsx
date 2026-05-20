@@ -45,12 +45,22 @@ const STRENGTH_BARS: Record<StrengthLevel, number> = { fraca: 1, média: 2, fort
 type Step = "form" | "otp";
 
 export function AuthModal() {
-  const { authModalOpen, closeAuthModal } = useAuth();
+  const { authModalOpen, closeAuthModal, authModalOptions } = useAuth();
   const { signIn } = useAuthActions();
   const router = useRouter();
 
   const [step, setStep] = useState<Step>("form");
   const [tab, setTab] = useState<"signIn" | "signUp">("signIn");
+
+  // Apply caller-provided options (initial tab, prefilled / locked email)
+  // whenever the modal opens.
+  useEffect(() => {
+    if (!authModalOpen) return;
+    if (authModalOptions.initialTab) setTab(authModalOptions.initialTab);
+    if (authModalOptions.initialEmail) setEmail(authModalOptions.initialEmail);
+  }, [authModalOpen, authModalOptions]);
+
+  const emailLocked = !!authModalOptions.lockEmail;
 
   // Form fields
   const [name, setName] = useState("");
@@ -315,6 +325,12 @@ export function AuthModal() {
                   onChange={setEmail}
                   placeholder="voce@email.com"
                   required
+                  disabled={emailLocked}
+                  hint={
+                    emailLocked
+                      ? "Convite enviado pra esse e-mail — não pode mudar."
+                      : undefined
+                  }
                 />
 
                 <PasswordField
@@ -548,6 +564,7 @@ function Field({
   required,
   minLength,
   hint,
+  disabled,
 }: {
   label: string;
   value: string;
@@ -558,6 +575,7 @@ function Field({
   required?: boolean;
   minLength?: number;
   hint?: string;
+  disabled?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -572,7 +590,9 @@ function Field({
         inputMode={inputMode}
         required={required}
         minLength={minLength}
-        className="h-12 rounded-[16px] border border-[var(--color-neutral-300)] px-4 text-[15px] text-[var(--color-neutral-800)] outline-none focus:border-[var(--color-neutral-800)] transition-colors"
+        disabled={disabled}
+        readOnly={disabled}
+        className={`h-12 rounded-[16px] border border-[var(--color-neutral-300)] px-4 text-[15px] text-[var(--color-neutral-800)] outline-none focus:border-[var(--color-neutral-800)] transition-colors ${disabled ? "bg-[var(--color-neutral-100)] cursor-not-allowed" : ""}`}
       />
       {hint && (
         <p className="text-[11px] text-[var(--color-neutral-600)]">{hint}</p>

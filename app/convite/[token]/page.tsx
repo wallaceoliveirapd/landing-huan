@@ -31,6 +31,7 @@ export default function ConvitePage({ params }: Props) {
   const [accepting, setAccepting] = useState(false);
   const [confettiOn, setConfettiOn] = useState(false);
   const [redirectId, setRedirectId] = useState<string | null>(null);
+  const [autoAccept, setAutoAccept] = useState(false);
 
   // After confetti + delay, push to the trip detail page.
   useEffect(() => {
@@ -44,7 +45,14 @@ export default function ConvitePage({ params }: Props) {
   async function handleAccept() {
     if (accepting) return;
     if (!auth.isAuthenticated) {
-      auth.openAuthModal();
+      // Open the bottom sheet on Sign Up with the invite email prefilled
+      // and locked — the invite was sent to that address, can't change it.
+      setAutoAccept(true);
+      auth.openAuthModal({
+        initialTab: "signUp",
+        initialEmail: invite?.email ?? undefined,
+        lockEmail: true,
+      });
       return;
     }
     setAccepting(true);
@@ -58,6 +66,15 @@ export default function ConvitePage({ params }: Props) {
       setAccepting(false);
     }
   }
+
+  // Auto-resume accept once the user finishes signup/login from the modal.
+  useEffect(() => {
+    if (!autoAccept) return;
+    if (!auth.isAuthenticated) return;
+    setAutoAccept(false);
+    void handleAccept();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth.isAuthenticated, autoAccept]);
 
   async function handleDecline() {
     try {

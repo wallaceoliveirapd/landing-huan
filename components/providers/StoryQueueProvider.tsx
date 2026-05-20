@@ -136,45 +136,80 @@ export function StoryQueueProvider({ children }: { children: React.ReactNode }) 
     try {
       const compressed = await compress(job);
       update(job.id, { phase: "uploading", ratio: 0 });
-      // 1) Ask server for a presigned PUT URL — small JSON payload, bypasses
-      //    the host's request-body cap.
       const ext = (compressed.name.split(".").pop() ?? "").toLowerCase();
-      const presignRes = await fetch("/api/upload-story-presign", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contentType: compressed.type,
-          size: compressed.size,
-          ext,
-        }),
-      });
-      if (!presignRes.ok) {
-        const e = await presignRes.json().catch(() => ({}));
-        throw new Error(e.error ?? "Falha ao iniciar upload");
+
+      async function presignOnce() {
+        const presignRes = await fetch("/api/upload-story-presign", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contentType: compressed.type,
+            size: compressed.size,
+            ext,
+          }),
+        });
+        if (!presignRes.ok) {
+          const e = await presignRes.json().catch(() => ({}));
+          throw new Error(e.error ?? "Falha ao iniciar upload");
+        }
+        return (await presignRes.json()) as {
+          uploadUrl: string;
+          key: string;
+          url: string;
+          mediaType: "image" | "video";
+        };
       }
-      const presign = (await presignRes.json()) as {
-        uploadUrl: string;
-        key: string;
-        url: string;
-        mediaType: "image" | "video";
-      };
-      // 2) PUT the compressed file straight to R2 with progress tracking.
-      await new Promise<void>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open("PUT", presign.uploadUrl);
-        xhr.setRequestHeader("Content-Type", compressed.type);
-        xhr.upload.onprogress = (e) => {
-          if (e.lengthComputable) {
-            update(job.id, { phase: "uploading", ratio: e.loaded / e.total });
-          }
-        };
-        xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) resolve();
-          else reject(new Error(`R2 PUT ${xhr.status}`));
-        };
-        xhr.onerror = () => reject(new Error("R2 PUT erro de rede"));
-        xhr.send(compressed);
-      });
+
+      function putToR2(uploadUrl: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open("PUT", uploadUrl);
+          xhr.setRequestHeader("Content-Type", compressed.type);
+          xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+              update(job.id, { phase: "uploading", ratio: e.loaded / e.total });
+            }
+          };
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) resolve();
+            else
+              reject(
+                new Error(
+                  `R2 PUT ${xhr.status}${xhr.statusText ? ` ${xhr.statusText}` : ""}`,
+                ),
+              );
+          };
+          xhr.onerror = () =>
+            reject(
+              new Error(
+                "R2 PUT erro de rede (verifique CORS do bucket ou conexão)",
+              ),
+            );
+          xhr.ontimeout = () => reject(new Error("R2 PUT timeout"));
+          xhr.timeout = 5 * 60 * 1000;
+          xhr.send(compressed);
+        });
+      }
+
+      // Try up to 3 times. Each attempt grabs a fresh presigned URL so we
+      // never lose to URL expiry, and we recover from transient mobile
+      // network blips (Wi-Fi → LTE handoff, brief radio loss, etc.).
+      let presign = await presignOnce();
+      let lastErr: unknown;
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          await putToR2(presign.uploadUrl);
+          lastErr = null;
+          break;
+        } catch (err) {
+          lastErr = err;
+          if (attempt >= 3) throw err;
+          update(job.id, { phase: "uploading", ratio: 0, attempt: attempt + 1 });
+          await new Promise((r) => setTimeout(r, 800 * attempt));
+          presign = await presignOnce();
+        }
+      }
+      if (lastErr) throw lastErr;
       const json = {
         key: presign.key,
         url: presign.url,

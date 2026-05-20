@@ -4,7 +4,9 @@ import type { ReactNode } from "react";
 import { Toaster } from "sonner";
 import { ConvexClientProvider } from "./ConvexClientProvider";
 import { CookieConsentProvider } from "./CookieConsentProvider";
+import { StoryQueueProvider } from "./StoryQueueProvider";
 import { CookieBanner } from "@/components/organisms/CookieBanner";
+import { StoryQueueToast } from "@/components/organisms/admin/StoryQueueToast";
 import { ErrorBoundary } from "@/components/atoms/ErrorBoundary";
 
 /**
@@ -16,7 +18,12 @@ export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <ErrorBoundary>
       <CookieConsentProvider>
-        <ConvexClientProvider>{children}</ConvexClientProvider>
+        <ConvexClientProvider>
+          <StoryQueueProvider>
+            {children}
+            <StoryQueueToast />
+          </StoryQueueProvider>
+        </ConvexClientProvider>
         <CookieBanner />
         <Toaster
           position="top-center"
