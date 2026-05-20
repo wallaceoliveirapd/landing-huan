@@ -66,6 +66,8 @@ export function StoriesViewer({
   const [loading, setLoading] = useState(true);
   const [emojiBurst, setEmojiBurst] = useState<{ emoji: string; key: number } | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const pointerDownAtRef = useRef<number | null>(null);
+  const pointerDownXRef = useRef<number>(0);
   const rafRef = useRef<number | null>(null);
   const startRef = useRef<number>(0);
   const accumulatedRef = useRef<number>(0);
@@ -279,23 +281,47 @@ export function StoriesViewer({
         {/* Media */}
         <div
           className="absolute inset-0 flex items-center justify-center"
-          // Tap left = back, tap right = next; hold = pause
-          onPointerDown={() => setPaused(true)}
+          // Short tap = navigate left/right. Hold (>=200ms) = pause only,
+          // no navigation on release. Prevents the native iOS callout /
+          // image drag from triggering when the user keeps the finger
+          // down on the image.
+          onPointerDown={(e) => {
+            pointerDownAtRef.current = Date.now();
+            pointerDownXRef.current = e.clientX;
+            setPaused(true);
+          }}
           onPointerUp={(e) => {
             setPaused(false);
+            const startedAt = pointerDownAtRef.current ?? Date.now();
+            const heldMs = Date.now() - startedAt;
+            pointerDownAtRef.current = null;
+            // If the user held for >=200ms, treat as a hold-to-pause only.
+            if (heldMs >= 200) return;
             const w = (e.currentTarget as HTMLElement).clientWidth;
             const x = e.clientX;
             if (x < w * 0.35) goPrev();
             else if (x > w * 0.65) goNext();
           }}
-          onPointerLeave={() => setPaused(false)}
+          onPointerLeave={() => {
+            setPaused(false);
+            pointerDownAtRef.current = null;
+          }}
+          onContextMenu={(e) => e.preventDefault()}
         >
           {current.mediaType === "image" ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={toProxyUrl(current.url)}
               alt=""
-              className="absolute inset-0 w-full h-full object-cover"
+              draggable={false}
+              onDragStart={(e) => e.preventDefault()}
+              onContextMenu={(e) => e.preventDefault()}
+              style={{
+                WebkitUserDrag: "none",
+                WebkitTouchCallout: "none",
+                pointerEvents: "none",
+              } as React.CSSProperties}
+              className="absolute inset-0 w-full h-full object-cover select-none"
             />
           ) : (
             <video
@@ -304,7 +330,14 @@ export function StoriesViewer({
               autoPlay
               playsInline
               preload="auto"
-              className="absolute inset-0 w-full h-full object-cover"
+              draggable={false}
+              onContextMenu={(e) => e.preventDefault()}
+              style={{
+                WebkitUserDrag: "none",
+                WebkitTouchCallout: "none",
+                pointerEvents: "none",
+              } as React.CSSProperties}
+              className="absolute inset-0 w-full h-full object-cover select-none"
               onCanPlay={(e) => {
                 setLoading(false);
                 if (!paused) {
