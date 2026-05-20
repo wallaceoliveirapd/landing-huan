@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useQuery } from "convex/react";
+import { motion, AnimatePresence } from "motion/react";
 import { api } from "@/convex/_generated/api";
 import { OfferCardLarge } from "./OfferCardLarge";
 import { SectionSpacer } from "./SectionSpacer";
@@ -202,16 +203,25 @@ export function PasseiosContent() {
         <EmptyState icon="map-pin" title="Nenhum passeio encontrado" description="Tente outros filtros ou limpe a busca." />
       ) : (
         <>
-          {visible.map((t, i) => (
-            <div key={t.id}>
-              <section className="bg-white">
-                <div className="mx-auto w-full max-w-screen-md p-4">
-                  <OfferCardLarge tour={t} />
-                </div>
-              </section>
-              {i < visible.length - 1 && <SectionSpacer />}
-            </div>
-          ))}
+          <AnimatePresence initial={false}>
+            {visible.map((t, i) => (
+              <motion.div
+                key={t.id}
+                layout
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <section className="bg-white">
+                  <div className="mx-auto w-full max-w-screen-md p-4">
+                    <OfferCardLarge tour={t} />
+                  </div>
+                </section>
+                {i < visible.length - 1 && <SectionSpacer />}
+              </motion.div>
+            ))}
+          </AnimatePresence>
           <InfiniteSentinel sentinelRef={sentinelRef} hasMore={hasMore} />
         </>
       )}
