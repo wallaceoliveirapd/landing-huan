@@ -215,10 +215,7 @@ export const updateBasics = mutation({
     startDate: v.optional(v.number()),
   },
   handler: async (ctx, { id, title, type, duration, groupSize, budget, startDate }) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Unauthorized");
-    const trip = await ctx.db.get(id);
-    if (!trip || trip.userId !== userId) throw new Error("Not found");
+    const { trip } = await loadEditable(ctx, id);
 
     const patch: Record<string, unknown> = {};
     if (title !== undefined) patch.title = title;
@@ -232,7 +229,11 @@ export const updateBasics = mutation({
     // Existing days are never deleted — hidden by the client via display filter.
     if (duration !== undefined) {
       const existing = trip.itinerary ?? [];
-      const maxDay = existing.reduce((m, d) => Math.max(m, d.day), 0);
+      const maxDay = existing.reduce(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (m: number, d: any) => Math.max(m, d.day),
+        0,
+      );
       if (duration > maxDay) {
         const newDays = [];
         for (let d = maxDay + 1; d <= duration; d++) {
@@ -278,10 +279,7 @@ export const update = mutation({
     startDate: v.optional(v.number()),
   },
   handler: async (ctx, { id, ...patch }) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Unauthorized");
-    const trip = await ctx.db.get(id);
-    if (!trip || trip.userId !== userId) throw new Error("Not found");
+    await loadEditable(ctx, id);
     return ctx.db.patch(id, patch);
   },
 });
