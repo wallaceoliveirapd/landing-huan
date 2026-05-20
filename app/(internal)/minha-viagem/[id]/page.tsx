@@ -221,14 +221,6 @@ function ActivityCard({
         className="absolute left-0 top-0 bottom-0 w-1 rounded-l-[px]"
         style={{ backgroundColor: color }}
       />
-      {addedByPerson && (
-        <div
-          className="absolute top-1.5 right-1.5 z-10"
-          title={`Adicionado por ${addedByPerson.name ?? "colaborador"}`}
-        >
-          <AddedByAvatar name={addedByPerson.name} image={addedByPerson.image} />
-        </div>
-      )}
       <div
         role={linkHref ? "button" : undefined}
         tabIndex={linkHref ? 0 : undefined}
@@ -241,7 +233,8 @@ function ActivityCard({
         }}
         className={`ml-1 flex flex-1 gap-3 min-w-0 ${linkHref ? "cursor-pointer" : ""}`}
       >
-        <div className="relative size-12 flex-none rounded-xl overflow-hidden bg-[var(--color-neutral-100)]">
+        <div className="relative size-12 flex-none rounded-xl bg-[var(--color-neutral-100)]">
+          <div className="absolute inset-0 rounded-xl overflow-hidden">
           {dbItem?.image || dbItem?.cover ? (
             <Image
               src={toProxyUrl(String(dbItem.image ?? dbItem.cover))}
@@ -264,6 +257,15 @@ function ActivityCard({
                 size={20}
                 className="text-[var(--color-neutral-800)]"
               />
+            </div>
+          )}
+          </div>
+          {addedByPerson && (
+            <div
+              className="absolute -bottom-1 -right-1 z-10"
+              title={`Adicionado por ${addedByPerson.name ?? "colaborador"}`}
+            >
+              <AddedByAvatar name={addedByPerson.name} image={addedByPerson.image} />
             </div>
           )}
         </div>
