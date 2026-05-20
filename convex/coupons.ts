@@ -49,6 +49,11 @@ export const create = mutation({
     active: v.boolean(),
     featured: v.boolean(),
     order: v.optional(v.number()),
+    appliesTours: v.optional(v.array(v.id("tours"))),
+    appliesRestaurants: v.optional(v.array(v.id("restaurants"))),
+    appliesHosting: v.optional(v.array(v.id("hosting"))),
+    appliesNightlife: v.optional(v.array(v.id("nightlife"))),
+    appliesPraias: v.optional(v.array(v.id("praias"))),
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
@@ -75,12 +80,50 @@ export const update = mutation({
     active: v.optional(v.boolean()),
     featured: v.optional(v.boolean()),
     order: v.optional(v.number()),
+    appliesTours: v.optional(v.array(v.id("tours"))),
+    appliesRestaurants: v.optional(v.array(v.id("restaurants"))),
+    appliesHosting: v.optional(v.array(v.id("hosting"))),
+    appliesNightlife: v.optional(v.array(v.id("nightlife"))),
+    appliesPraias: v.optional(v.array(v.id("praias"))),
   },
   handler: async (ctx, { id, ...fields }) => {
     await requireAdmin(ctx);
     await ctx.db.patch(id, fields);
   },
 });
+
+/**
+ * Returns the full list of coupon IDs that apply to a given item, merging
+ * the item-side `coupons` field with reverse-linked coupons (where the
+ * coupon's `applies*` field includes this item id). De-duped.
+ */
+type AppliesKind = "tour" | "restaurant" | "hosting" | "nightlife" | "praia";
+
+const APPLIES_FIELD: Record<AppliesKind, string> = {
+  tour: "appliesTours",
+  restaurant: "appliesRestaurants",
+  hosting: "appliesHosting",
+  nightlife: "appliesNightlife",
+  praia: "appliesPraias",
+};
+
+export async function mergedCouponIdsFor(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ctx: any,
+  kind: AppliesKind,
+  itemId: string,
+  existing: readonly string[] | undefined,
+): Promise<string[]> {
+  const field = APPLIES_FIELD[kind];
+  const all = await ctx.db.query("coupons").collect();
+  const reverse: string[] = [];
+  for (const c of all) {
+    const arr = (c as Record<string, unknown>)[field] as string[] | undefined;
+    if (Array.isArray(arr) && arr.includes(itemId)) reverse.push(c._id);
+  }
+  const set = new Set<string>([...(existing ?? []), ...reverse]);
+  return [...set];
+}
 
 export const remove = mutation({
   args: { id: v.id("coupons") },

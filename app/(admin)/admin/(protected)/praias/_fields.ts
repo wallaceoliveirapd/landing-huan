@@ -14,4 +14,11 @@ export const FIELDS: Field[] = [
   { key: "featured", label: "Destaque", type: "boolean" },
   { key: "active", label: "Ativo", type: "boolean" },
   { key: "order", label: "Ordem", type: "number" },
+  {
+    key: "coupons",
+    label: "Cupons vinculados",
+    type: "refs",
+    optionsQuery: api.coupons.list,
+    optionsQueryArgs: { activeOnly: false },
+  },
 ];

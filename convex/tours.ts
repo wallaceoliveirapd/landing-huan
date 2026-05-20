@@ -3,6 +3,7 @@ import { mutation, query } from "./_generated/server";
 import { requireAdmin } from "./helpers";
 import { matchesCity } from "./cityFilter";
 import { combinedStats, combinedStatsForItems } from "./placeReviews";
+import { mergedCouponIdsFor } from "./coupons";
 
 export const list = query({
   args: {
@@ -46,7 +47,14 @@ export const getBySlug = query({
       item.rating,
       item.reviewCount,
     );
-    return { ...item, rating: rating ?? item.rating, reviewCount: total };
+    const coupons = await mergedCouponIdsFor(ctx, "tour", item._id, item.coupons);
+    return {
+      ...item,
+      rating: rating ?? item.rating,
+      reviewCount: total,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      coupons: coupons as any,
+    };
   },
 });
 

@@ -136,6 +136,7 @@ export default defineSchema({
     featured: v.boolean(),
     active: v.boolean(),
     order: v.optional(v.number()),
+    coupons: v.optional(v.array(v.id("coupons"))),
   })
     .index("by_slug", ["slug"])
     .index("by_featured", ["featured"])
@@ -258,6 +259,14 @@ export default defineSchema({
     active: v.boolean(),
     featured: v.boolean(),
     order: v.optional(v.number()),
+    // Reverse-link side: admin can pick which items this coupon applies to.
+    // The detail pages merge these with the item-side `coupons` field on read
+    // so the relationship works either way.
+    appliesTours: v.optional(v.array(v.id("tours"))),
+    appliesRestaurants: v.optional(v.array(v.id("restaurants"))),
+    appliesHosting: v.optional(v.array(v.id("hosting"))),
+    appliesNightlife: v.optional(v.array(v.id("nightlife"))),
+    appliesPraias: v.optional(v.array(v.id("praias"))),
   })
     .index("by_active", ["active"])
     .index("by_featured", ["featured"]),

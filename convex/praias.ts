@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { requireAdmin } from "./helpers";
 import { matchesCity } from "./cityFilter";
+import { mergedCouponIdsFor } from "./coupons";
 
 export const list = query({
   args: {
@@ -35,10 +36,14 @@ export const featured = query({
 export const getBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, { slug }) => {
-    return ctx.db
+    const item = await ctx.db
       .query("praias")
       .withIndex("by_slug", (q) => q.eq("slug", slug))
       .unique();
+    if (!item) return null;
+    const coupons = await mergedCouponIdsFor(ctx, "praia", item._id, item.coupons);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return { ...item, coupons: coupons as any };
   },
 });
 
@@ -71,6 +76,7 @@ export const create = mutation({
     featured: v.boolean(),
     active: v.boolean(),
     order: v.optional(v.number()),
+    coupons: v.optional(v.array(v.id("coupons"))),
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
@@ -106,6 +112,7 @@ export const update = mutation({
     featured: v.optional(v.boolean()),
     active: v.optional(v.boolean()),
     order: v.optional(v.number()),
+    coupons: v.optional(v.array(v.id("coupons"))),
   },
   handler: async (ctx, { id, ...fields }) => {
     await requireAdmin(ctx);

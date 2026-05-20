@@ -9,6 +9,7 @@ import { GtmViewItem } from "@/components/atoms/GtmViewItem";
 import { PraiaPhotosGrid } from "@/components/organisms/PraiaPhotosGrid";
 import { BackButton } from "@/components/atoms/BackButton";
 import { PlaceReviewsSection } from "@/components/organisms/PlaceReviewsSection";
+import { LinkedCoupons } from "@/components/organisms/LinkedCoupons";
 import { RichContent } from "@/components/atoms/RichContent";
 
 const BASE = "https://huanfalcao.com.br";
@@ -185,6 +186,11 @@ export default async function PraiaDetailPage({ params }: PageProps) {
         </section>
       )}
 
+      {praia.coupons && praia.coupons.length > 0 && (
+        <section className="px-6 pt-6 max-w-screen-md mx-auto">
+          <LinkedCoupons ids={praia.coupons} heading="Cupons para esta praia" />
+        </section>
+      )}
       <PlaceReviewsSection kind="praia" itemId={praia._id} noun="esta praia" />
     </main>
   );

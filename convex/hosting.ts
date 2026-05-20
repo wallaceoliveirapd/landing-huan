@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { requireAdmin } from "./helpers";
 import { matchesCity } from "./cityFilter";
+import { mergedCouponIdsFor } from "./coupons";
 
 export const list = query({
   args: {
@@ -32,10 +33,14 @@ export const featured = query({
 export const getBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, { slug }) => {
-    return ctx.db
+    const item = await ctx.db
       .query("hosting")
       .withIndex("by_slug", (q) => q.eq("slug", slug))
       .unique();
+    if (!item) return null;
+    const coupons = await mergedCouponIdsFor(ctx, "hosting", item._id, item.coupons);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return { ...item, coupons: coupons as any };
   },
 });
 

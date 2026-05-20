@@ -1,4 +1,5 @@
 import type { Field } from "@/components/organisms/admin/AdminCrudPage";
+import { api } from "@/convex/_generated/api";
 
 export const FIELDS: Field[] = [
   { key: "title", label: "Título do cupom", type: "text", required: true, placeholder: "8% off em passeios" },
@@ -25,4 +26,41 @@ export const FIELDS: Field[] = [
   { key: "featured", label: "Destaque na home", type: "boolean" },
   { key: "active", label: "Ativo (visível no site)", type: "boolean" },
   { key: "order", label: "Ordem de exibição", type: "number" },
+  // Reverse-link picker: which items this coupon applies to. Items also
+  // carry their own coupon list, so editing on either side works.
+  {
+    key: "appliesTours",
+    label: "Aplica nos passeios",
+    type: "refs",
+    optionsQuery: api.tours.list,
+    optionsQueryArgs: { activeOnly: false },
+  },
+  {
+    key: "appliesRestaurants",
+    label: "Aplica nos restaurantes",
+    type: "refs",
+    optionsQuery: api.restaurants.list,
+    optionsQueryArgs: { activeOnly: false },
+  },
+  {
+    key: "appliesHosting",
+    label: "Aplica nas hospedagens",
+    type: "refs",
+    optionsQuery: api.hosting.list,
+    optionsQueryArgs: { activeOnly: false },
+  },
+  {
+    key: "appliesNightlife",
+    label: "Aplica em vida noturna",
+    type: "refs",
+    optionsQuery: api.nightlife.list,
+    optionsQueryArgs: { activeOnly: false },
+  },
+  {
+    key: "appliesPraias",
+    label: "Aplica nas praias",
+    type: "refs",
+    optionsQuery: api.praias.list,
+    optionsQueryArgs: { activeOnly: false },
+  },
 ];
